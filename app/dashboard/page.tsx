@@ -13,7 +13,7 @@ export default function Dashboard() {
   const [descripcion, setDescripcion] = useState('')
   const [qrValor, setQrValor] = useState('')
 
-  const guardarActivo = async (e: any) => {
+  const guardarActivo = async (e: React.FormEvent) => {
     e.preventDefault()
     const { data, error } = await supabase
       .from('activos')
@@ -22,7 +22,7 @@ export default function Dashboard() {
 
     if (error) {
       alert("Error: " + error.message)
-    } else {
+    } else if (data && data[0]) {
       setQrValor(data[0].id)
       alert("¡Registro exitoso!")
     }
@@ -36,22 +36,24 @@ export default function Dashboard() {
           placeholder="Nombre del activo" 
           value={nombre} 
           onChange={(e) => setNombre(e.target.value)} 
-          style={{ display: 'block', marginBottom: '10px' }}
+          style={{ display: 'block', marginBottom: '10px', padding: '8px', width: '100%', maxWidth: '300px' }}
         />
         <textarea 
           placeholder="Descripción" 
           value={descripcion} 
           onChange={(e) => setDescripcion(e.target.value)}
-          style={{ display: 'block', marginBottom: '10px' }}
+          style={{ display: 'block', marginBottom: '10px', padding: '8px', width: '100%', maxWidth: '300px' }}
         />
-        <button type="submit">Guardar y Generar QR</button>
+        <button type="submit" style={{ padding: '10px 20px', cursor: 'pointer' }}>
+          Guardar y Generar QR
+        </button>
       </form>
 
       {qrValor && (
-        <div style={{ marginTop: '20px' }}>
+        <div style={{ marginTop: '20px', border: '1px solid #ccc', padding: '15px', display: 'inline-block' }}>
           <h3>Código QR Generado:</h3>
           <QRCodeSVG value={qrValor} size={256} />
-          <p>ID: {qrValor}</p>
+          <p style={{ marginTop: '10px', fontWeight: 'bold' }}>ID: {qrValor}</p>
         </div>
       )}
     </div>
