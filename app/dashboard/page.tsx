@@ -36,15 +36,15 @@ export default function Dashboard() {
           placeholder="Nombre del activo" 
           value={nombre} 
           onChange={(e) => setNombre(e.target.value)} 
-          style={{ display: 'block', marginBottom: '10px', padding: '8px', width: '100%', maxWidth: '300px' }}
+          style={{ display: 'block', marginBottom: '10px', padding: '8px', width: '100%', maxWidth: '300px', color: 'black' }}
         />
         <textarea 
           placeholder="Descripción" 
           value={descripcion} 
           onChange={(e) => setDescripcion(e.target.value)}
-          style={{ display: 'block', marginBottom: '10px', padding: '8px', width: '100%', maxWidth: '300px' }}
+          style={{ display: 'block', marginBottom: '10px', padding: '8px', width: '100%', maxWidth: '300px', color: 'black' }}
         />
-        <button type="submit" style={{ padding: '10px 20px', cursor: 'pointer' }}>
+        <button type="submit" style={{ padding: '10px 20px', cursor: 'pointer', backgroundColor: '#0070f3', color: 'white', border: 'none', borderRadius: '5px' }}>
           Guardar y Generar QR
         </button>
       </form>
