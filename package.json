@@ -1,5 +1,5 @@
 {
-  "name": "psyqus-web-v2",
+  "name": "psyqus-web",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -12,9 +12,10 @@
     "next": "latest",
     "react": "latest",
     "react-dom": "latest",
-    "@supabase/supabase-js": "^2.35.3",
-    "html2canvas": "^1.4.1",
-    "jspdf": "^2.5.1",
-    "recharts": "^2.10.0"
+    "@supabase/supabase-js": "latest",
+    "html2canvas": "latest",
+    "jspdf": "latest",
+    "recharts": "latest",
+    "qrcode.react": "latest"
   }
 }
