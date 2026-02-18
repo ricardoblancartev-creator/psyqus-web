@@ -1,8 +1,6 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-/* Opcional: estilos base para tu SaaS */
+/* Estilos base */
 html,
 body {
   padding: 0;
