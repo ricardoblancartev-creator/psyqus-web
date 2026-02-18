@@ -86,4 +86,4 @@ export default function EncuestaNOM035({ params }: { params: { id: string } }) {
       </div>
     </div>
   );
-}
+} // <--- Esta es la llave que cierra la función EncuestaNOM035
