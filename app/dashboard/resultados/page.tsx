@@ -39,8 +39,16 @@ export default function Resultados() {
   }, [])
 
   const descargarPDF = async () => {
-    const element = reportRef.current;
-    const canvas = await html2canvas(element, { scale: 2, useCORS: true, width: 800 });
+const element = reportRef.current;
+
+if (!element) return;
+
+const canvas = await html2canvas(element, {
+  scale: 2,
+  useCORS: true,
+  width: 800,
+});
+
     const data = canvas.toDataURL('image/png');
     const pdf = new jsPDF('p', 'mm', 'a4');
     const pdfWidth = pdf.internal.pageSize.getWidth();
