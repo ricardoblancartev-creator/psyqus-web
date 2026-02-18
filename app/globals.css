@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Opcional: estilos base para tu SaaS */
+html,
 body {
-  background-color: #f3f4f6; /* Un gris clarito para que resalte el cuadro blanco */
+  padding: 0;
+  margin: 0;
+}
+
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background-color: #f8fafc;
 }
