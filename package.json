@@ -9,14 +9,15 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@supabase/supabase-js": "latest",
-    "html2canvas": "latest",
-    "jspdf": "latest",
+    "@supabase/ssr": "^0.8.0",
+    "@supabase/supabase-js": "^2.97.0",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^4.1.0",
     "next": "latest",
-    "qrcode.react": "latest",
+    "qrcode.react": "^4.2.0",
     "react": "latest",
     "react-dom": "latest",
-    "recharts": "latest"
+    "recharts": "^3.7.0"
   },
   "devDependencies": {
     "@types/react": "19.2.14",
@@ -26,4 +27,3 @@
     "typescript": "5.9.3"
   }
 }
-
