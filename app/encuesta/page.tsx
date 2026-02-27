@@ -25,7 +25,7 @@ export default function EncuestaPage() {
     return "Alto";
   };
 
-  const guardarEncuesta = async () => {
+const guardarEncuesta = async () => {
     setLoading(true);
     const { data: { user } } = await supabase.auth.getUser();
     
@@ -38,6 +38,7 @@ export default function EncuestaPage() {
     const total = Object.values(respuestas).reduce((acc, curr) => acc + curr, 0);
     const nivel = calcularNivel(total);
 
+    // 1. Guardamos en la base de datos
     const { error } = await supabase.from('respuestas').insert([
       { user_id: user.id, total, nivel }
     ]);
@@ -45,6 +46,17 @@ export default function EncuestaPage() {
     if (error) {
       alert("Error: " + error.message);
     } else {
+      // 2. ENVIAR CORREO SI EL RIESGO ES ALTO O MODERADO
+      if (nivel === "Alto" || nivel === "Moderado") {
+        await fetch('/api/send', {
+          method: 'POST',
+          body: JSON.stringify({
+            tipo: `RESULTADO NOM-035: ${nivel}`,
+            mensaje: `El usuario ha completado su encuesta semanal con un puntaje de ${total} (${nivel}).`,
+            emailUsuario: user.email
+          }),
+        });
+      }
       router.push('/dashboard');
     }
     setLoading(false);
