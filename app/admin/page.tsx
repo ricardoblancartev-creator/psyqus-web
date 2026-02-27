@@ -74,7 +74,7 @@ export default function AdminDashboard() {
   <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
     <p className="text-gray-400 text-xs font-bold uppercase tracking-wider">Casos Críticos</p>
     <div className="text-4xl font-black text-red-600">{stats.alto}</div>
-    <p className="text-gray-400 text-xs mt-2 text-red-400 font-medium">Requieren atención inmediata</p>
+    <p className="text-xs mt-2 text-red-400 font-medium">Requieren atención inmediata</p>
   </div>
 
   <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">

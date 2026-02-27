@@ -10,22 +10,39 @@ export default function BuzonPage() {
   const [enviando, setEnviando] = useState(false);
   const router = useRouter();
 
-  const enviarReporte = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setEnviando(true);
+// Dentro de app/buzon/page.tsx
 
-    const { data: { user } } = await supabase.auth.getUser();
+const enviarReporte = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setEnviando(true);
 
-    const { error } = await supabase.from('reportes').insert([
-      { user_id: user?.id, tipo, mensaje }
-    ]);
+  const { data: { user } } = await supabase.auth.getUser();
 
-    if (!error) {
-      alert("Tu mensaje ha sido recibido de forma segura.");
-      router.push('/dashboard');
-    }
+  // 1. Guardar en Base de Datos (Lo que ya hacíamos)
+  const { error: dbError } = await supabase.from('reportes').insert([
+    { user_id: user?.id, tipo, mensaje }
+  ]);
+
+  if (dbError) {
+    alert("Error en DB");
     setEnviando(false);
-  };
+    return;
+  }
+
+  // 2. ENVIAR CORREO (Lo nuevo)
+  await fetch('/api/send', {
+    method: 'POST',
+    body: JSON.stringify({
+      tipo,
+      mensaje,
+      emailUsuario: user?.email
+    }),
+  });
+
+  alert("Tu reporte ha sido enviado y el psicólogo ha sido notificado.");
+  router.push('/dashboard');
+  setEnviando(false);
+};
 
   return (
     <div className="max-w-2xl mx-auto p-6 min-h-screen bg-gray-50">
