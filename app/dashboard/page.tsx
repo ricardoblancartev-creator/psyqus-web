@@ -65,6 +65,17 @@ export default function Dashboard() {
           </Link>
         </div>
 
+       {/* Tarjeta de Buzón */}
+<div className="bg-gradient-to-br from-blue-50 to-white p-8 rounded-2xl shadow-sm border border-blue-100">
+  <h2 className="text-xl font-bold mb-2 text-blue-900">Buzón de Paz</h2>
+  <p className="text-gray-600 mb-6 text-sm">Reporta situaciones o solicita apoyo emocional de forma confidencial.</p>
+  <Link 
+    href="/buzon" 
+    className="inline-block text-blue-600 font-bold hover:underline"
+  >
+    Acceder al buzón →
+  </Link>
+</div>
         {/* Tarjeta de Resultado */}
         <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 text-center">
           <h2 className="text-2xl font-bold mb-4 text-gray-800">Estrésómetro</h2>
