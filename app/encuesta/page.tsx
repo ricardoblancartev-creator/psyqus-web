@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BANCO_PREGUNTAS, OBTENER_DIAGNOSTICO, FIRMA_MTRA } from './constants';
+import { BANCO_PREGUNTAS, OBTENER_DIAGNOSTICO, FIRMA_MTRA } from '@/app/encuesta/constants';
 import Link from 'next/link';
 
 export default function EncuestaPage() {
