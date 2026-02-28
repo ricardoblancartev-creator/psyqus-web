@@ -94,9 +94,12 @@ export default function DashboardPage() {
               <p className="mt-4 text-indigo-100 text-sm leading-relaxed">
                 Descubre cómo las palabras asertivas transforman la química cerebral del equipo, reduciendo el estrés en un 30%.
               </p>
-              <button className="mt-6 text-sm font-bold border-b-2 border-white/30 pb-1 hover:border-white transition-all">
-                LEER ANÁLISIS COMPLETO
-              </button>
+              <Link 
+  href="/insights" 
+  className="mt-6 inline-block text-sm font-bold border-b-2 border-white/30 pb-1 hover:border-white transition-all text-white uppercase tracking-widest"
+>
+  LEER ANÁLISIS COMPLETO
+</Link>
             </div>
             <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-3xl group-hover:bg-white/20 transition-colors"></div>
           </div>
