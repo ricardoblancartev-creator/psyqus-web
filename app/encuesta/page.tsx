@@ -1,13 +1,17 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BANCO_PREGUNTAS, OBTENER_DIAGNOSTICO, FIRMA_MTRA } from '@/app/encuesta/constants';
 import Link from 'next/link';
+import { supabase } from '@/lib/supabase'; // Conexión a DB
+import { useUser } from '@clerk/nextjs';   // Conexión a Usuario
 
 export default function EncuestaPage() {
+  const { user } = useUser();
   const [step, setStep] = useState(0);
   const [respuestas, setRespuestas] = useState<number[]>([]);
   const [finalizado, setFinalizado] = useState(false);
+  const [guardado, setGuardado] = useState(false);
 
   const manejarRespuesta = (valor: number) => {
     const nuevasRespuestas = [...respuestas, valor];
@@ -21,13 +25,30 @@ export default function EncuestaPage() {
   };
 
   const calcularPromedio = () => {
-    // Calculamos el porcentaje basado en el máximo posible (5 puntos por pregunta)
     const suma = respuestas.reduce((a, b) => a + b, 0);
     const maximoPosible = BANCO_PREGUNTAS.length * 5;
     return Math.round((suma / maximoPosible) * 100);
   };
 
-  // Pantalla de Resultados (Interpretación de la Mtra. Esperanza)
+  // EFECTO PARA GUARDAR EN SUPABASE AUTOMÁTICAMENTE
+  useEffect(() => {
+    const guardarDatos = async () => {
+      if (finalizado && !guardado) {
+        const score = calcularPromedio();
+        const { error } = await supabase
+          .from('resultados_encuestas')
+          .insert([{ 
+            usuario_id: user?.id || 'anonimo', 
+            respuestas: respuestas,
+            puntaje_total: score 
+          }]);
+        
+        if (!error) setGuardado(true);
+      }
+    };
+    guardarDatos();
+  }, [finalizado]);
+
   if (finalizado) {
     const score = calcularPromedio();
     return (
@@ -38,7 +59,9 @@ export default function EncuestaPage() {
           className="max-w-md w-full bg-slate-800/50 backdrop-blur-xl p-10 rounded-[3rem] border border-cyan-500/30 text-center shadow-2xl"
         >
           <div className="mb-6">
-            <span className="text-cyan-400 text-xs font-mono uppercase tracking-[0.3em]">Análisis Finalizado</span>
+            <span className="text-cyan-400 text-xs font-mono uppercase tracking-[0.3em]">
+              {guardado ? "Análisis Guardado" : "Procesando..."}
+            </span>
             <h2 className="text-5xl font-black mt-2 leading-none">{score}%</h2>
             <p className="text-slate-500 text-xs uppercase mt-1 font-bold">Índice de Bienestar</p>
           </div>
@@ -61,10 +84,6 @@ export default function EncuestaPage() {
           <div className="border-t border-slate-700/50 pt-6 text-left">
             <p className="font-black text-white text-sm uppercase">{FIRMA_MTRA.nombre}</p>
             <p className="text-[9px] text-slate-500 tracking-[0.2em] font-bold">{FIRMA_MTRA.cedula}</p>
-            <div className="mt-4 flex items-center gap-2 opacity-30">
-               <div className="w-8 h-8 border border-slate-500 rounded-full flex items-center justify-center text-[8px]">SEAL</div>
-               <span className="text-[8px] uppercase font-mono">Documento Validado Digitalmente</span>
-            </div>
           </div>
           
           <Link 
@@ -78,10 +97,8 @@ export default function EncuestaPage() {
     );
   }
 
-  // Pantalla de Preguntas (Interactiva)
   return (
     <main className="min-h-screen bg-[#0f172a] p-6 flex flex-col items-center justify-center relative overflow-hidden">
-      {/* Fondo decorativo */}
       <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,rgba(79,70,229,0.1),transparent)] pointer-events-none" />
       
       <div className="w-full max-w-xl relative z-10">

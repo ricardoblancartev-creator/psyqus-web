@@ -8,6 +8,12 @@ export default function DashboardPage() {
   return (
     <main className="min-h-screen bg-[#0f172a] p-6 lg:p-12 text-slate-200">
       <div className="max-w-6xl mx-auto">
+        <div className="flex justify-end mb-8">
+  <Link href="/login" className="group relative px-6 py-2 overflow-hidden rounded-full bg-slate-800 text-white text-xs font-bold">
+    <span className="relative z-10 uppercase tracking-widest">Registrarme / Login</span>
+    <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-indigo-500 opacity-0 group-hover:opacity-20 transition-opacity" />
+  </Link>
+</div>
         
         {/* --- ENCABEZADO FUTURISTA --- */}
         <header className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
