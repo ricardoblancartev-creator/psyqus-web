@@ -1,106 +1,66 @@
-"use client";
-import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase/client';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+import RadarBienestar from './components/RadarBienestar';
 
-export default function Dashboard() {
-  const [ultimoResultado, setUltimoResultado] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const router = useRouter();
-
-  useEffect(() => {
-    async function cargarDatos() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data } = await supabase
-          .from('respuestas')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        setUltimoResultado(data);
-      } else {
-        router.push('/login'); // Redirigir si no hay sesión
-      }
-      setLoading(false);
-    }
-    cargarDatos();
-  }, [router]);
-
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    router.push('/login');
-  };
-
+export default function DashboardPage() {
   return (
-    <div className="p-8 max-w-5xl mx-auto bg-gray-50 min-h-screen">
-      {/* HEADER CON LOGOUT */}
-      <div className="flex justify-between items-start mb-10">
-        <div>
-          <h1 className="text-4xl font-black text-blue-900 tracking-tight">PSYQUS</h1>
-          <p className="text-gray-500 font-medium uppercase text-sm tracking-widest">Plataforma NOM-035</p>
-        </div>
-        <button 
-          onClick={handleSignOut}
-          className="bg-red-50 text-red-600 px-4 py-2 rounded-lg font-semibold hover:bg-red-100 transition-colors border border-red-200"
-        >
-          Cerrar Sesión
-        </button>
-      </div>
+    <main className="min-h-screen bg-[#0f172a] p-6 lg:p-12 text-slate-200">
+      <div className="max-w-6xl mx-auto">
+        
+        {/* ENCABEZADO */}
+        <header className="mb-10">
+          <h1 className="text-4xl font-black bg-gradient-to-r from-cyan-400 to-indigo-500 bg-clip-text text-transparent">
+            PSYQUS INTELLIGENCE
+          </h1>
+          <p className="text-slate-400 mt-2">Monitoreo de Salud Mental Organizacional</p>
+        </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Tarjeta de Encuesta */}
-        <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between">
-          <div>
-            <h2 className="text-2xl font-bold mb-2 text-gray-800">Encuesta semanal</h2>
-            <p className="text-gray-500 mb-6">Mide tu bienestar emocional hoy mismo.</p>
-          </div>
-          <Link 
-            href="/encuesta" 
-            className="block w-full text-center bg-blue-600 text-white py-4 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-md"
-          >
-            Contestar encuesta
-          </Link>
-        </div>
+        {/* --- EL PASO 2: EL RADAR --- */}
+        <section className="mb-8">
+          <RadarBienestar />
+        </section>
 
-       {/* Tarjeta de Buzón */}
-<div className="bg-gradient-to-br from-blue-50 to-white p-8 rounded-2xl shadow-sm border border-blue-100">
-  <h2 className="text-xl font-bold mb-2 text-blue-900">Buzón de Paz</h2>
-  <p className="text-gray-600 mb-6 text-sm">Reporta situaciones o solicita apoyo emocional de forma confidencial.</p>
-  <Link 
-    href="/buzon" 
-    className="inline-block text-blue-600 font-bold hover:underline"
-  >
-    Acceder al buzón →
-  </Link>
-</div>
-        {/* Tarjeta de Resultado */}
-        <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 text-center">
-          <h2 className="text-2xl font-bold mb-4 text-gray-800">Estrésómetro</h2>
-          {loading ? (
-            <div className="animate-pulse flex flex-col items-center">
-               <div className="h-8 w-24 bg-gray-200 rounded mb-4"></div>
-            </div>
-          ) : (
-            <>
-              <div className="text-5xl font-black mb-4" style={{ 
-                color: ultimoResultado?.nivel === 'Alto' ? '#ef4444' : 
-                       ultimoResultado?.nivel === 'Moderado' ? '#f59e0b' : 
-                       ultimoResultado?.nivel === 'Bajo' ? '#10b981' : '#cbd5e1'
-              }}>
-                {ultimoResultado ? ultimoResultado.nivel : "SIN DATOS"}
+        {/* --- EL PASO 3: ARTÍCULO Y PREDICCIÓN (DEBAJO DEL RADAR) --- */}
+        <section className="grid md:grid-cols-2 gap-6">
+          
+          {/* Tarjeta del Artículo Neurociencia */}
+          <div className="p-8 bg-gradient-to-br from-indigo-600 to-purple-700 rounded-3xl text-white shadow-xl relative overflow-hidden group hover:scale-[1.02] transition-transform cursor-pointer">
+            <div className="relative z-10">
+              <span className="bg-white/20 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">
+                Neuro-Insights
+              </span>
+              <h4 className="text-2xl font-black mt-4 leading-tight">
+                ¿Tu lenguaje libera Oxitocina o Cortisol?
+              </h4>
+              <p className="mt-4 text-indigo-100 text-sm leading-relaxed">
+                El 70% de los conflictos laborales nacen del tono, no del mensaje. 
+                Descubre cómo la asertividad reprograma el clima laboral.
+              </p>
+              <div className="mt-6 flex items-center gap-2 font-bold text-sm">
+                Leer artículo completo <span className="group-hover:translate-x-2 transition-transform">→</span>
               </div>
-              {ultimoResultado && (
-                <p className="text-gray-500 font-medium bg-gray-50 py-2 px-4 rounded-full inline-block">
-                  Puntaje: {ultimoResultado.total} pts
-                </p>
-              )}
-            </>
-          )}
-        </div>
+            </div>
+            <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
+          </div>
+
+          {/* Tarjeta de Predicción de Crisis */}
+          <div className="border border-slate-800 bg-slate-900/50 backdrop-blur-sm rounded-3xl p-8 flex flex-col justify-center items-center text-center group">
+            <div className="w-16 h-16 bg-cyan-500/10 rounded-2xl flex items-center justify-center mb-4 group-hover:bg-cyan-500/20 transition-colors">
+              <svg className="w-8 h-8 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+              </svg>
+            </div>
+            <h4 className="text-white font-bold text-lg">Predicción de Burnout</h4>
+            <p className="text-slate-400 text-sm mt-2 max-w-[200px]">
+              Algoritmo activado: Detectando patrones de estrés antes del colapso.
+            </p>
+            <div className="mt-4 text-xs font-mono text-cyan-500 bg-cyan-500/10 px-2 py-1 rounded">
+              STATUS: SCANNING...
+            </div>
+          </div>
+
+        </section>
+
+        {/* Aquí abajo puedes seguir con tus tablas de reportes o el buzón */}
       </div>
-    </div>
+    </main>
   );
 }
