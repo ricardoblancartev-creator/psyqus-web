@@ -1,20 +1,16 @@
-import "./globals.css";
-import type { Metadata } from "next";
-
-export const metadata: Metadata = {
-  title: "Psyqus - Plataforma NOM-035",
-  description: "Plataforma SaaS para implementación de la NOM-035 en México",
-};
+import { ClerkProvider } from '@clerk/nextjs' // 1. Importa esto
+import './globals.css' // O como se llame tu archivo de estilos
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode
 }) {
   return (
-    <html lang="es">
-      <body>{children}</body>
-    </html>
-  );
+    <ClerkProvider> {/* 2. Envuelve TODO con esto */}
+      <html lang="es">
+        <body>{children}</body>
+      </html>
+    </ClerkProvider>
+  )
 }
-
