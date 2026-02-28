@@ -169,6 +169,12 @@ export default function DashboardPage() {
         </section>
 
       </div>
+      <footer className="mt-20 border-t border-slate-800 pt-10 pb-10 flex justify-between items-center">
+  <p className="text-[9px] text-slate-600 uppercase tracking-[0.4em]">Psyqus Engine v1.0.4 - 2026</p>
+  <Link href="/admin" className="text-[9px] text-slate-700 hover:text-cyan-500 transition-colors uppercase font-bold tracking-widest">
+    Acceso Especialista
+  </Link>
+</footer>
     </main>
   );
 }
