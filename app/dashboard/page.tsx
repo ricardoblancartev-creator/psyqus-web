@@ -26,6 +26,49 @@ export default function DashboardPage() {
             </div>
           </div>
         </header>
+        {/* --- SECCIÓN DE ESTADO Y GAMIFICACIÓN --- */}
+<section className="grid md:grid-cols-3 gap-6 mb-10">
+  
+  {/* WIDGET 1: ESTRESÓMETRO (Nivel de Estrés) */}
+  <div className="p-6 bg-slate-800/40 border border-slate-700 rounded-3xl flex flex-col items-center justify-center relative overflow-hidden group">
+    <div className="absolute top-0 right-0 p-2 uppercase text-[8px] font-bold text-slate-500 tracking-widest">Live Status</div>
+    <div className="relative w-24 h-24 flex items-center justify-center">
+      {/* Círculo de progreso neón */}
+      <svg className="w-full h-full transform -rotate-90">
+        <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-slate-700" />
+        <motion.circle 
+          initial={{ strokeDasharray: "0 251" }}
+          animate={{ strokeDasharray: "180 251" }} // Aquí controlas el nivel (ej. 70%)
+          cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="8" fill="transparent" 
+          className="text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]" 
+        />
+      </svg>
+      <span className="absolute text-2xl font-black text-white">72%</span>
+    </div>
+    <h3 className="mt-4 font-bold text-slate-200">Índice de Resiliencia</h3>
+    <p className="text-[10px] text-cyan-500 font-mono tracking-tighter uppercase">Nivel: Óptimo-Alerta</p>
+  </div>
+
+  {/* WIDGET 2: NEURO-TRAINING (Juegos) */}
+  <Link href="/entrenamiento" className="group md:col-span-2">
+    <div className="p-6 bg-gradient-to-r from-purple-900/40 to-indigo-900/40 border border-purple-500/30 rounded-3xl hover:border-purple-400 transition-all h-full flex items-center gap-6 cursor-pointer">
+      <div className="w-20 h-20 bg-purple-500/20 rounded-2xl flex items-center justify-center text-4xl group-hover:scale-110 transition-transform">
+        🎮
+      </div>
+      <div>
+        <h3 className="text-xl font-bold text-white">Zona de Neuro-Training</h3>
+        <p className="text-slate-400 text-sm">Ejercicios interactivos para "resetear" tu cerebro en 3 minutos.</p>
+        <div className="mt-3 flex gap-2">
+          <span className="text-[10px] bg-purple-500/20 text-purple-300 px-2 py-1 rounded border border-purple-500/30">Lógica</span>
+          <span className="text-[10px] bg-indigo-500/20 text-indigo-300 px-2 py-1 rounded border border-indigo-500/30">Calma</span>
+          <span className="text-[10px] bg-pink-500/20 text-pink-300 px-2 py-1 rounded border border-pink-500/30">+50 EXP</span>
+        </div>
+      </div>
+    </div>
+  </Link>
+</section>
+
+{/* Aquí sigues con la sección de Encuesta y Buzón (puedes ponerlos más abajo o como botones secundarios) */}
 
         {/* --- SECCIÓN 1: ACCIONES RÁPIDAS (ENCUESTA Y BUZÓN) --- */}
         <section className="grid md:grid-cols-2 gap-6 mb-10">
@@ -95,7 +138,7 @@ export default function DashboardPage() {
                 Descubre cómo las palabras asertivas transforman la química cerebral del equipo, reduciendo el estrés en un 30%.
               </p>
               <Link 
-  href="/insights" 
+  href="/entrenamiento" 
   className="mt-6 inline-block text-sm font-bold border-b-2 border-white/30 pb-1 hover:border-white transition-all text-white uppercase tracking-widest"
 >
   LEER ANÁLISIS COMPLETO
