@@ -21,6 +21,7 @@
     "framer-motion": "^12.34.3",
     "html2canvas": "^1.4.1",
     "jspdf": "^4.1.0",
+    "lucide-react": "^0.575.0",
     "nanoid": "^5.1.6",
     "next": "latest",
     "qrcode.react": "^4.2.0",
