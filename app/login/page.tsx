@@ -1,6 +1,5 @@
 "use client";
 import { SignIn, SignUp } from "@clerk/nextjs";
-import { dark } from "@clerk/themes";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -9,8 +8,6 @@ export default function LoginPage() {
 
   return (
     <main className="min-h-screen bg-[#020617] flex flex-col items-center justify-center p-4 relative overflow-hidden">
-      
-      {/* Fondo Neón */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(34,211,238,0.05),transparent)] pointer-events-none" />
 
       <div className="z-10 w-full max-w-md">
@@ -35,17 +32,9 @@ export default function LoginPage() {
             transition={{ duration: 0.2 }}
           >
             {showRegister ? (
-              <SignUp 
-                routing="hash" 
-                afterSignUpUrl="/dashboard"
-                appearance={{ baseTheme: dark }}
-              />
+              <SignUp routing="hash" afterSignUpUrl="/dashboard" />
             ) : (
-              <SignIn 
-                routing="hash" 
-                afterSignInUrl="/dashboard"
-                appearance={{ baseTheme: dark }}
-              />
+              <SignIn routing="hash" afterSignInUrl="/dashboard" />
             )}
           </motion.div>
         </AnimatePresence>
