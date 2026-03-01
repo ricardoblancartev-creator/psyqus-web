@@ -7,7 +7,18 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
+import Link from 'next/link';
 
+// Pon esto en el header o navbar de tu Landing Page
+export const AccesoRapido = () => {
+  return (
+    <Link href="/login" className="relative group overflow-hidden px-8 py-3 rounded-full bg-transparent border border-cyan-500/30 text-white font-black uppercase text-xs tracking-widest transition-all hover:border-cyan-400">
+      <span className="relative z-10">Entrar a Psyqus</span>
+      {/* Efecto de resplandor neón al pasar el mouse */}
+      <div className="absolute inset-0 bg-cyan-500 opacity-0 group-hover:opacity-10 transition-opacity blur-lg" />
+    </Link>
+  );
+};
 export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
