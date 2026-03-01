@@ -2,34 +2,17 @@
   "name": "psyqus-web",
   "version": "0.1.1",
   "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
-  },
-  "dependencies": {
-    "@anthropic-ai/sdk": "^0.78.0",
-    "@clerk/nextjs": "^6.39.0",
-    "@clerk/themes": "^2.4.57",
-    "@google/generative-ai": "^0.24.1",
-    "@react-pdf/renderer": "^4.3.2",
-    "@supabase/ssr": "^0.8.0",
-    "@supabase/supabase-js": "^2.97.0",
-    "@upstash/ratelimit": "^2.0.8",
-    "@upstash/redis": "^1.36.3",
-    "framer-motion": "^12.34.3",
-    "html2canvas": "^1.4.1",
-    "jspdf": "^4.1.0",
-    "lucide-react": "^0.575.0",
-    "nanoid": "^5.1.6",
-    "next": "latest",
-    "qrcode.react": "^4.2.0",
-    "react": "latest",
-    "react-dom": "latest",
-    "recharts": "^3.7.0",
-    "resend": "^6.9.3"
-  },
+"scripts": {
+  "dev": "next dev",
+  "build": "next build",
+  "start": "next start",
+  "lint": "next lint"
+},
+"dependencies": {
+  "lucide-react": "^0.454.0",
+  "@google/generative-ai": "^0.21.0",
+  "framer-motion": "^11.0.0"
+},
   "devDependencies": {
     "@types/react": "19.2.14",
     "autoprefixer": "^10.4.16",
