@@ -1,6 +1,6 @@
 {
-  "name": "psyqus-web",
-  "version": "0.1.1",
+  "name": "tu-proyecto",
+  "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -9,32 +9,32 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@clerk/nextjs": "^5.0.0",
-    "@react-pdf/renderer": "^3.4.4",
-    "@supabase/ssr": "latest",
-    "@supabase/supabase-js": "latest",
+    "@clerk/nextjs": "^6.39.0",
+    "@supabase/ssr": "^0.9.0",
+    "@supabase/supabase-js": "^2.98.0",
     "clsx": "^2.1.1",
-    "framer-motion": "^11.0.0",
+    "framer-motion": "^12.34.4",
     "html2canvas": "^1.4.1",
     "jspdf": "^2.5.1",
-    "lucide-react": "^0.378.0",
-    "nanoid": "^5.0.7",
+    "lucide-react": "^0.576.0",
+    "nanoid": "^5.0.9",
     "next": "14.2.3",
-    "react": "^18",
-    "react-dom": "^18",
-    "recharts": "^2.12.7",
-    "resend": "^3.2.0",
-    "tailwind-merge": "^2.3.0"
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "recharts": "^3.7.0",
+    "resend": "^6.9.3",
+    "tailwind-merge": "^2.6.0"
   },
   "devDependencies": {
-    "@types/node": "^20.12.7",
-    "@types/react": "^18.2.79",
-    "@types/react-dom": "^18.2.25",
-    "autoprefixer": "^10.4.27",
-    "eslint": "^8",
-    "eslint-config-next": "14.2.3",
-    "postcss": "^8.5.8",
-    "tailwindcss": "^3.4.3",
-    "typescript": "^5.4.5"
+    "@types/node": "^22.10.7",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.6.3"
+  },
+  "engines": {
+    "node": ">=18.17.0"
   }
 }
