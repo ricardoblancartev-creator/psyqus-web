@@ -21,6 +21,8 @@
     "recharts": "^2.12.7",
     "jspdf": "^2.5.1",
     "html2canvas": "^1.4.1",
+    "framer-motion": "^11.0.0",
+    "@clerk/nextjs": "^5.0.0",
     "clsx": "^2.1.1",
     "tailwind-merge": "^2.3.0"
   },
