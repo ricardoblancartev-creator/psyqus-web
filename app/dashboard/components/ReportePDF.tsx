@@ -61,13 +61,21 @@ export const BotonExportarPDF = () => {
 
   if (!isClient) return null;
 
-  return (
-    <PDFDownloadLink document={<MyDocument />} fileName="REPORTE_OFICIAL_PSYQUS.pdf">
-      {({ loading }) => (
-        <button className="px-8 py-4 bg-cyan-500 hover:bg-white text-black font-black rounded-2xl transition-all shadow-[0_0_20px_rgba(34,211,238,0.4)] text-xs uppercase tracking-widest">
-          {loading ? 'Preparando Certificado...' : 'Descargar Reporte Legal'}
-        </button>
-      )}
-    </PDFDownloadLink>
-  );
+// ... (resto del código igual arriba)
+
+return (
+  <PDFDownloadLink 
+    document={<MyDocument />} 
+    fileName="REPORTE_OFICIAL_PSYQUS.pdf"
+  >
+    {({ loading }: { loading: boolean }) => (
+      <button 
+        className="px-8 py-4 bg-cyan-500 hover:bg-white text-black font-black rounded-2xl transition-all shadow-[0_0_20px_rgba(34,211,238,0.4)] text-xs uppercase tracking-widest"
+        disabled={loading}
+      >
+        {loading ? 'Preparando Certificado...' : 'Descargar Reporte Legal'}
+      </button>
+    )}
+  </PDFDownloadLink>
+);
 };
