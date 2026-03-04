@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { BotonExportarPDF } from '../dashboard/components/ReportePDF';
+import BotonExportarPDF from '../dashboard/components/ReportePDF';
 import { motion } from 'framer-motion';
 
 export default function AdminDashboard() {
