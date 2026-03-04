@@ -1,16 +1,18 @@
-import { ClerkProvider } from '@clerk/nextjs' // 1. Importa esto
-import './globals.css' // O como se llame tu archivo de estilos
+'use client'
+
+import { ClerkProvider } from "@clerk/nextjs";
+import "./globals.css";
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
-    <ClerkProvider> {/* 2. Envuelve TODO con esto */}
+    <ClerkProvider>
       <html lang="es">
         <body>{children}</body>
       </html>
     </ClerkProvider>
-  )
+  );
 }
