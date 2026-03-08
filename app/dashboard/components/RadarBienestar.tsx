@@ -1,64 +1,49 @@
-'use client';
+"use client";
 import React from 'react';
 import {
-  Chart as ChartJS,
-  RadialLinearScale,
-  PointElement,
-  LineElement,
-  Filler,
-  Tooltip,
-  Legend,
-} from 'chart.js';
-import { Radar } from 'react-chartjs-2';
-
-ChartJS.register(
-  RadialLinearScale,
-  PointElement,
-  LineElement,
-  Filler,
-  Tooltip,
-  Legend
-);
+  Radar, RadarChart, PolarGrid, 
+  PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer 
+} from 'recharts';
 
 interface RadarProps {
-  scores: number[]; // Array de 6 números (promedios de cada módulo)
+  scores: number[]; // Recibe un array de 6 números (promedios de los módulos)
 }
 
 export default function RadarBienestar({ scores }: RadarProps) {
-  const data = {
-    labels: [
-      'Ambiente',
-      'Liderazgo',
-      'Emoción',
-      'Violencia',
-      'Empatía',
-      'Desarrollo'
-    ],
-    datasets: [
-      {
-        label: 'Tu Nivel de Bienestar',
-        data: scores,
-        backgroundColor: 'rgba(99, 102, 241, 0.2)', // Indigo claro
-        borderColor: 'rgba(99, 102, 241, 1)',
-        borderWidth: 2,
-        pointBackgroundColor: 'rgba(99, 102, 241, 1)',
-      },
-    ],
-  };
-
-  const options = {
-    scales: {
-      r: {
-        angleLines: { display: true },
-        suggestedMin: 0,
-        suggestedMax: 4, // Escala del 0 al 4 (Nunca a Siempre)
-      },
-    },
-  };
+  // Mapeamos tus 6 módulos definidos en el Punto 3
+  const data = [
+    { subject: 'Ambiente', A: scores[0] || 0, fullMark: 5 },
+    { subject: 'Liderazgo', A: scores[1] || 0, fullMark: 5 },
+    { subject: 'Emociones', A: scores[2] || 0, fullMark: 5 },
+    { subject: 'Violencia', A: scores[3] || 0, fullMark: 5 },
+    { subject: 'Comunicación', A: scores[4] || 0, fullMark: 5 },
+    { subject: 'Desarrollo', A: scores[5] || 0, fullMark: 5 },
+  ];
 
   return (
-    <div className="w-full max-w-md mx-auto p-4 bg-white rounded-2xl shadow-sm">
-      <Radar data={data} options={options} />
+    <div className="w-full h-[350px] flex items-center justify-center">
+      <ResponsiveContainer width="100%" height="100%">
+        <RadarChart cx="50%" cy="50%" outerRadius="80%" data={data}>
+          <PolarGrid stroke="#1e293b" />
+          <PolarAngleAxis 
+            dataKey="subject" 
+            tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 'bold' }} 
+          />
+          <PolarRadiusAxis 
+            angle={30} 
+            domain={[0, 5]} 
+            tick={false} 
+            axisLine={false} 
+          />
+          <Radar
+            name="Bienestar"
+            dataKey="A"
+            stroke="#06b6d4"
+            fill="#06b6d4"
+            fillOpacity={0.5}
+          />
+        </RadarChart>
+      </ResponsiveContainer>
     </div>
   );
 }

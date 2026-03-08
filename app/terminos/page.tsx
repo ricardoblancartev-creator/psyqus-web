@@ -1,62 +1,25 @@
 "use client";
 import React from 'react';
-import Link from 'next/link';
 
-export default function TerminosYCondiciones() {
+export default function MarcoLegal() {
   return (
-    <main className="min-h-screen bg-[#020617] p-10 text-slate-300 font-sans selection:bg-indigo-500/30">
-      <div className="max-w-4xl mx-auto bg-slate-900/30 border border-slate-800 p-12 rounded-[3rem] backdrop-blur-xl">
-        <h1 className="text-white text-4xl font-black mb-8 uppercase italic tracking-tighter">
-          Términos y <span className="text-indigo-500">Condiciones</span>
-        </h1>
+    <main className="min-h-screen bg-[#020617] text-slate-300 p-8 lg:p-20 font-sans">
+      <div className="max-w-4xl mx-auto border border-slate-800 bg-slate-900/20 p-12 rounded-[3rem]">
+        <h1 className="text-3xl font-black italic uppercase text-white mb-8 italic">Fundamento Jurídico <span className="text-cyan-500">NOM-035</span></h1>
         
-        <div className="space-y-8 text-sm leading-relaxed text-justify">
-          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.3em]">Vigencia a partir de: Marzo 2026</p>
-
+        <div className="space-y-8 text-sm leading-relaxed">
           <section>
-            <h2 className="text-white font-black uppercase mb-3 flex items-center gap-2">
-              <span className="w-2 h-2 bg-indigo-500 rounded-full"></span>
-              1. Aceptación de los Términos
-            </h2>
-            <p>Al acceder y utilizar la plataforma <strong>Psyqus Intelligence</strong>, el usuario y la empresa contratante aceptan cumplir con los presentes términos. Este sistema es una herramienta de diagnóstico organizacional basada en la NOM-035-STPS-2018.</p>
-          </section>
-
-          <section className="bg-slate-800/40 p-6 rounded-2xl border border-slate-700">
-            <h2 className="text-white font-black uppercase mb-3">2. Alcance del Servicio (Deslinde Clínico)</h2>
-            <p>Psyqus Intelligence es un software de análisis de factores de riesgo psicosocial. <strong>No constituye un servicio de diagnóstico clínico, psiquiátrico ni terapéutico.</strong> Los resultados son indicadores preventivos. En caso de crisis personal o ideación suicida, el usuario debe acudir a servicios de emergencia especializados.</p>
+            <h3 className="text-cyan-500 font-black uppercase text-[10px] tracking-widest mb-2">Numeral 7.1</h3>
+            <p>Psyqus Intelligence cumple con la identificación y análisis de los factores de riesgo psicosocial, incluyendo condiciones del ambiente de trabajo y cargas de trabajo.</p>
           </section>
 
           <section>
-            <h2 className="text-white font-black uppercase mb-3 flex items-center gap-2">
-              <span className="w-2 h-2 bg-indigo-500 rounded-full"></span>
-              3. Propiedad Intelectual
-            </h2>
-            <p>La metodología de los 6 módulos de evaluación, el diseño del Radar de Bienestar y los algoritmos de análisis son propiedad exclusiva de <strong>Ricardo Blancarte / Psyqus Intelligence</strong>. Queda prohibida la reproducción total o parcial fuera de la plataforma.</p>
+            <h3 className="text-cyan-500 font-black uppercase text-[10px] tracking-widest mb-2">Numeral 8.1 y 8.2</h3>
+            <p>Nuestra plataforma establece medidas de prevención y acciones de control basadas en los resultados, cumpliendo con la obligación del patrón de promover un entorno organizacional favorable.</p>
           </section>
 
-          <section>
-            <h2 className="text-white font-black uppercase mb-3 flex items-center gap-2">
-              <span className="w-2 h-2 bg-indigo-500 rounded-full"></span>
-              4. Uso de la Información Empresarial
-            </h2>
-            <p>La empresa se compromete a no utilizar los resultados de Psyqus para represalias laborales, despidos o cualquier forma de discriminación. El uso indebido de la información estadística para afectar a un individuo invalida la licencia de uso.</p>
-          </section>
-
-          <section>
-            <h2 className="text-white font-black uppercase mb-3 flex items-center gap-2">
-              <span className="w-2 h-2 bg-indigo-500 rounded-full"></span>
-              5. Limitación de Responsabilidad
-            </h2>
-            <p>Psyqus no se hace responsable por la implementación incorrecta de los planes de mejora por parte de la empresa, ni por interpretaciones erróneas de los reportes grupales proporcionados.</p>
-          </section>
-        </div>
-
-        <div className="mt-12 pt-8 border-t border-slate-800 flex justify-between items-center">
-          <Link href="/" className="text-slate-500 font-black uppercase text-[10px] tracking-widest hover:text-white transition-all">
-            ← Volver al inicio
-          </Link>
-          <div className="text-[9px] text-slate-600 font-mono">
-            ID_LEGAL: PSY-2026-MX
+          <div className="p-6 bg-cyan-500/5 border-l-2 border-cyan-500 italic">
+            "La libertad es la capacidad de elegir nuestras propias cadenas, pero el bienestar es la capacidad de elegir nuestro propio crecimiento." — <span className="text-white font-bold text-[10px]">ENFOQUE PSYQUS</span>
           </div>
         </div>
       </div>

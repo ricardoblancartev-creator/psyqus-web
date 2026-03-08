@@ -1,49 +1,72 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
+import RadarBienestar from './components/radarbienestar';
 import Link from 'next/link';
 
-export default function LandingPage() {
-  const [accepted, setAccepted] = useState(false);
+export default function DashboardUsuario() {
+  const [scores, setScores] = useState<number[]>([0, 0, 0, 0, 0, 0]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchUltimoResultado = async () => {
+      const { data } = await supabase
+        .from('resultados_encuesta')
+        .select('*')
+        .order('fecha', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (data) {
+        setScores([
+          data.modulo_1_score,
+          data.modulo_2_score,
+          data.modulo_3_score,
+          data.modulo_4_score,
+          data.modulo_5_score,
+          data.modulo_6_score
+        ]);
+      }
+      setLoading(false);
+    };
+    fetchUltimoResultado();
+  }, []);
 
   return (
-    <main className="min-h-screen bg-[#020617] text-white font-sans flex flex-col items-center justify-center p-6">
-      <div className="max-w-2xl w-full bg-slate-900/50 border border-slate-800 p-10 rounded-[3rem] backdrop-blur-xl">
-        <h1 className="text-5xl font-black italic tracking-tighter mb-4">
-          PSYQUS <span className="text-cyan-500">INTELLIGENCE</span>
-        </h1>
-        <p className="text-slate-400 mb-8 italic">Sistema Inteligente NOM-035 + Desarrollo Humano</p>
+    <main className="min-h-screen bg-[#020617] text-white p-6 lg:p-12">
+      <div className="max-w-5xl mx-auto">
+        <header className="mb-12 border-b border-slate-800 pb-8">
+          <h1 className="text-4xl font-black italic uppercase italic tracking-tighter">
+            Tu Radar de <span className="text-cyan-500">Bienestar</span>
+          </h1>
+          <p className="text-slate-500 text-xs font-bold uppercase tracking-[0.3em] mt-2">
+            Análisis de Riesgo Psicosocial • NOM-035
+          </p>
+        </header>
 
-        <section className="space-y-6 mb-10">
-          <div className="bg-black/40 p-6 rounded-2xl border border-slate-800 text-[11px] leading-relaxed text-slate-300">
-            <h3 className="text-cyan-500 font-black uppercase mb-2">Uso de datos (NOM-035)</h3>
-            <p>Psyqus recopila información sobre bienestar laboral con fines estadísticos. Los resultados son <strong>anónimos</strong> y se presentan de forma agregada para prevenir riesgos psicosociales. Los datos no se usarán para evaluar desempeño individual.</p>
+        <div className="grid md:grid-cols-2 gap-12 items-center">
+          {/* Gráfica */}
+          <div className="bg-slate-900/30 border border-slate-800 p-8 rounded-[3rem]">
+            <RadarBienestar scores={scores} />
           </div>
 
-          <div className="flex flex-col gap-4">
-            <label className="flex items-center gap-3 cursor-pointer group">
-              <input 
-                type="checkbox" 
-                checked={accepted} 
-                onChange={() => setAccepted(!accepted)}
-                className="w-5 h-5 accent-cyan-500 rounded border-slate-700 bg-slate-800"
-              />
-              <span className="text-xs font-bold uppercase tracking-widest text-slate-400 group-hover:text-white transition-all">
-                He leído y acepto el <Link href="/privacidad" className="text-cyan-500 underline">Aviso de Privacidad</Link>
-              </span>
-            </label>
+          {/* Interpretación Rápida */}
+          <div className="space-y-6">
+            <h3 className="text-xl font-black italic uppercase text-cyan-500 italic">Interpretación</h3>
+            <p className="text-slate-400 text-sm leading-relaxed italic">
+              Este radar muestra tu equilibrio laboral. Los puntos más cercanos al borde representan áreas de fortaleza, mientras que los más cercanos al centro indican áreas de riesgo donde <span className="text-white">Psyqus</span> recomienda intervención.
+            </p>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <Link href="/psicoeducacion" className="bg-white text-black p-4 rounded-2xl text-center text-[10px] font-black uppercase tracking-widest hover:bg-cyan-500 transition-colors">
+                Ver Cursos
+              </Link>
+              <Link href="/encuesta" className="border border-slate-700 p-4 rounded-2xl text-center text-[10px] font-black uppercase tracking-widest hover:text-cyan-500 transition-colors">
+                Re-evaluar
+              </Link>
+            </div>
           </div>
-        </section>
-
-        <Link href={accepted ? "/encuesta" : "#"}>
-          <button 
-            disabled={!accepted}
-            className={`w-full py-5 rounded-2xl font-black uppercase tracking-widest text-sm transition-all ${
-              accepted ? 'bg-cyan-500 text-black hover:scale-105' : 'bg-slate-800 text-slate-500 cursor-not-allowed'
-            }`}
-          >
-            Comenzar Diagnóstico
-          </button>
-        </Link>
+        </div>
       </div>
     </main>
   );
