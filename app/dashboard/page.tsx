@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import RadarBienestar from './components/temp_radar';
+import RadarBienestar from './components/grafico-radar';
 import Link from 'next/link';
 
 export default function DashboardUsuario() {

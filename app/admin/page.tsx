@@ -2,8 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 // Importaciones con Casing Correcto para Vercel
-import BotonExportarPDF from '../dashboard/components/reportepdf';
-import RadarBienestar from '../dashboard/components/temp_radar';
+import BotonExportarPDF from '../dashboard/components/generador-pdf';
+import RadarBienestar from '../dashboard/components/grafico-radar';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface Prospecto {
