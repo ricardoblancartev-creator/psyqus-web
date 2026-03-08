@@ -1,46 +1,64 @@
-"use client";
-import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer } from 'recharts';
-import { motion } from 'framer-motion';
+'use client';
+import React from 'react';
+import {
+  Chart as ChartJS,
+  RadialLinearScale,
+  PointElement,
+  LineElement,
+  Filler,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+import { Radar } from 'react-chartjs-2';
 
-const data = [
-  { subject: 'Comunicación', A: 120, fullMark: 150 },
-  { subject: 'Liderazgo', A: 98, fullMark: 150 },
-  { subject: 'Carga Mental', A: 86, fullMark: 150 },
-  { subject: 'Empatía', A: 99, fullMark: 150 },
-  { subject: 'Reconocimiento', A: 85, fullMark: 150 },
-];
+ChartJS.register(
+  RadialLinearScale,
+  PointElement,
+  LineElement,
+  Filler,
+  Tooltip,
+  Legend
+);
 
-export default function RadarBienestar() {
+interface RadarProps {
+  scores: number[]; // Array de 6 números (promedios de cada módulo)
+}
+
+export default function RadarBienestar({ scores }: RadarProps) {
+  const data = {
+    labels: [
+      'Ambiente',
+      'Liderazgo',
+      'Emoción',
+      'Violencia',
+      'Empatía',
+      'Desarrollo'
+    ],
+    datasets: [
+      {
+        label: 'Tu Nivel de Bienestar',
+        data: scores,
+        backgroundColor: 'rgba(99, 102, 241, 0.2)', // Indigo claro
+        borderColor: 'rgba(99, 102, 241, 1)',
+        borderWidth: 2,
+        pointBackgroundColor: 'rgba(99, 102, 241, 1)',
+      },
+    ],
+  };
+
+  const options = {
+    scales: {
+      r: {
+        angleLines: { display: true },
+        suggestedMin: 0,
+        suggestedMax: 4, // Escala del 0 al 4 (Nunca a Siempre)
+      },
+    },
+  };
+
   return (
-    <motion.div 
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      className="p-6 bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl shadow-2xl"
-    >
-      <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-        <span className="w-3 h-3 bg-cyan-400 rounded-full animate-pulse" />
-        Análisis de Impacto Organizacional
-      </h3>
-      
-      <div className="h-[300px] w-full">
-        <ResponsiveContainer width="100%" height="100%">
-          <RadarChart cx="50%" cy="50%" outerRadius="80%" data={data}>
-            <PolarGrid stroke="#475569" />
-            <PolarAngleAxis dataKey="subject" tick={{ fill: '#94a3b8', fontSize: 12 }} />
-            <Radar
-              name="Bienestar"
-              dataKey="A"
-              stroke="#22d3ee"
-              fill="#22d3ee"
-              fillOpacity={0.5}
-            />
-          </RadarChart>
-        </ResponsiveContainer>
-      </div>
-      
-      <p className="mt-4 text-xs text-slate-400 text-center uppercase tracking-widest">
-        Métrica en tiempo real basada en IA de Psyqus
-      </p>
-    </motion.div>
+    <div className="w-full max-w-md mx-auto p-4 bg-white rounded-2xl shadow-sm">
+      <Radar data={data} options={options} />
+    </div>
   );
 }

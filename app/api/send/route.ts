@@ -1,23 +1,47 @@
-import { Resend } from 'resend';
 import { NextResponse } from 'next/server';
 
-export async function POST(req: Request) {
-  // MOVER EL NEW RESEND AQUÍ ADENTRO 👇
-  const resend = new Resend(process.env.RESEND_API_KEY || 're_123');
+export async function POST(request: Request) {
+    try {
+        const body = await request.json();
+        const { respuestas, usuario_id, empresa_id } = body;
 
-  try {
-    const { tipo, mensaje, emailUsuario } = await req.json();
+        // 1. Calculamos el puntaje total forzando tipos numéricos para evitar errores de TS
+        const puntajeTotal = Object.values(respuestas).reduce(
+            (acc: number, val: any) => acc + (Number(val) || 0), 
+            0
+        ) as number;
 
-    const { data, error } = await resend.emails.send({
-      from: 'Psyqus <onboarding@resend.dev>',
-      to: ['tu-correo-psicologo@gmail.com'], 
-      subject: `🚨 ALERTA: ${tipo}`,
-      html: `<p><strong>Mensaje:</strong> ${mensaje}</p>`,
-    });
+        // 2. Clasificación oficial NOM-035 (Mapeo de Riesgo)
+        let nivel = "Nulo";
+        let color = "#22c55e"; // Verde (Default)
 
-    if (error) return NextResponse.json({ error }, { status: 400 });
-    return NextResponse.json({ data });
-  } catch (error) {
-    return NextResponse.json({ error }, { status: 500 });
-  }
+        if (puntajeTotal >= 50 && puntajeTotal < 75) {
+            nivel = "Bajo";
+            color = "#84cc16"; 
+        } else if (puntajeTotal >= 75 && puntajeTotal < 99) {
+            nivel = "Medio";
+            color = "#eab308"; // Amarillo
+        } else if (puntajeTotal >= 99 && puntajeTotal < 140) {
+            nivel = "Alto";
+            color = "#f97316"; // Naranja
+        } else if (puntajeTotal >= 140) {
+            nivel = "Muy Alto";
+            color = "#ef4444"; // Rojo
+        }
+
+        // 3. Simulación de guardado (Aquí conectarías tu Supabase.from('resultados').insert(...))
+        console.log(`📊 Procesado: ${usuario_id} de ${empresa_id} -> ${puntajeTotal} pts (${nivel})`);
+
+        return NextResponse.json({ 
+            success: true, 
+            puntajeTotal, 
+            nivel, 
+            color,
+            mensaje: "Evaluación procesada correctamente por el motor Psyqus." 
+        });
+
+    } catch (error) {
+        console.error("Error en API Send:", error);
+        return NextResponse.json({ success: false, error: "Error interno del servidor" }, { status: 500 });
+    }
 }
