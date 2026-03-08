@@ -1,3 +1,7 @@
+"use client";
+import React, { useState } from 'react';
+import Link from 'next/link'; // <--- ESTA ES LA QUE FALTA
+import { motion } from 'framer-motion';
 {/* Botón Liberado */}
 <Link href="/encuesta">
   <button 
