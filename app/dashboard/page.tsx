@@ -1,48 +1,50 @@
 "use client";
 import React, { useState } from 'react';
 import Link from 'next/link';
-// ... (tus otros imports)
 
 export default function LandingPage() {
-  const [modalOpen, setModalOpen] = useState(false);
+  const [accepted, setAccepted] = useState(false);
 
   return (
-    <div className="min-h-screen bg-[#020617] text-white">
-      {/* NAVBAR */}
-      <nav className="p-8 flex justify-between items-center max-w-7xl mx-auto">
-        <div className="text-2xl font-black italic tracking-tighter">
-          PSYQUS <span className="text-cyan-500 font-light">INTELLIGENCE</span>
-        </div>
-        {/* El botón de Admin ahora es discreto y está hasta abajo o aquí oculto */}
-      </nav>
-
-      {/* HERO SECTION */}
-      <header className="text-center pt-20 pb-32">
-        <h1 className="text-7xl font-black mb-6 italic tracking-tighter">
-          BIENESTAR QUE <span className="text-cyan-500">VENDE.</span>
+    <main className="min-h-screen bg-[#020617] text-white font-sans flex flex-col items-center justify-center p-6">
+      <div className="max-w-2xl w-full bg-slate-900/50 border border-slate-800 p-10 rounded-[3rem] backdrop-blur-xl">
+        <h1 className="text-5xl font-black italic tracking-tighter mb-4">
+          PSYQUS <span className="text-cyan-500">INTELLIGENCE</span>
         </h1>
-        <div className="flex justify-center gap-4">
-          <Link href="/encuesta">
-            <button className="bg-cyan-500 text-black px-10 py-4 rounded-2xl font-black uppercase text-xs">
-              Iniciar Diagnóstico
-            </button>
-          </Link>
-          <button onClick={() => setModalOpen(true)} className="border border-slate-700 px-10 py-4 rounded-2xl font-black uppercase text-xs">
-            Agendar Demo
-          </button>
-        </div>
-      </header>
+        <p className="text-slate-400 mb-8 italic">Sistema Inteligente NOM-035 + Desarrollo Humano</p>
 
-      {/* FOOTER CON AVISO DE PRIVACIDAD */}
-      <footer className="py-10 border-t border-slate-900 text-center text-[10px] text-slate-500 uppercase tracking-widest">
-        <p>Psyqus © 2026</p>
-        <div className="mt-4 flex justify-center gap-6">
-          <Link href="/privacidad" className="hover:text-white underline">Aviso de Privacidad</Link>
-          <Link href="/terminos" className="hover:text-white underline">Términos y Condiciones</Link>
-          {/* Link oculto para ti al admin */}
-          <Link href="/admin" className="opacity-10 hover:opacity-100 italic">Master Access</Link>
-        </div>
-      </footer>
-    </div>
+        <section className="space-y-6 mb-10">
+          <div className="bg-black/40 p-6 rounded-2xl border border-slate-800 text-[11px] leading-relaxed text-slate-300">
+            <h3 className="text-cyan-500 font-black uppercase mb-2">Uso de datos (NOM-035)</h3>
+            <p>Psyqus recopila información sobre bienestar laboral con fines estadísticos. Los resultados son <strong>anónimos</strong> y se presentan de forma agregada para prevenir riesgos psicosociales. Los datos no se usarán para evaluar desempeño individual.</p>
+          </div>
+
+          <div className="flex flex-col gap-4">
+            <label className="flex items-center gap-3 cursor-pointer group">
+              <input 
+                type="checkbox" 
+                checked={accepted} 
+                onChange={() => setAccepted(!accepted)}
+                className="w-5 h-5 accent-cyan-500 rounded border-slate-700 bg-slate-800"
+              />
+              <span className="text-xs font-bold uppercase tracking-widest text-slate-400 group-hover:text-white transition-all">
+                He leído y acepto el <Link href="/privacidad" className="text-cyan-500 underline">Aviso de Privacidad</Link>
+              </span>
+            </label>
+          </div>
+        </section>
+
+        <Link href={accepted ? "/encuesta" : "#"}>
+          <button 
+            disabled={!accepted}
+            className={`w-full py-5 rounded-2xl font-black uppercase tracking-widest text-sm transition-all ${
+              accepted ? 'bg-cyan-500 text-black hover:scale-105' : 'bg-slate-800 text-slate-500 cursor-not-allowed'
+            }`}
+          >
+            Comenzar Diagnóstico
+          </button>
+        </Link>
+      </div>
+    </main>
   );
 }
