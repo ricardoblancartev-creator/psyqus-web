@@ -7,13 +7,7 @@ const config: Config = {
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
-    extend: {
-      colors: {
-        background: "#020617",
-        primary: "#06b6d4",
-        secondary: "#3b82f6",
-      },
-    },
+    extend: {},
   },
   plugins: [],
 };
