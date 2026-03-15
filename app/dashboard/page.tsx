@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = 'force-dynamic'; 
+
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer, PolarRadiusAxis } from 'recharts';
@@ -50,7 +52,6 @@ export default function DashboardPage() {
       </div>
 
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Columna Izquierda: Tarjetas de Métricas */}
         <div className="grid grid-cols-2 gap-4 lg:col-span-1">
           {[
             { label: 'Riesgo Psicosocial', val: 'Bajo', color: 'text-emerald-400' },
@@ -58,8 +59,8 @@ export default function DashboardPage() {
             { label: 'Participación', val: '92%', color: 'text-white' },
             { label: 'Alertas', val: '0', color: 'text-slate-500' },
           ].map((stat, i) => (
-            <div key={i} className="bg-slate-900/30 border border-slate-800 p-6 rounded-3xl hover:bg-slate-900/50 transition-all">
-              <p className="text-slate-500 text-xs uppercase mb-2">{stat.label}</p>
+            <div key={i} className="bg-slate-900/30 border border-slate-800 p-6 rounded-3xl hover:bg-slate-900/50 transition-all text-center">
+              <p className="text-slate-500 text-[10px] uppercase mb-2">{stat.label}</p>
               <p className={`text-2xl font-bold ${stat.color}`}>{stat.val}</p>
             </div>
           ))}
@@ -67,16 +68,15 @@ export default function DashboardPage() {
           <div className="col-span-2 bg-gradient-to-br from-cyan-600/20 to-blue-600/20 border border-cyan-500/20 p-8 rounded-3xl mt-4">
             <h3 className="text-lg font-bold mb-2">Resumen Ejecutivo</h3>
             <p className="text-slate-400 text-sm leading-relaxed">
-              Los niveles de resiliencia y liderazgo se mantienen estables. Se recomienda reforzar el pilar de "Balance" para optimizar el rendimiento del equipo.
+              Los niveles de resiliencia y liderazgo se mantienen estables. Se recomienda reforzar el pilar de "Balance" para optimizar el rendimiento del equipo bajo los lineamientos de la NOM-035.
             </p>
           </div>
         </div>
 
-        {/* Columna Derecha: El Radar Pro */}
         <div className="lg:col-span-2 bg-slate-900/20 border border-slate-800 rounded-[2.5rem] p-8 backdrop-blur-sm relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-8 opacity-10">
-                <p className="text-6xl font-black">PSY</p>
-            </div>
+          <div className="absolute top-0 right-0 p-8 opacity-10">
+            <p className="text-6xl font-black italic">PSY</p>
+          </div>
             
           <h3 className="text-xl font-bold mb-8 flex items-center gap-3">
             <span className="w-8 h-[2px] bg-cyan-500"></span>

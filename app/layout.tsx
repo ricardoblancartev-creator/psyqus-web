@@ -1,11 +1,8 @@
 import './globals.css';
-import { Inter } from 'next/font/google';
-
-const inter = Inter({ subsets: ['latin'] });
 
 export const metadata = {
-  title: 'Psyqus - Bienestar Organizacional',
-  description: 'Gestión de paz y bienestar',
+  title: 'Psyqus - NOM-035',
+  description: 'Sistema de Bienestar Organizacional',
 };
 
 export default function RootLayout({
@@ -15,7 +12,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es">
-      <body className={inter.className}>
+      <body className="bg-[#020617]">
         {children}
       </body>
     </html>
