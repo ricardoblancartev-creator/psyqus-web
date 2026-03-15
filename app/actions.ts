@@ -1,3 +1,4 @@
+// ESTE ES EL ARCHIVO NUEVO VERSION 10 - ELIMINADO CLERK COMPLETAMENTE
 "use server";
 
 import { supabase } from "@/lib/supabase";
@@ -14,7 +15,7 @@ export async function getUserScores() {
     if (error) throw error;
     return data && data.length > 0 ? data[0] : null;
   } catch (error) {
-    console.error("Error al obtener puntajes:", error);
+    console.error("Error:", error);
     return null;
   }
 }
@@ -30,7 +31,7 @@ export async function saveSurveyResults(scores: any) {
     revalidatePath('/dashboard');
     return { success: true, data };
   } catch (error) {
-    console.error("Error al guardar:", error);
+    console.error("Error:", error);
     return { success: false, error };
   }
 }
