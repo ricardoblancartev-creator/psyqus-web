@@ -1,9 +1,7 @@
 "use client";
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import BotonExportarPDF from '../dashboard/components/GeneradorPDF';
-import RadarBienestar from '../dashboard/components/MapaDeCalor';
+import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer } from 'recharts';
 
 export default function AdminPage() {
   const [resultados, setResultados] = useState<any[]>([]);
@@ -11,90 +9,50 @@ export default function AdminPage() {
 
   useEffect(() => {
     async function fetchAdminData() {
-      try {
-        setLoading(true);
-        // Traemos todos los resultados de la tabla
-        const { data, error } = await supabase
-          .from('resultados_encuesta')
-          .select('*')
-          .order('created_at', { ascending: false });
-
-        if (error) throw error;
-        setResultados(data || []);
-      } catch (err) {
-        console.error("Error en Admin:", err);
-      } finally {
-        setLoading(false);
-      }
+      const { data } = await supabase
+        .from('resultados_encuesta')
+        .select('*')
+        .order('created_at', { ascending: false });
+      setResultados(data || []);
+      setLoading(false);
     }
-
     fetchAdminData();
   }, []);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#020617] flex items-center justify-center">
-        <p className="text-cyan-500 animate-pulse font-mono uppercase tracking-[0.3em]">Accediendo al Panel de Control...</p>
-      </div>
-    );
-  }
+  if (loading) return <div className="p-20 text-white bg-[#020617] min-h-screen text-center">Cargando...</div>;
 
   return (
     <div className="min-h-screen bg-[#020617] text-white p-8">
-      <div className="max-w-6xl mx-auto">
-        <header className="flex justify-between items-end mb-12 border-b border-slate-800 pb-8">
-          <div>
-            <h1 className="text-4xl font-black tracking-tighter uppercase">Panel de Administración</h1>
-            <p className="text-slate-400 mt-2 font-mono text-sm">GESTIÓN DE RESULTADOS NOM-035</p>
-          </div>
-          {resultados.length > 0 && (
-            <BotonExportarPDF data={resultados[0]} />
-          )}
-        </header>
-
-        {resultados.length === 0 ? (
-          <div className="bg-slate-900/50 border border-dashed border-slate-700 p-20 text-center rounded-3xl">
-            <p className="text-slate-500 uppercase tracking-widest">No hay encuestas registradas aún</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Tabla de Resultados */}
-            <div className="lg:col-span-2 overflow-x-auto bg-slate-900/50 border border-slate-800 rounded-3xl p-6">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="border-b border-slate-800">
-                    <th className="py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Fecha</th>
-                    <th className="py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">ID</th>
-                    <th className="py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Puntaje</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-800/50">
-                  {resultados.map((res) => (
-                    <tr key={res.id} className="hover:bg-slate-800/30 transition-colors group">
-                      <td className="py-4 text-sm text-slate-300 font-mono">
-                        {new Date(res.created_at).toLocaleDateString()}
-                      </td>
-                      <td className="py-4 text-sm font-bold text-cyan-500">#{res.id}</td>
-                      <td className="py-4 text-right">
-                        <span className="bg-cyan-500/10 text-cyan-400 px-3 py-1 rounded-full text-xs font-black">
-                          PROCESADO
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+      <h1 className="text-2xl font-bold mb-8 uppercase tracking-tighter border-b border-slate-800 pb-4">Panel Admin Psyqus</h1>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="bg-slate-900/50 p-6 rounded-2xl border border-slate-800">
+          <h2 className="text-sm font-bold text-slate-500 mb-4">HISTORIAL DE ENCUESTAS</h2>
+          {resultados.map(r => (
+            <div key={r.id} className="p-3 mb-2 bg-slate-800/40 rounded-lg flex justify-between font-mono text-sm">
+              <span>Encuesta #{r.id}</span>
+              <span className="text-cyan-400">{new Date(r.created_at).toLocaleDateString()}</span>
             </div>
-
-            {/* Vista Previa del último Radar */}
-            <div className="bg-slate-900/50 border border-slate-800 rounded-3xl p-6">
-              <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-6">Último Análisis</h3>
-              <div className="h-[300px]">
-                <RadarBienestar data={resultados[0]} />
-              </div>
-            </div>
+          ))}
+        </div>
+        <div className="bg-slate-900/50 p-6 rounded-2xl border border-slate-800 flex flex-col items-center">
+          <h2 className="text-sm font-bold text-slate-500 mb-4 w-full">VISTA RÁPIDA (ÚLTIMO RESULTADO)</h2>
+          <div className="w-full h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <RadarChart data={[
+                { s: 'AT', v: resultados[0]?.atencion },
+                { s: 'RS', v: resultados[0]?.resiliencia },
+                { s: 'EM', v: resultados[0]?.empatia },
+                { s: 'LI', v: resultados[0]?.liderazgo },
+                { s: 'EN', v: resultados[0]?.enfoque },
+                { s: 'BA', v: resultados[0]?.balance },
+              ]}>
+                <PolarGrid stroke="#334155" />
+                <PolarAngleAxis dataKey="s" tick={{fill: '#475569', fontSize: 10}} />
+                <Radar dataKey="v" stroke="#06b6d4" fill="#06b6d4" fillOpacity={0.5} />
+              </RadarChart>
+            </ResponsiveContainer>
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
