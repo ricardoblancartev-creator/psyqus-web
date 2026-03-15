@@ -1,51 +1,28 @@
-"use client";
-import React from 'react';
-import Link from 'next/link';
-
-export default function Privacidad() {
+export default function PrivacidadPage() {
   return (
-    <main className="min-h-screen bg-[#020617] p-10 text-slate-300 font-sans selection:bg-cyan-500/30">
-      <div className="max-w-4xl mx-auto bg-slate-900/30 border border-slate-800 p-12 rounded-[3rem] backdrop-blur-xl">
-        <h1 className="text-white text-4xl font-black mb-8 uppercase italic tracking-tighter">
-          Aviso de <span className="text-cyan-500">Privacidad</span>
+    <div className="min-h-screen bg-[#020617] text-white p-8 md:p-20">
+      <div className="max-w-4xl mx-auto bg-slate-900/40 border border-slate-800 p-10 md:p-16 rounded-[3rem] backdrop-blur-xl shadow-2xl">
+        <h1 className="text-4xl font-black mb-8 bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent italic">
+          AVISO DE PRIVACIDAD INTEGRAL
         </h1>
-        
-        <div className="space-y-6 text-sm leading-relaxed text-justify">
-          <p className="font-bold text-white uppercase tracking-widest text-[10px]">Última actualización: 08 de Marzo, 2026</p>
-          
+        <div className="prose prose-invert max-w-none text-slate-400 space-y-6 text-sm leading-relaxed">
+          <p className="border-b border-slate-800 pb-4 font-mono uppercase tracking-widest text-[10px] text-cyan-500">
+            Responsable del tratamiento de datos: PSYQUS Intelligence
+          </p>
           <section>
-            <h2 className="text-cyan-500 font-black uppercase mb-2 italic">1. Identidad y Domicilio</h2>
-            <p>Psyqus Intelligence, con domicilio en [Tu Dirección], es responsable del tratamiento de sus datos personales conforme a la Ley Federal de Protección de Datos Personales en Posesión de los Particulares.</p>
+            <h2 className="text-xl font-bold text-white mb-3">1. Datos Recopilados</h2>
+            <p>En cumplimiento con la Ley Federal de Protección de Datos Personales, PSYQUS recopila información psicométrica y organizacional con el único fin de dar cumplimiento a la NOM-035-STPS-2018.</p>
           </section>
-
           <section>
-            <h2 className="text-cyan-500 font-black uppercase mb-2 italic">2. Finalidad del Tratamiento (NOM-035)</h2>
-            <p>Los datos recopilados a través de nuestros diagnósticos tienen como única finalidad la identificación y análisis de factores de riesgo psicosocial en el entorno laboral, en estricto cumplimiento con la NOM-035-STPS-2018.</p>
-            <ul className="list-disc ml-5 mt-2 space-y-1">
-              <li>Generación de reportes estadísticos agregados.</li>
-              <li>Identificación de áreas de oportunidad organizacional.</li>
-              <li>Prevención de eventos traumáticos severos y violencia laboral.</li>
-            </ul>
+            <h2 className="text-xl font-bold text-white mb-3">2. Finalidad del Tratamiento</h2>
+            <p>Los datos se utilizan para identificar factores de riesgo psicosocial y evaluar el entorno organizacional. Los resultados individuales son anonimizados para garantizar la integridad del colaborador.</p>
           </section>
-
-          <section className="bg-cyan-500/5 p-6 rounded-2xl border border-cyan-500/20">
-            <h2 className="text-cyan-500 font-black uppercase mb-2 italic">3. Confidencialidad y Anonimato</h2>
-            <p className="font-bold text-white">Sus respuestas individuales son estrictamente confidenciales.</p>
-            <p className="mt-2">Psyqus Intelligence no compartirá resultados individuales con los empleadores de forma que puedan ser vinculados directamente a su persona. Los reportes entregados a las empresas son exclusivamente estadísticos y grupales.</p>
+          <section className="bg-cyan-500/5 p-6 rounded-2xl border border-cyan-500/10">
+            <h2 className="text-lg font-bold text-cyan-400 mb-2">Derechos ARCO</h2>
+            <p>Usted tiene derecho al Acceso, Rectificación, Cancelación u Oposición de sus datos personales enviando una solicitud formal al oficial de privacidad de la plataforma.</p>
           </section>
-
-          <section>
-            <h2 className="text-cyan-500 font-black uppercase mb-2 italic">4. Derechos ARCO</h2>
-            <p>Usted tiene derecho al Acceso, Rectificación, Cancelación u Oposición del tratamiento de sus datos. Para ejercerlos, puede enviar un correo a: <span className="text-white font-mono">privacidad@psyqus.net</span></p>
-          </section>
-        </div>
-
-        <div className="mt-12 pt-8 border-t border-slate-800">
-          <Link href="/" className="text-cyan-500 font-black uppercase text-xs tracking-[0.3em] hover:text-white transition-all flex items-center gap-2">
-            <span>←</span> Regresar al Portal Principal
-          </Link>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

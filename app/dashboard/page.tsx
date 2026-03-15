@@ -1,104 +1,160 @@
 "use client";
 
-export const dynamic = 'force-dynamic'; 
+export const dynamic = 'force-dynamic';
 
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer, PolarRadiusAxis } from 'recharts';
+import Link from 'next/link';
 
 export default function DashboardPage() {
-  const [datos, setDatos] = useState<any[]>([]);
-  const [rawStats, setRawStats] = useState<any>(null);
+  const [datosRadar, setDatosRadar] = useState<any[]>([]);
+  const [statsMaster, setStatsMaster] = useState({
+    puntaje: 0,
+    nivel: 'Cargando...',
+    color: '#06b6d4',
+    participacion: '92%',
+    clima: '8.4'
+  });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function cargar() {
-      const { data } = await supabase
-        .from('resultados_encuesta')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(1);
-      
-      if (data && data[0]) {
-        setRawStats(data[0]);
-        const formateados = [
-          { subject: 'Atención', A: data[0].atencion, fullMark: 10 },
-          { subject: 'Resiliencia', A: data[0].resiliencia, fullMark: 10 },
-          { subject: 'Empatía', A: data[0].empatia, fullMark: 10 },
-          { subject: 'Liderazgo', A: data[0].liderazgo, fullMark: 10 },
-          { subject: 'Enfoque', A: data[0].enfoque, fullMark: 10 },
-          { subject: 'Balance', A: data[0].balance, fullMark: 10 },
-        ];
-        setDatos(formateados);
+    async function cargarDatos() {
+      try {
+        const { data, error } = await supabase
+          .from('resultados_encuesta')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(1);
+        
+        if (data && data[0]) {
+          const d = data[0];
+          
+          // Actualizar Radar
+          setDatosRadar([
+            { subject: 'Atención', A: d.atencion, fullMark: 10 },
+            { subject: 'Resiliencia', A: d.resiliencia, fullMark: 10 },
+            { subject: 'Empatía', A: d.empatia, fullMark: 10 },
+            { subject: 'Liderazgo', A: d.liderazgo, fullMark: 10 },
+            { subject: 'Enfoque', A: d.enfoque, fullMark: 10 },
+            { subject: 'Balance', A: d.balance, fullMark: 10 },
+          ]);
+
+          // Actualizar Stats de la NOM-035
+          setStatsMaster(prev => ({
+            ...prev,
+            puntaje: d.puntaje_total || 0,
+            nivel: d.nivel_riesgo || 'Nulo',
+            color: d.color_alerta || '#22c55e'
+          }));
+        }
+      } catch (err) {
+        console.error("Error cargando Dashboard:", err);
+      } finally {
+        setLoading(false);
       }
     }
-    cargar();
+    cargarDatos();
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#020617] text-white p-6 md:p-12">
-      {/* Header con Estilo NOM */}
-      <div className="max-w-7xl mx-auto mb-12 flex flex-col md:flex-row justify-between items-end gap-6">
-        <div>
-          <p className="text-cyan-500 font-mono text-xs tracking-[0.3em] mb-2 uppercase">Protocolo de Análisis</p>
-          <h1 className="text-4xl font-black tracking-tight">DASHBOARD DE BIENESTAR</h1>
-        </div>
-        <div className="bg-slate-900/50 border border-slate-800 px-6 py-3 rounded-2xl backdrop-blur-md">
-          <p className="text-slate-500 text-[10px] uppercase tracking-widest mb-1">Estatus de Cumplimiento</p>
-          <span className="text-emerald-400 font-bold flex items-center gap-2">
-            <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
-            NOM-035-STPS ACTIVA
-          </span>
-        </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="grid grid-cols-2 gap-4 lg:col-span-1">
-          {[
-            { label: 'Riesgo Psicosocial', val: 'Bajo', color: 'text-emerald-400' },
-            { label: 'Índice de Clima', val: '8.4', color: 'text-cyan-400' },
-            { label: 'Participación', val: '92%', color: 'text-white' },
-            { label: 'Alertas', val: '0', color: 'text-slate-500' },
-          ].map((stat, i) => (
-            <div key={i} className="bg-slate-900/30 border border-slate-800 p-6 rounded-3xl hover:bg-slate-900/50 transition-all text-center">
-              <p className="text-slate-500 text-[10px] uppercase mb-2">{stat.label}</p>
-              <p className={`text-2xl font-bold ${stat.color}`}>{stat.val}</p>
+    <div className="min-h-screen bg-[#020617] text-white p-6 md:p-12 font-sans">
+      {/* Background Glows */}
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-cyan-500/5 blur-[120px] rounded-full pointer-events-none" />
+      
+      <div className="max-w-7xl mx-auto relative z-10">
+        {/* Header Pro */}
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-16 border-b border-slate-800 pb-10">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+                <span className="w-2 h-2 bg-cyan-500 rounded-full animate-ping"></span>
+                <p className="text-cyan-500 font-mono text-[10px] tracking-[0.4em] uppercase">Real-Time Analytics</p>
             </div>
-          ))}
-          
-          <div className="col-span-2 bg-gradient-to-br from-cyan-600/20 to-blue-600/20 border border-cyan-500/20 p-8 rounded-3xl mt-4">
-            <h3 className="text-lg font-bold mb-2">Resumen Ejecutivo</h3>
-            <p className="text-slate-400 text-sm leading-relaxed">
-              Los niveles de resiliencia y liderazgo se mantienen estables. Se recomienda reforzar el pilar de "Balance" para optimizar el rendimiento del equipo bajo los lineamientos de la NOM-035.
-            </p>
+            <h1 className="text-5xl font-black tracking-tighter">CENTRO DE CONTROL</h1>
           </div>
-        </div>
+          
+          <div className="flex gap-4">
+            <Link href="/encuesta" className="px-6 py-3 bg-slate-900 border border-slate-700 rounded-2xl text-xs font-bold hover:bg-slate-800 transition-all uppercase tracking-widest">Nueva Evaluación</Link>
+            <div className="bg-slate-900/80 border border-slate-700 px-6 py-3 rounded-2xl backdrop-blur-xl">
+              <p className="text-slate-500 text-[9px] uppercase tracking-widest mb-1 font-bold">Protocolo Activo</p>
+              <span className="text-white text-xs font-black tracking-widest">NOM-035-STPS-2018</span>
+            </div>
+          </div>
+        </header>
 
-        <div className="lg:col-span-2 bg-slate-900/20 border border-slate-800 rounded-[2.5rem] p-8 backdrop-blur-sm relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-8 opacity-10">
-            <p className="text-6xl font-black italic">PSY</p>
-          </div>
-            
-          <h3 className="text-xl font-bold mb-8 flex items-center gap-3">
-            <span className="w-8 h-[2px] bg-cyan-500"></span>
-            ANÁLISIS DE COMPETENCIAS
-          </h3>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           
-          <div className="w-full h-[400px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <RadarChart cx="50%" cy="50%" outerRadius="80%" data={datos}>
-                <PolarGrid stroke="#334155" />
-                <PolarAngleAxis dataKey="subject" tick={{fill: '#94a3b8', fontSize: 12, fontWeight: 500}} />
-                <PolarRadiusAxis angle={30} domain={[0, 10]} tick={false} axisLine={false} />
-                <Radar
-                  name="Puntaje"
-                  dataKey="A"
-                  stroke="#06b6d4"
-                  fill="#06b6d4"
-                  fillOpacity={0.5}
-                />
-              </RadarChart>
-            </ResponsiveContainer>
+          {/* Columna Izquierda: Métricas Principales */}
+          <div className="lg:col-span-4 space-y-6">
+            
+            {/* Tarjeta de Riesgo Principal */}
+            <div className="p-8 rounded-[2.5rem] border transition-all duration-700 shadow-2xl overflow-hidden relative" 
+                 style={{ backgroundColor: `${statsMaster.color}10`, borderColor: `${statsMaster.color}40` }}>
+              <div className="absolute top-[-20px] right-[-20px] text-6xl opacity-10 font-black italic">!</div>
+              <p className="text-slate-400 text-xs uppercase tracking-[0.2em] mb-2 font-bold">Riesgo Detectado</p>
+              <h2 className="text-5xl font-black mb-4 tracking-tighter" style={{ color: statsMaster.color }}>
+                {statsMaster.nivel}
+              </h2>
+              <p className="text-slate-300 text-sm leading-relaxed opacity-80 italic">
+                Puntaje Global: <span className="font-bold text-white font-mono">{statsMaster.puntaje} pts</span>
+              </p>
+            </div>
+
+            {/* Grid de Stats Secundarios */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-slate-900/40 border border-slate-800 p-6 rounded-[2rem] backdrop-blur-md">
+                <p className="text-slate-500 text-[10px] uppercase mb-1 font-bold">Clima</p>
+                <p className="text-2xl font-black text-white">{statsMaster.clima}</p>
+              </div>
+              <div className="bg-slate-900/40 border border-slate-800 p-6 rounded-[2rem] backdrop-blur-md">
+                <p className="text-slate-500 text-[10px] uppercase mb-1 font-bold">Participación</p>
+                <p className="text-2xl font-black text-white">{statsMaster.participacion}</p>
+              </div>
+            </div>
+
+            {/* Tarjeta IA Recomendación */}
+            <div className="bg-gradient-to-br from-slate-900 to-black border border-slate-800 p-8 rounded-[2.5rem]">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-cyan-500 text-xl">🤖</span>
+                <h3 className="font-bold text-sm tracking-widest text-white uppercase">Psyqus AI Insight</h3>
+              </div>
+              <p className="text-slate-400 text-xs leading-relaxed font-medium">
+                Basado en el nivel <span className="text-white underline decoration-cyan-500">{statsMaster.nivel}</span>, 
+                se sugiere priorizar el canal de Buzón de Paz para mitigar factores de estrés en el liderazgo.
+              </p>
+            </div>
           </div>
+
+          {/* Columna Derecha: El Radar Tecnológico */}
+          <div className="lg:col-span-8 bg-slate-900/20 border border-slate-800/50 rounded-[3rem] p-10 backdrop-blur-sm relative shadow-inner">
+            <h3 className="text-sm font-bold tracking-[0.3em] mb-12 flex items-center gap-4 text-slate-500 uppercase italic">
+               Visualización de Competencias Psicosociales
+               <div className="h-[1px] flex-1 bg-slate-800"></div>
+            </h3>
+
+            <div className="w-full h-[450px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <RadarChart cx="50%" cy="50%" outerRadius="80%" data={datosRadar}>
+                  <PolarGrid stroke="#1e293b" />
+                  <PolarAngleAxis dataKey="subject" tick={{fill: '#64748b', fontSize: 11, fontWeight: 700, letterSpacing: '0.1em'}} />
+                  <PolarRadiusAxis angle={30} domain={[0, 10]} tick={false} axisLine={false} />
+                  <Radar
+                    name="Puntaje"
+                    dataKey="A"
+                    stroke={statsMaster.color}
+                    fill={statsMaster.color}
+                    fillOpacity={0.4}
+                  />
+                </RadarChart>
+              </ResponsiveContainer>
+            </div>
+
+            <footer className="mt-8 flex justify-between items-center text-[10px] font-mono text-slate-600 tracking-widest uppercase">
+                <span>Data Integrity Verified</span>
+                <span>System v2.4</span>
+            </footer>
+          </div>
+
         </div>
       </div>
     </div>

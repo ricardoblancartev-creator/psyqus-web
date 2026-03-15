@@ -1,28 +1,24 @@
-"use client";
-import React from 'react';
-
-export default function MarcoLegal() {
+export default function TerminosPage() {
   return (
-    <main className="min-h-screen bg-[#020617] text-slate-300 p-8 lg:p-20 font-sans">
-      <div className="max-w-4xl mx-auto border border-slate-800 bg-slate-900/20 p-12 rounded-[3rem]">
-        <h1 className="text-3xl font-black italic uppercase text-white mb-8 italic">Fundamento Jurídico <span className="text-cyan-500">NOM-035</span></h1>
-        
-        <div className="space-y-8 text-sm leading-relaxed">
+    <div className="min-h-screen bg-[#020617] text-white p-8 md:p-20">
+      <div className="max-w-4xl mx-auto bg-slate-900/40 border border-slate-800 p-10 md:p-16 rounded-[3rem] backdrop-blur-xl shadow-2xl">
+        <h1 className="text-4xl font-black mb-8 bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent italic">
+          TÉRMINOS Y CONDICIONES DE USO
+        </h1>
+        <div className="prose prose-invert max-w-none text-slate-400 space-y-6 text-sm leading-relaxed">
           <section>
-            <h3 className="text-cyan-500 font-black uppercase text-[10px] tracking-widest mb-2">Numeral 7.1</h3>
-            <p>Psyqus Intelligence cumple con la identificación y análisis de los factores de riesgo psicosocial, incluyendo condiciones del ambiente de trabajo y cargas de trabajo.</p>
+            <h2 className="text-xl font-bold text-white mb-3">Propiedad Intelectual</h2>
+            <p>El sistema PSYQUS, incluyendo su algoritmo de radar y metodologías de evaluación, es propiedad intelectual de Ricardo Blancarte. Queda prohibida la reproducción total o parcial sin autorización expresa.</p>
           </section>
-
           <section>
-            <h3 className="text-cyan-500 font-black uppercase text-[10px] tracking-widest mb-2">Numeral 8.1 y 8.2</h3>
-            <p>Nuestra plataforma establece medidas de prevención y acciones de control basadas en los resultados, cumpliendo con la obligación del patrón de promover un entorno organizacional favorable.</p>
+            <h2 className="text-xl font-bold text-white mb-3">Uso del Servicio</h2>
+            <p>El usuario se compromete a proporcionar información veraz durante las evaluaciones de la NOM-035 para asegurar la precisión de los diagnósticos organizacionales.</p>
           </section>
-
-          <div className="p-6 bg-cyan-500/5 border-l-2 border-cyan-500 italic">
-            "La libertad es la capacidad de elegir nuestras propias cadenas, pero el bienestar es la capacidad de elegir nuestro propio crecimiento." — <span className="text-white font-bold text-[10px]">ENFOQUE PSYQUS</span>
+          <div className="mt-12 pt-8 border-t border-slate-800 text-[10px] uppercase font-mono tracking-widest text-center">
+            Última actualización: 15 Marzo 2026 • México
           </div>
         </div>
       </div>
-    </main>
+    </div>
   );
 }
