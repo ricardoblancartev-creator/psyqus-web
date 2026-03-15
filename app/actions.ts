@@ -19,7 +19,6 @@ export async function getUserScores() {
   }
 }
 
-// Esta es la que corregimos para que la encuesta la encuentre
 export async function saveSurveyResults(scores: any) {
   try {
     const { data, error } = await supabase
@@ -31,7 +30,7 @@ export async function saveSurveyResults(scores: any) {
     revalidatePath('/dashboard');
     return { success: true, data };
   } catch (error) {
-    console.error("Error al guardar resultados:", error);
+    console.error("Error al guardar:", error);
     return { success: false, error };
   }
 }
