@@ -1,15 +1,21 @@
-/** @type {import('tailwindcss').Config} */
-module.exports = {
-content: [
+import type { Config } from "tailwindcss";
+
+const config: Config = {
+  content: [
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
-    "./pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
-    "./src/**/*.{js,ts,jsx,tsx,mdx}",
+    "./pages/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
     extend: {
-      // Asegúrate de que esto esté vacío o tenga tus colores neón
+      colors: {
+        background: "#020617",
+        primary: "#06b6d4",
+        secondary: "#3b82f6",
+      },
     },
   },
   plugins: [],
-}
+};
+
+export default config;
