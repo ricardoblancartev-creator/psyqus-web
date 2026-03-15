@@ -1,73 +1,96 @@
 "use client";
-import React, { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
-import RadarBienestar from './components/grafico-radar';
-import Link from 'next/link';
 
-export default function DashboardUsuario() {
-  const [scores, setScores] = useState<number[]>([0, 0, 0, 0, 0, 0]);
+import React, { useEffect, useState } from 'react';
+import { supabase } from '@/lib/supabase';
+import { 
+  Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, 
+  ResponsiveContainer, Tooltip 
+} from 'recharts';
+
+export default function DashboardReal() {
+  const [datosRadar, setDatosRadar] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchUltimoResultado = async () => {
-      const { data } = await supabase
-        .from('resultados_encuesta')
-        .select('*')
-        .order('fecha', { ascending: false })
-        .limit(1)
-        .single();
+    async function fetchResultados() {
+      try {
+        setLoading(true);
+        // 1. Pedimos el último resultado insertado en la tabla
+        const { data, error } = await supabase
+          .from('resultados_encuesta')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
 
-      if (data) {
-        setScores([
-          data.modulo_1_score,
-          data.modulo_2_score,
-          data.modulo_3_score,
-          data.modulo_4_score,
-          data.modulo_5_score,
-          data.modulo_6_score
-        ]);
+        if (error) throw error;
+
+        if (data) {
+          // 2. Transformamos los datos de la fila al formato que necesita el Radar
+          const formateados = [
+            { tema: 'Atención', valor: data.atencion || 0 },
+            { tema: 'Resiliencia', valor: data.resiliencia || 0 },
+            { tema: 'Empatía', valor: data.empatia || 0 },
+            { tema: 'Liderazgo', valor: data.liderazgo || 0 },
+            { tema: 'Enfoque', valor: data.enfoque || 0 },
+            { tema: 'Balance', valor: data.balance || 0 },
+          ];
+          setDatosRadar(formateados);
+        }
+      } catch (err) {
+        console.error("Error cargando datos reales:", err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
-    };
-    fetchUltimoResultado();
+    }
+
+    fetchResultados();
   }, []);
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#020617] flex items-center justify-center">
+        <p className="text-cyan-500 animate-pulse font-mono tracking-widest">CARGANDO MÉTRICAS REALES...</p>
+      </div>
+    );
+  }
+
   return (
-    <main className="min-h-screen bg-[#020617] text-white p-6 lg:p-12">
-      <div className="max-w-5xl mx-auto">
-        <header className="mb-12 border-b border-slate-800 pb-8">
-          <h1 className="text-4xl font-black italic uppercase italic tracking-tighter">
-            Tu Radar de <span className="text-cyan-500">Bienestar</span>
-          </h1>
-          <p className="text-slate-500 text-xs font-bold uppercase tracking-[0.3em] mt-2">
-            Análisis de Riesgo Psicosocial • NOM-035
-          </p>
-        </header>
+    <div className="min-h-screen bg-[#020617] text-white p-8">
+      <div className="max-w-4xl mx-auto bg-slate-900/50 border border-slate-800 rounded-[2rem] p-8 backdrop-blur-md">
+        <h1 className="text-2xl font-black mb-2 tracking-tighter">RADAR DE BIENESTAR</h1>
+        <p className="text-slate-400 text-sm mb-8 uppercase tracking-widest">Resultados basados en la última evaluación</p>
 
-        <div className="grid md:grid-cols-2 gap-12 items-center">
-          {/* Gráfica */}
-          <div className="bg-slate-900/30 border border-slate-800 p-8 rounded-[3rem]">
-            <RadarBienestar scores={scores} />
-          </div>
+        <div className="w-full h-[400px] flex items-center justify-center">
+          <ResponsiveContainer width="100%" height="100%">
+            <RadarChart cx="50%" cy="50%" outerRadius="80%" data={datosRadar}>
+              <PolarGrid stroke="#1e293b" />
+              <PolarAngleAxis dataKey="tema" tick={{ fill: '#94a3b8', fontSize: 12 }} />
+              <PolarRadiusAxis angle={30} domain={[0, 10]} tick={false} axisLine={false} />
+              <Radar
+                name="Bienestar"
+                dataKey="valor"
+                stroke="#06b6d4"
+                fill="#06b6d4"
+                fillOpacity={0.5}
+              />
+              <Tooltip 
+                contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '10px' }}
+                itemStyle={{ color: '#06b6d4' }}
+              />
+            </RadarChart>
+          </ResponsiveContainer>
+        </div>
 
-          {/* Interpretación Rápida */}
-          <div className="space-y-6">
-            <h3 className="text-xl font-black italic uppercase text-cyan-500 italic">Interpretación</h3>
-            <p className="text-slate-400 text-sm leading-relaxed italic">
-              Este radar muestra tu equilibrio laboral. Los puntos más cercanos al borde representan áreas de fortaleza, mientras que los más cercanos al centro indican áreas de riesgo donde <span className="text-white">Psyqus</span> recomienda intervención.
-            </p>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <Link href="/psicoeducacion" className="bg-white text-black p-4 rounded-2xl text-center text-[10px] font-black uppercase tracking-widest hover:bg-cyan-500 transition-colors">
-                Ver Cursos
-              </Link>
-              <Link href="/encuesta" className="border border-slate-700 p-4 rounded-2xl text-center text-[10px] font-black uppercase tracking-widest hover:text-cyan-500 transition-colors">
-                Re-evaluar
-              </Link>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-8">
+          {datosRadar.map((item) => (
+            <div key={item.tema} className="bg-slate-800/30 p-4 rounded-xl border border-slate-700/50">
+              <p className="text-[10px] text-slate-500 uppercase font-bold">{item.tema}</p>
+              <p className="text-xl font-black text-cyan-400">{item.valor}/10</p>
             </div>
-          </div>
+          ))}
         </div>
       </div>
-    </main>
+    </div>
   );
 }

@@ -1,7 +1,10 @@
-'use client'
-
-import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
+import { ClerkProvider } from "@clerk/nextjs";
+
+export const metadata = {
+  title: "Psyqus",
+  description: "Plataforma de bienestar organizacional",
+};
 
 export default function RootLayout({
   children,
