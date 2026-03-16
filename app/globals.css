@@ -3,6 +3,7 @@
 @tailwind utilities;
 
 body {
-  background-color: #020617; /* El azul casi negro de tu diseño */
-  color: #f8fafc;
+  background-color: #020617;
+  color: white;
+  font-family: system-ui;
 }

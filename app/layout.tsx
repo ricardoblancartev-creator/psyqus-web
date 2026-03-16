@@ -1,8 +1,9 @@
-import './globals.css';
+import { ClerkProvider } from "@clerk/nextjs";
+import "./globals.css";
 
 export const metadata = {
-  title: 'Psyqus - NOM-035',
-  description: 'Sistema de Bienestar Organizacional',
+  title: "Psyqus",
+  description: "Plataforma de detección de riesgos psicosociales NOM-035",
 };
 
 export default function RootLayout({
@@ -11,10 +12,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="es">
-      <body className="bg-[#020617]">
-        {children}
-      </body>
-    </html>
+    <ClerkProvider>
+      <html lang="es">
+        <body className="bg-slate-950 text-white">
+          {children}
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }
