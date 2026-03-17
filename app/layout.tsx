@@ -1,6 +1,7 @@
 import { Inter, Space_Grotesk, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
-import React from "react"; // Importamos React para usar ReactNode
+import React from "react";
+import { ClerkProvider } from '@clerk/nextjs'; // <-- ESTO ES LO QUE FALTA PARA EL LOGIN
 
 const inter = Inter({ 
   subsets: ["latin"],
@@ -23,17 +24,19 @@ export const metadata = {
   description: "Plataforma de inteligencia psicológica organizacional NOM-035",
 };
 
-// Agregamos la definición de tipo { children }: { children: React.ReactNode }
 export default function RootLayout({ 
   children 
 }: { 
   children: React.ReactNode 
 }) {
   return (
-    <html lang="es" className="dark">
-      <body className={`${inter.variable} ${spaceGrotesk.variable} ${jetbrains.variable} font-sans antialiased`}>
-        {children}
-      </body>
-    </html>
+    <ClerkProvider> {/* <-- ESTO ACTIVA EL REGISTRO DE GOOGLE */}
+      <html lang="es" className="dark">
+        <body className={`${inter.variable} ${spaceGrotesk.variable} ${jetbrains.variable} font-sans antialiased bg-[#020617] text-slate-50`}>
+          {/* bg-[#020617] pone el fondo oscuro profesional de inmediato */}
+          {children}
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }
