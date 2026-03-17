@@ -1,12 +1,11 @@
 "use client";
 
-import RadarBienestar from "../components/RadarBienestar";
+// 2 niveles arriba: resultados → app → components
+import RadarBienestar from "../../components/charts/RadarBienestar";
 
 export const dynamic = "force-dynamic";
 
 export default function ResultadosPage() {
-  // Aquí puedes usar la misma lógica que en el dashboard 
-  // para mostrar un resumen más detallado
   return (
     <div className="p-8 bg-[#020617] min-h-screen text-white">
       <h1 className="text-3xl font-black italic uppercase mb-8">Análisis Detallado</h1>

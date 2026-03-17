@@ -1,162 +1,146 @@
-"use client";
+"use client"
+import { useState, useEffect } from "react"
+import { supabase } from "../../lib/supabase" // Asegúrate de tener este archivo configurado
+import RadarNom035 from "../../components/charts/RadarNom035"
+import DepartmentRisk from "../../components/charts/DepartmentRisk"
+import MapaDeCalor from "../../components/charts/MapaDeCalor"
+import RadarBienestar from "../../components/charts/RadarBienestar"
+import { Brain, ShieldAlert, Users, MessageCircle, Loader2 } from "lucide-react"
+import Link from "next/link"
 
-export const dynamic = 'force-dynamic';
-
-import React, { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
-import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer, PolarRadiusAxis } from 'recharts';
-import Link from 'next/link';
-
-export default function DashboardPage() {
-  const [datosRadar, setDatosRadar] = useState<any[]>([]);
-  const [statsMaster, setStatsMaster] = useState({
-    puntaje: 0,
-    nivel: 'Cargando...',
-    color: '#06b6d4',
-    participacion: '92%',
-    clima: '8.4'
-  });
-  const [loading, setLoading] = useState(true);
+export default function Dashboard() {
+  const [depto, setDepto] = useState("General")
+  const [loading, setLoading] = useState(true)
+  const [stats, setStats] = useState({
+    totalEvaluados: 0,
+    promedioGeneral: 0,
+    radarScores: [0, 0, 0, 0, 0, 0] // Scores para el radar
+  })
 
   useEffect(() => {
-    async function cargarDatos() {
-      try {
-        const { data, error } = await supabase
-          .from('resultados_encuesta')
-          .select('*')
-          .order('created_at', { ascending: false })
-          .limit(1);
-        
-        if (data && data[0]) {
-          const d = data[0];
-          
-          // Actualizar Radar
-          setDatosRadar([
-            { subject: 'Atención', A: d.atencion, fullMark: 10 },
-            { subject: 'Resiliencia', A: d.resiliencia, fullMark: 10 },
-            { subject: 'Empatía', A: d.empatia, fullMark: 10 },
-            { subject: 'Liderazgo', A: d.liderazgo, fullMark: 10 },
-            { subject: 'Enfoque', A: d.enfoque, fullMark: 10 },
-            { subject: 'Balance', A: d.balance, fullMark: 10 },
-          ]);
-
-          // Actualizar Stats de la NOM-035
-          setStatsMaster(prev => ({
-            ...prev,
-            puntaje: d.puntaje_total || 0,
-            nivel: d.nivel_riesgo || 'Nulo',
-            color: d.color_alerta || '#22c55e'
-          }));
-        }
-      } catch (err) {
-        console.error("Error cargando Dashboard:", err);
-      } finally {
-        setLoading(false);
+    const fetchRealData = async () => {
+      setLoading(true)
+      
+      // 1. Consultamos la tabla resultados_encuesta
+      let query = supabase.from('resultados_encuesta').select('*')
+      
+      // Si el depto no es General, filtramos (necesitas la columna 'departamento' en Supabase)
+      if (depto !== "General") {
+        query = query.eq('departamento', depto)
       }
+
+      const { data, error } = await query
+
+      if (error) {
+        console.error("Error de Supabase:", error)
+      } else if (data && data.length > 0) {
+        const total = data.length
+        
+        // 2. Calculamos promedios basados en TUS columnas de la imagen
+        const m1 = data.reduce((acc, curr) => acc + (curr.modulo_1_score || 0), 0) / total
+        const m2 = data.reduce((acc, curr) => acc + (curr.modulo_2_score || 0), 0) / total
+        const m3 = data.reduce((acc, curr) => acc + (curr.modulo_3_score || 0), 0) / total
+        
+        // Promedio general (escala 0-10 para el KPI)
+        const promedioG = (m1 + m2 + m3) / 3
+
+        setStats({
+          totalEvaluados: total,
+          promedioGeneral: Math.round(promedioG * 10), // Convertimos a porcentaje (7.2 -> 72%)
+          radarScores: [m1, m2, m3, 5, 5, 5] // Rellenamos con 5 los módulos que falten
+        })
+      }
+      setLoading(false)
     }
-    cargarDatos();
-  }, []);
+
+    fetchRealData()
+  }, [depto]) // Se dispara cada vez que cambias de departamento
 
   return (
-    <div className="min-h-screen bg-[#020617] text-white p-6 md:p-12 font-sans">
-      {/* Background Glows */}
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-cyan-500/5 blur-[120px] rounded-full pointer-events-none" />
-      
-      <div className="max-w-7xl mx-auto relative z-10">
-        {/* Header Pro */}
-        <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-16 border-b border-slate-800 pb-10">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-                <span className="w-2 h-2 bg-cyan-500 rounded-full animate-ping"></span>
-                <p className="text-cyan-500 font-mono text-[10px] tracking-[0.4em] uppercase">Real-Time Analytics</p>
-            </div>
-            <h1 className="text-5xl font-black tracking-tighter">CENTRO DE CONTROL</h1>
-          </div>
-          
-          <div className="flex gap-4">
-            <Link href="/encuesta" className="px-6 py-3 bg-slate-900 border border-slate-700 rounded-2xl text-xs font-bold hover:bg-slate-800 transition-all uppercase tracking-widest">Nueva Evaluación</Link>
-            <div className="bg-slate-900/80 border border-slate-700 px-6 py-3 rounded-2xl backdrop-blur-xl">
-              <p className="text-slate-500 text-[9px] uppercase tracking-widest mb-1 font-bold">Protocolo Activo</p>
-              <span className="text-white text-xs font-black tracking-widest">NOM-035-STPS-2018</span>
-            </div>
-          </div>
-        </header>
+    <div className="min-h-screen bg-slate-950 text-slate-200 p-8">
+      {/* HEADER Y FILTROS */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-cyan-400">Psyqus Intelligence</h1>
+          <p className="text-slate-400 text-sm">Datos reales desde Supabase</p>
+        </div>
+        
+        <div className="flex bg-slate-900 p-1 rounded-lg border border-slate-800">
+          {["General", "Ventas", "Operaciones", "RH"].map((d) => (
+            <button
+              key={d}
+              onClick={() => setDepto(d)}
+              className={`px-4 py-1.5 rounded-md text-sm transition-all ${
+                depto === d 
+                ? "bg-cyan-500 text-slate-950 font-bold" 
+                : "text-slate-400 hover:text-white hover:bg-slate-800"
+              }`}
+            >
+              {d}
+            </button>
+          ))}
+        </div>
+      </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          
-          {/* Columna Izquierda: Métricas Principales */}
-          <div className="lg:col-span-4 space-y-6">
-            
-            {/* Tarjeta de Riesgo Principal */}
-            <div className="p-8 rounded-[2.5rem] border transition-all duration-700 shadow-2xl overflow-hidden relative" 
-                 style={{ backgroundColor: `${statsMaster.color}10`, borderColor: `${statsMaster.color}40` }}>
-              <div className="absolute top-[-20px] right-[-20px] text-6xl opacity-10 font-black italic">!</div>
-              <p className="text-slate-400 text-xs uppercase tracking-[0.2em] mb-2 font-bold">Riesgo Detectado</p>
-              <h2 className="text-5xl font-black mb-4 tracking-tighter" style={{ color: statsMaster.color }}>
-                {statsMaster.nivel}
-              </h2>
-              <p className="text-slate-300 text-sm leading-relaxed opacity-80 italic">
-                Puntaje Global: <span className="font-bold text-white font-mono">{statsMaster.puntaje} pts</span>
-              </p>
-            </div>
+      {/* KPI CARDS */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="bg-slate-900 border border-slate-800 p-6 rounded-xl">
+          <Users className="text-cyan-400 mb-2"/>
+          <p className="text-sm text-slate-400">Evaluaciones ({depto})</p>
+          <h2 className="text-2xl font-bold">
+            {loading ? <Loader2 className="animate-spin w-5 h-5" /> : stats.totalEvaluados}
+          </h2>
+        </div>
 
-            {/* Grid de Stats Secundarios */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-slate-900/40 border border-slate-800 p-6 rounded-[2rem] backdrop-blur-md">
-                <p className="text-slate-500 text-[10px] uppercase mb-1 font-bold">Clima</p>
-                <p className="text-2xl font-black text-white">{statsMaster.clima}</p>
-              </div>
-              <div className="bg-slate-900/40 border border-slate-800 p-6 rounded-[2rem] backdrop-blur-md">
-                <p className="text-slate-500 text-[10px] uppercase mb-1 font-bold">Participación</p>
-                <p className="text-2xl font-black text-white">{statsMaster.participacion}</p>
-              </div>
-            </div>
+        <div className="bg-slate-900 border border-slate-800 p-6 rounded-xl">
+          <Brain className="text-purple-400 mb-2"/>
+          <p className="text-sm text-slate-400">Índice Bienestar</p>
+          <h2 className="text-2xl font-bold">
+            {loading ? "..." : `${stats.promedioGeneral}%`}
+          </h2>
+        </div>
 
-            {/* Tarjeta IA Recomendación */}
-            <div className="bg-gradient-to-br from-slate-900 to-black border border-slate-800 p-8 rounded-[2.5rem]">
-              <div className="flex items-center gap-2 mb-4">
-                <span className="text-cyan-500 text-xl">🤖</span>
-                <h3 className="font-bold text-sm tracking-widest text-white uppercase">Psyqus AI Insight</h3>
-              </div>
-              <p className="text-slate-400 text-xs leading-relaxed font-medium">
-                Basado en el nivel <span className="text-white underline decoration-cyan-500">{statsMaster.nivel}</span>, 
-                se sugiere priorizar el canal de Buzón de Paz para mitigar factores de estrés en el liderazgo.
-              </p>
-            </div>
-          </div>
+        <div className="bg-slate-900 border border-slate-800 p-6 rounded-xl text-red-400">
+          <ShieldAlert className="mb-2"/>
+          <p className="text-sm text-slate-400">Alertas Activas</p>
+          <h2 className="text-2xl font-bold">3</h2>
+        </div>
 
-          {/* Columna Derecha: El Radar Tecnológico */}
-          <div className="lg:col-span-8 bg-slate-900/20 border border-slate-800/50 rounded-[3rem] p-10 backdrop-blur-sm relative shadow-inner">
-            <h3 className="text-sm font-bold tracking-[0.3em] mb-12 flex items-center gap-4 text-slate-500 uppercase italic">
-               Visualización de Competencias Psicosociales
-               <div className="h-[1px] flex-1 bg-slate-800"></div>
-            </h3>
+        <Link href="/buzon" className="bg-slate-900 border border-slate-800 p-6 rounded-xl hover:border-cyan-500/50 transition-all group">
+          <MessageCircle className="text-green-400 mb-2 group-hover:scale-110 transition-transform"/>
+          <p className="text-sm text-slate-400">Buzón de Paz</p>
+          <h2 className="text-2xl font-bold">Ver Inbox</h2>
+        </Link>
+      </div>
 
-            <div className="w-full h-[450px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <RadarChart cx="50%" cy="50%" outerRadius="80%" data={datosRadar}>
-                  <PolarGrid stroke="#1e293b" />
-                  <PolarAngleAxis dataKey="subject" tick={{fill: '#64748b', fontSize: 11, fontWeight: 700, letterSpacing: '0.1em'}} />
-                  <PolarRadiusAxis angle={30} domain={[0, 10]} tick={false} axisLine={false} />
-                  <Radar
-                    name="Puntaje"
-                    dataKey="A"
-                    stroke={statsMaster.color}
-                    fill={statsMaster.color}
-                    fillOpacity={0.4}
-                  />
-                </RadarChart>
-              </ResponsiveContainer>
-            </div>
+      {/* GRIDS DE GRÁFICOS */}
+      <div className="grid md:grid-cols-2 gap-8 mb-8">
+        <div className="bg-slate-900 p-6 rounded-xl border border-slate-800">
+          <h2 className="text-lg mb-4 text-cyan-400 font-semibold text-center">Radar NOM-035</h2>
+          <RadarNom035 />
+        </div>
 
-            <footer className="mt-8 flex justify-between items-center text-[10px] font-mono text-slate-600 tracking-widest uppercase">
-                <span>Data Integrity Verified</span>
-                <span>System v2.4</span>
-            </footer>
-          </div>
+        <div className="bg-slate-900 p-6 rounded-xl border border-slate-800">
+          <h2 className="text-lg mb-4 text-cyan-400 font-semibold text-center">Riesgo por Departamento</h2>
+          <DepartmentRisk selectedDepto={depto} />
+        </div>
+      </div>
 
+      <div className="grid md:grid-cols-2 gap-8">
+        <div className="bg-slate-900 p-6 rounded-xl border border-slate-800">
+          <h2 className="text-lg mb-4 text-cyan-400 font-semibold text-center">Bienestar por Módulos</h2>
+          {loading ? (
+            <div className="h-[300px] flex items-center justify-center text-slate-500">Cargando datos...</div>
+          ) : (
+            <RadarBienestar scores={stats.radarScores} />
+          )}
+        </div>
+
+        <div className="bg-slate-900 p-6 rounded-xl border border-slate-800">
+          <h2 className="text-lg mb-4 text-cyan-400 font-semibold text-center">Mapa de Calor</h2>
+          <MapaDeCalor />
         </div>
       </div>
     </div>
-  );
+  )
 }
