@@ -1,32 +1,39 @@
-import { NextResponse } from 'next/server';
-import OpenAI from 'openai';
+import { NextResponse } from 'next/server'
+import OpenAI from 'openai'
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY, // Asegúrate de tener esta variable en Vercel
-});
+  apiKey: process.env.OPENAI_API_KEY,
+})
 
 export async function POST(req: Request) {
   try {
-    const { message } = await req.json();
+    const { message } = await req.json()
 
-    const response = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo", // O gpt-4 si tienes créditos
-      messages: [
+    const response = await openai.responses.create({
+      model: "gpt-4o-mini",
+      input: [
         {
           role: "system",
-          content: "Eres Psyqus AI, un experto en psicología organizacional y la NOM-035-STPS-2018. Tu objetivo es dar consejos breves, profesionales y empáticos sobre bienestar laboral. Mantén el anonimato del usuario siempre."
+          content:
+            "Eres Psyqus AI, experto en psicología organizacional y NOM-035."
         },
         {
           role: "user",
           content: message
         }
-      ],
-      temperature: 0.7,
-    });
+      ]
+    })
 
-    return NextResponse.json({ reply: response.choices[0].message.content });
+    const reply = response.output_text || "Sin respuesta"
+
+    return NextResponse.json({ reply })
+
   } catch (error: any) {
-    console.error("OpenAI Error:", error);
-    return NextResponse.json({ error: "Error en el cerebro de la IA" }, { status: 500 });
+    console.error("🔥 OPENAI ERROR:", error)
+
+    return NextResponse.json(
+      { error: error.message },
+      { status: 500 }
+    )
   }
 }
