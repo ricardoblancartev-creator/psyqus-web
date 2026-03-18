@@ -5,7 +5,7 @@ import Image from 'next/image';
 export default function Home() {
   return (
     <main className="min-h-screen bg-[#020617] text-slate-200 flex flex-col items-center justify-center p-6 relative overflow-hidden">
-      {/* Luces Neon de fondo para el estilo profesional */}
+      {/* Luces Neon de fondo */}
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-cyan-500/10 blur-[120px] rounded-full" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-500/10 blur-[120px] rounded-full" />
 
@@ -13,7 +13,7 @@ export default function Home() {
         
         {/* Contenedor del Logo con borde degradado */}
         <div className="flex justify-center mb-8">
-          <div className="rounded-full bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-600 p-1 shadow-[0_0_30px_rgba(8,145,178,0.3)] transform hover:scale-105 transition-transform duration-500">
+          <div className="rounded-full bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-600 p-1 shadow-[0_0_30px_rgba(8,145,178,0.3)]">
             <Image 
               src="/psyqus-logo.jpg" 
               alt="Logo PSYQUS"
@@ -35,10 +35,9 @@ export default function Home() {
         </p>
 
         <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-          {/* Si el usuario NO ha iniciado sesión */}
           <SignedOut>
             <SignInButton mode="modal">
-              <button className="px-12 py-4 bg-white text-black font-extrabold rounded-2xl hover:bg-cyan-400 transition-all duration-300 shadow-[0_0_25px_rgba(255,255,255,0.1)] active:scale-95">
+              <button className="px-12 py-4 bg-white text-black font-extrabold rounded-2xl hover:bg-cyan-400 transition-all duration-300 shadow-[0_0_25px_rgba(255,255,255,0.1)]">
                 INICIAR SESIÓN
               </button>
             </SignInButton>
@@ -47,16 +46,15 @@ export default function Home() {
             </Link>
           </SignedOut>
 
-          {/* Si el usuario YA inició sesión */}
           <SignedIn>
             <div className="flex flex-col items-center gap-6">
               <Link href="/dashboard">
-                <button className="px-12 py-4 bg-cyan-600 text-white font-extrabold rounded-2xl hover:bg-cyan-500 transition-all duration-300 shadow-[0_0_20px_rgba(8,145,178,0.3)] active:scale-95">
+                <button className="px-12 py-4 bg-cyan-600 text-white font-extrabold rounded-2xl hover:bg-cyan-500 transition-all duration-300">
                   IR AL DASHBOARD
                 </button>
               </Link>
               <div className="scale-125 border-2 border-slate-800 rounded-full p-1 bg-slate-900">
-                <UserButton appearance={{ elements: { userButtonAvatarBox: "w-10 h-10" } }} />
+                <UserButton />
               </div>
             </div>
           </SignedIn>
