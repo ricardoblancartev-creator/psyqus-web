@@ -1,41 +1,62 @@
-﻿'use client'
-import { useAuth } from '@clerk/nextjs'
-import Link from 'next/link'
+﻿import { SignInButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
+import Link from "next/link";
+import Image from 'next/image';
 
 export default function Home() {
-  const { isSignedIn } = useAuth()
-  
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-24">
-      <h1 className="text-4xl font-bold mb-8">Psyqus Web</h1>
-      
-      {!isSignedIn ? (
-        <div className="text-center">
-          <p className="mb-4">Por favor inicia sesión para continuar</p>
-          <Link 
-            href="/sign-in" 
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-          >
-            Iniciar Sesión
-          </Link>
-          <p className="mt-2">
-            ¿No tienes cuenta?{' '}
-            <Link href="/sign-up" className="text-blue-500 hover:underline">
-              Regístrate
-            </Link>
-          </p>
+    <main className="min-h-screen bg-[#020617] text-slate-200 flex flex-col items-center justify-center p-6 relative overflow-hidden">
+      {/* Luces Neon de fondo */}
+      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-cyan-500/10 blur-[120px] rounded-full" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-500/10 blur-[120px] rounded-full" />
+
+      <div className="z-10 text-center max-w-2xl">
+        
+        {/* Logo de PSYQUS */}
+        <div className="flex justify-center mb-6">
+          <div className="rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 p-1 shadow-[0_0_20px_rgba(8,145,178,0.3)]">
+            <Image 
+              src="/psyqus-logo.jpg" 
+              alt="Logo PSYQUS"
+              width={140} 
+              height={140}
+              className="rounded-full object-cover"
+            />
+          </div>
         </div>
-      ) : (
-        <div className="text-center">
-          <p className="mb-4">¡Bienvenido a Psyqus Web!</p>
-          <Link 
-            href="/dashboard" 
-            className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
-          >
-            Ir al Dashboard
-          </Link>
+
+        <h1 className="text-5xl md:text-7xl font-bold tracking-tighter mb-4 bg-gradient-to-b from-white to-slate-500 bg-clip-text text-transparent uppercase">
+          PSYQUS
+        </h1>
+        <p className="text-slate-400 text-lg mb-10 leading-relaxed max-w-lg mx-auto">
+          Inteligencia Psicológica Organizacional. <br />
+          Gestión avanzada de la NOM-035.
+        </p>
+
+        <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+          <SignedOut>
+            <SignInButton mode="modal">
+              <button className="px-10 py-4 bg-white text-black font-bold rounded-2xl hover:bg-cyan-400 transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)]">
+                Iniciar Sesión (Google)
+              </button>
+            </SignInButton>
+          </SignedOut>
+
+          <SignedIn>
+            <div className="flex flex-col items-center gap-4">
+              <Link href="/dashboard">
+                <button className="px-10 py-4 bg-cyan-600 text-white font-bold rounded-2xl hover:bg-cyan-500 transition-all">
+                  Ir al Dashboard
+                </button>
+              </Link>
+              <UserButton />
+            </div>
+          </SignedIn>
         </div>
-      )}
+      </div>
+
+      <footer className="absolute bottom-8 text-[10px] text-slate-600 tracking-[0.4em] uppercase">
+        Intelligence & Peace Management © 2026
+      </footer>
     </main>
-  )
+  );
 }
