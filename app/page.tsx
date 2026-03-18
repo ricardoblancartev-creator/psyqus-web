@@ -1,17 +1,22 @@
-﻿import { SignInButton, UserButton, ClerkProvider, useAuth } from "@clerk/nextjs";
+﻿"use client"; // <--- ESTA LÍNEA ES EL TRUCO MAESTRO
+
+import { SignInButton, UserButton, useAuth } from "@clerk/nextjs";
 import Link from "next/link";
 import Image from 'next/image';
 
-// Componente auxiliar para manejar la lógica de sesión sin errores
+// Componente para manejar la lógica de sesión
 function AuthContent() {
-  const { userId } = useAuth();
+  const { userId, isLoaded } = useAuth();
+
+  // Si aún está cargando la sesión, mostramos un estado neutro
+  if (!isLoaded) return <div className="h-10 w-32 bg-slate-800 animate-pulse rounded-2xl" />;
 
   return (
     <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
       {!userId ? (
         <div className="flex flex-col gap-4 items-center">
           <SignInButton mode="modal">
-            <button className="px-12 py-4 bg-white text-black font-extrabold rounded-2xl hover:bg-cyan-400 transition-all duration-300 shadow-[0_0_25px_rgba(255,255,255,0.1)]">
+            <button className="px-12 py-4 bg-white text-black font-extrabold rounded-2xl hover:bg-cyan-400 transition-all duration-300 shadow-[0_0_25px_rgba(255,255,255,0.1)] active:scale-95">
               INICIAR SESIÓN
             </button>
           </SignInButton>
@@ -22,7 +27,7 @@ function AuthContent() {
       ) : (
         <div className="flex flex-col items-center gap-6">
           <Link href="/dashboard">
-            <button className="px-12 py-4 bg-cyan-600 text-white font-extrabold rounded-2xl hover:bg-cyan-500 transition-all duration-300">
+            <button className="px-12 py-4 bg-cyan-600 text-white font-extrabold rounded-2xl hover:bg-cyan-500 transition-all duration-300 active:scale-95">
               IR AL DASHBOARD
             </button>
           </Link>
@@ -45,7 +50,7 @@ export default function Home() {
       <div className="z-10 text-center max-w-2xl">
         {/* Logo */}
         <div className="flex justify-center mb-8">
-          <div className="rounded-full bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-600 p-1 shadow-[0_0_30px_rgba(8,145,178,0.3)]">
+          <div className="rounded-full bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-600 p-1 shadow-[0_0_30px_rgba(8,145,178,0.3)] transform hover:scale-105 transition-transform duration-500">
             <Image 
               src="/psyqus-logo.jpg" 
               alt="Logo PSYQUS"
@@ -63,7 +68,7 @@ export default function Home() {
         
         <p className="text-slate-400 text-lg md:text-xl mb-12 leading-relaxed max-w-lg mx-auto font-light leading-tight">
           Intelligence & Peace Management. <br />
-          <span className="text-cyan-500/80 font-mono text-sm tracking-widest uppercase">Especialistas en NOM-035</span>
+          <span className="text-cyan-500/80 font-mono text-sm tracking-widest uppercase italic">Especialistas en NOM-035</span>
         </p>
 
         <AuthContent />
