@@ -1,4 +1,4 @@
-﻿import { SignInButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs/components";
+﻿import { SignInButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import Link from "next/link";
 import Image from 'next/image';
 
@@ -13,7 +13,7 @@ export default function Home() {
         
         {/* Contenedor del Logo con borde degradado */}
         <div className="flex justify-center mb-8">
-          <div className="rounded-full bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-600 p-1 shadow-[0_0_30px_rgba(8,145,178,0.3)]">
+          <div className="rounded-full bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-600 p-1 shadow-[0_0_30px_rgba(8,145,178,0.3)] transform hover:scale-105 transition-transform duration-500">
             <Image 
               src="/psyqus-logo.jpg" 
               alt="Logo PSYQUS"
@@ -31,13 +31,13 @@ export default function Home() {
         
         <p className="text-slate-400 text-lg md:text-xl mb-12 leading-relaxed max-w-lg mx-auto font-light">
           Intelligence & Peace Management. <br />
-          <span className="text-cyan-500/80 font-mono text-sm tracking-widest uppercase">Especialistas en NOM-035</span>
+          <span className="text-cyan-500/80 font-mono text-sm tracking-widest uppercase italic">Gestión Avanzada NOM-035</span>
         </p>
 
         <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
           <SignedOut>
             <SignInButton mode="modal">
-              <button className="px-12 py-4 bg-white text-black font-extrabold rounded-2xl hover:bg-cyan-400 transition-all duration-300 shadow-[0_0_25px_rgba(255,255,255,0.1)]">
+              <button className="px-12 py-4 bg-white text-black font-extrabold rounded-2xl hover:bg-cyan-400 transition-all duration-300 shadow-[0_0_25px_rgba(255,255,255,0.1)] active:scale-95">
                 INICIAR SESIÓN
               </button>
             </SignInButton>
@@ -49,11 +49,11 @@ export default function Home() {
           <SignedIn>
             <div className="flex flex-col items-center gap-6">
               <Link href="/dashboard">
-                <button className="px-12 py-4 bg-cyan-600 text-white font-extrabold rounded-2xl hover:bg-cyan-500 transition-all duration-300">
+                <button className="px-12 py-4 bg-cyan-600 text-white font-extrabold rounded-2xl hover:bg-cyan-500 transition-all duration-300 shadow-[0_0_20px_rgba(8,145,178,0.3)]">
                   IR AL DASHBOARD
                 </button>
               </Link>
-              <div className="scale-125 border-2 border-slate-800 rounded-full p-1 bg-slate-900">
+              <div className="scale-125 border-2 border-slate-800 rounded-full p-1 bg-slate-900 shadow-xl">
                 <UserButton />
               </div>
             </div>
