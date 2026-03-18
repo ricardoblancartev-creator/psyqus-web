@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^7.0.4",
+    "@react-pdf/renderer": "^4.3.2",
     "@supabase/supabase-js": "^2.99.2",
     "autoprefixer": "^10.4.27",
     "chart.js": "^4.5.1",
