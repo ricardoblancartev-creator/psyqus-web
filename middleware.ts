@@ -1,12 +1,16 @@
 ﻿import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 
-// 1. Define las rutas PÚBLICAS (accesibles sin autenticación)
+// Define rutas públicas - IMPORTANTE: el orden importa
 const isPublicRoute = createRouteMatcher([
-  '/',
+  // Páginas de autenticación
   '/sign-in(.*)',
   '/sign-up(.*)',
+  
+  // API routes
   '/api(.*)',
-  '/api/clerk-test',
+  
+  // Páginas informativas públicas
+  '/',
   '/articulos(.*)',
   '/ia',
   '/metodologia',
@@ -15,12 +19,14 @@ const isPublicRoute = createRouteMatcher([
   '/psicoeducacion',
   '/encuesta',
   '/gracias',
-  '/buzon',              // ← HACE PÚBLICA /buzon
-  '/buzon/login',        // ← HACE PÚBLICA /buzon/login
-  '/buzon(.*)',          // ← HACE PÚBLICAS TODAS LAS SUBRUTAS DE /buzon
+  
+  // BUZÓN - TODAS las rutas del buzón son públicas
+  '/buzon',
+  '/buzon/login',
+  '/buzon/(.*)',  // Esta es la forma correcta para subrutas en Clerk
 ]);
 
-// 2. Define rutas protegidas (opcional, para más claridad)
+// Define rutas que requieren autenticación (opcional, para claridad)
 const isProtectedRoute = createRouteMatcher([
   '/dashboard(.*)',
   '/admin(.*)',
@@ -32,11 +38,11 @@ const isProtectedRoute = createRouteMatcher([
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
-  // Si la ruta NO es pública, protegerla
+  // SIMPLIFICADO: Si la ruta NO es pública, protegerla
   if (!isPublicRoute(req)) {
-    await auth.protect(); // Redirige a /sign-in si no está autenticado
+    await auth.protect();
   }
-  // Si es pública, no hace nada (aquí entran /buzon y /buzon/login)
+  // Si es pública, no hacer nada - aquí entran /buzon y /buzon/login
 });
 
 export const config = {
