@@ -1,17 +1,19 @@
 ﻿import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 
-// Define rutas públicas - IMPORTANTE: el orden importa
+// Definir rutas públicas EXPLÍCITAMENTE
 const isPublicRoute = createRouteMatcher([
-  // Páginas de autenticación
-  '/sign-in(.*)',
-  '/sign-up(.*)',
+  // Autenticación - ABSOLUTAMENTE PÚBLICAS
+  '/sign-in',
+  '/sign-in/(.*)',
+  '/sign-up',
+  '/sign-up/(.*)',
   
-  // API routes
-  '/api(.*)',
+  // API
+  '/api/(.*)',
   
-  // Páginas informativas públicas
+  // Home y páginas informativas
   '/',
-  '/articulos(.*)',
+  '/articulos/(.*)',
   '/ia',
   '/metodologia',
   '/privacidad',
@@ -20,33 +22,32 @@ const isPublicRoute = createRouteMatcher([
   '/encuesta',
   '/gracias',
   
-  // BUZÓN - TODAS las rutas del buzón son públicas
+  // BUZÓN - COMPLETAMENTE PÚBLICO
   '/buzon',
   '/buzon/login',
-  '/buzon/(.*)',  // Esta es la forma correcta para subrutas en Clerk
-]);
-
-// Define rutas que requieren autenticación (opcional, para claridad)
-const isProtectedRoute = createRouteMatcher([
-  '/dashboard(.*)',
-  '/admin(.*)',
-  '/panel-psicologo(.*)',
-  '/psicologo(.*)',
-  '/evaluacion(.*)',
-  '/insights(.*)',
-  '/resultados(.*)',
+  '/buzon/(.*)',
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
-  // SIMPLIFICADO: Si la ruta NO es pública, protegerla
-  if (!isPublicRoute(req)) {
-    await auth.protect();
+  const url = req.nextUrl.pathname;
+  
+  // LOG PARA DEPURACIÓN
+  console.log(`🔄 Middleware ejecutándose para: ${url}`);
+  
+  // SI ES RUTA PÚBLICA, PERMITIR ACCESO INMEDIATAMENTE
+  if (isPublicRoute(req)) {
+    console.log(`✅ RUTA PÚBLICA: ${url} - Permitir acceso`);
+    return; // Importante: NO hacer nada más
   }
-  // Si es pública, no hacer nada - aquí entran /buzon y /buzon/login
+  
+  // SI NO ES PÚBLICA, PROTEGER
+  console.log(`🔒 RUTA PROTEGIDA: ${url} - Requiere autenticación`);
+  await auth.protect();
 });
 
 export const config = {
   matcher: [
+    // Excluir archivos estáticos
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 };
