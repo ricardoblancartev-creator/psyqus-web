@@ -2,19 +2,24 @@
 
 /* Colores base para PSYQUS */
 :root {
-  --background: #020617;
-  --foreground: #f8fafc;
+  --background: #ffffff;
+  --foreground: #0f172a;
 }
 
-/* Forzar el fondo oscuro en toda la página */
+/* Estilos base - SIN forzar fondo oscuro */
 body {
-  background-color: #020617 !important;
-  color: #f8fafc;
   margin: 0;
   padding: 0;
   min-height: 100vh;
 }
 
-* {
-  box-sizing: border-box;
+/* Solo para páginas que quieran fondo oscuro, usar una clase */
+.dark {
+  --background: #020617;
+  --foreground: #f8fafc;
+}
+
+.dark body {
+  background-color: #020617;
+  color: #f8fafc;
 }
