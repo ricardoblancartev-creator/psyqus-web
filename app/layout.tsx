@@ -1,14 +1,5 @@
-﻿import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+﻿import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
-import "./globals.css";
-
-const inter = Inter({ subsets: ["latin"] });
-
-export const metadata: Metadata = {
-  title: "Psyqus Web",
-  description: "Intelligence & Peace Management",
-};
 
 export default function RootLayout({
   children,
@@ -18,9 +9,7 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="es">
-        <body className={inter.className}>
-          {children}
-        </body>
+        <body>{children}</body>
       </html>
     </ClerkProvider>
   );

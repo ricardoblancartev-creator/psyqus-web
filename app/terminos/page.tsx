@@ -1,24 +1,110 @@
 export default function TerminosPage() {
   return (
-    <div className="min-h-screen bg-[#020617] text-white p-8 md:p-20">
-      <div className="max-w-4xl mx-auto bg-slate-900/40 border border-slate-800 p-10 md:p-16 rounded-[3rem] backdrop-blur-xl shadow-2xl">
-        <h1 className="text-4xl font-black mb-8 bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent italic">
-          TÉRMINOS Y CONDICIONES DE USO
-        </h1>
-        <div className="prose prose-invert max-w-none text-slate-400 space-y-6 text-sm leading-relaxed">
-          <section>
-            <h2 className="text-xl font-bold text-white mb-3">Propiedad Intelectual</h2>
-            <p>El sistema PSYQUS, incluyendo su algoritmo de radar y metodologías de evaluación, es propiedad intelectual de Ricardo Blancarte. Queda prohibida la reproducción total o parcial sin autorización expresa.</p>
-          </section>
-          <section>
-            <h2 className="text-xl font-bold text-white mb-3">Uso del Servicio</h2>
-            <p>El usuario se compromete a proporcionar información veraz durante las evaluaciones de la NOM-035 para asegurar la precisión de los diagnósticos organizacionales.</p>
-          </section>
-          <div className="mt-12 pt-8 border-t border-slate-800 text-[10px] uppercase font-mono tracking-widest text-center">
-            Última actualización: 15 Marzo 2026 • México
+    <main className="min-h-screen bg-[#020617] text-white relative overflow-hidden">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(6,182,212,0.12),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(168,85,247,0.10),transparent_24%)]" />
+      <div className="absolute inset-0 opacity-[0.06] [background-image:linear-gradient(rgba(255,255,255,0.14)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.14)_1px,transparent_1px)] [background-size:42px_42px]" />
+
+      <section className="relative max-w-5xl mx-auto px-6 py-10">
+        <div className="rounded-[2rem] border border-white/10 bg-slate-950/60 backdrop-blur-xl p-8">
+          <p className="text-[11px] uppercase tracking-[0.32em] text-cyan-400/70 font-semibold mb-3">
+            Psyqus Legal Layer
+          </p>
+          <h1 className="text-4xl md:text-5xl font-black tracking-tight">
+            Términos y Condiciones
+          </h1>
+
+          <div className="mt-8 space-y-8 text-slate-300 leading-relaxed">
+            <section>
+              <h2 className="text-2xl font-bold text-white mb-3">1. Objeto</h2>
+              <p>
+                Psyqus es una plataforma digital para evaluación psicosocial, acompañamiento,
+                psicoeducación, entrenamiento y soporte organizacional en contextos de
+                bienestar laboral.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-2xl font-bold text-white mb-3">2. Uso permitido</h2>
+              <p>
+                El usuario acepta utilizar la plataforma únicamente con fines legítimos,
+                laborales, formativos o preventivos, evitando conductas que afecten la
+                seguridad, confidencialidad o funcionamiento del sistema.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-2xl font-bold text-white mb-3">3. Acceso y cuentas</h2>
+              <p>
+                Cada usuario será responsable del uso de su acceso dentro de la plataforma.
+                El acceso a paneles profesionales o administrativos estará reservado a perfiles
+                autorizados por la organización y por la configuración de Psyqus.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-2xl font-bold text-white mb-3">4. Naturaleza del servicio</h2>
+              <p>
+                Psyqus no sustituye atención clínica, diagnóstico profesional, psicoterapia ni
+                atención psiquiátrica. Sus interpretaciones, módulos educativos y lecturas
+                tienen alcance preventivo, organizacional y orientativo.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-2xl font-bold text-white mb-3">5. Interpretaciones y metodología</h2>
+              <p>
+                La plataforma genera interpretaciones con base en reglas internas, cuestionarios,
+                indicadores de bienestar y módulos de análisis organizacional. Cuando exista
+                participación o validación metodológica de especialistas externos, dicha
+                referencia deberá mostrarse de forma precisa y autorizada.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-2xl font-bold text-white mb-3">6. Contenido profesional acreditado</h2>
+              <p>
+                En su caso, Psyqus podrá mostrar leyendas de revisión metodológica, supervisión
+                o validación por especialistas. Estas menciones deberán corresponder a
+                autorizaciones reales, vigentes y verificables.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-2xl font-bold text-white mb-3">7. Limitación de responsabilidad</h2>
+              <p>
+                Psyqus no será responsable por decisiones individuales o empresariales tomadas
+                exclusivamente con base en una lectura automatizada sin revisión humana cuando
+                esta sea necesaria.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-2xl font-bold text-white mb-3">8. Disponibilidad</h2>
+              <p>
+                La plataforma podrá presentar ajustes, mantenimiento, actualizaciones o periodos
+                de indisponibilidad temporal derivados de operación, seguridad o evolución del
+                sistema.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-2xl font-bold text-white mb-3">9. Propiedad intelectual</h2>
+              <p>
+                La interfaz, contenidos, metodología propia, diseño, flujos y materiales de
+                Psyqus forman parte del sistema y no podrán reproducirse, distribuirse o
+                explotarse sin autorización.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-2xl font-bold text-white mb-3">10. Aceptación</h2>
+              <p>
+                Al utilizar la plataforma, el usuario acepta estos términos y condiciones.
+              </p>
+            </section>
           </div>
         </div>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }

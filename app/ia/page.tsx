@@ -1,92 +1,154 @@
 "use client";
-export const dynamic = 'force-dynamic'; 
 
-import React, { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { useState } from "react";
+import { useUser } from "@clerk/nextjs";
+import { supabase } from "@/lib/supabase";
+import { Brain, Send, Sparkles } from "lucide-react";
 
-export default function PrivateAIChat() {
-  const [messages, setMessages] = useState<{role: string, content: string}[]>([]);
+type ChatMessage = {
+  role: "user" | "assistant";
+  content: string;
+};
+
+export default function IAPage() {
+  const { user } = useUser();
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    {
+      role: "assistant",
+      content:
+        "Hola. Soy el asistente de Psyqus. Puedes contarme cómo te sientes en el trabajo y trataré de orientarte con respeto y claridad.",
+    },
+  ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    scrollRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
-  const sendMessage = async (e: React.FormEvent) => {
+  async function handleSend(e: React.FormEvent) {
     e.preventDefault();
-    if (!input.trim() || loading) return;
+    const clean = input.trim();
+    if (!clean || loading) return;
 
-    const userMsg = input;
-    setMessages(prev => [...prev, { role: "user", content: userMsg }]);
+    const nextMessages: ChatMessage[] = [...messages, { role: "user", content: clean }];
+    setMessages(nextMessages);
     setInput("");
     setLoading(true);
 
     try {
-      const res = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userMsg })
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          source: "ia_general",
+          messages: nextMessages,
+        }),
       });
+
       const data = await res.json();
-      setMessages(prev => [...prev, { role: "assistant", content: data.reply }]);
-    } catch (err) {
-      setMessages(prev => [...prev, { role: "assistant", content: "Sistema temporalmente fuera de línea. Intenta de nuevo." }]);
+      const reply =
+        typeof data?.reply === "string"
+          ? data.reply
+          : "No pude responder en este momento.";
+
+      const updatedMessages: ChatMessage[] = [
+        ...nextMessages,
+        { role: "assistant", content: reply },
+      ];
+
+      setMessages(updatedMessages);
+
+      await supabase.from("interacciones_psyqus").insert([
+        {
+          user_id: user?.id ?? null,
+          tipo: "ia",
+          mensaje: clean,
+          respuesta: reply,
+          resumen_riesgo: "pendiente_revision",
+        },
+      ]);
+    } catch (error) {
+      console.error(error);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content:
+            "Ocurrió un error al responder. Intenta otra vez en un momento.",
+        },
+      ]);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
-  };
+  }
 
   return (
-    <main className="min-h-screen bg-[#020617] text-slate-300 font-sans flex flex-col items-center p-4 lg:p-10 relative overflow-hidden">
-      {/* Luces de ambiente */}
-      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-cyan-500/10 blur-[120px] rounded-full animate-pulse" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-600/5 blur-[120px] rounded-full" />
-      
-      <header className="w-full max-w-2xl flex justify-between items-center mb-8 z-10 border-b border-slate-800 pb-6">
-        <div>
-          <h1 className="text-2xl font-black italic text-white tracking-tighter uppercase">
-            PSYQUS <span className="text-cyan-500">PRIVATE AI</span>
-          </h1>
-          <p className="text-[10px] font-bold text-cyan-500/60 tracking-[0.3em] uppercase">Security Level: Ghost Mode</p>
-        </div>
-        <button onClick={() => setMessages([])} className="px-4 py-2 bg-red-500/5 border border-red-500/20 rounded-full hover:bg-red-500 hover:text-white transition-all text-[10px] font-bold text-red-500">
-          WIPE SESSION
-        </button>
-      </header>
+    <main className="min-h-screen bg-[#020617] text-white relative overflow-hidden">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(168,85,247,0.10),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(6,182,212,0.10),transparent_24%)]" />
+      <div className="absolute inset-0 opacity-[0.06] [background-image:linear-gradient(rgba(255,255,255,0.14)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.14)_1px,transparent_1px)] [background-size:42px_42px]" />
 
-      <div className="w-full max-w-2xl flex-1 bg-slate-900/20 border border-slate-800/50 rounded-[2.5rem] p-6 overflow-y-auto mb-6 backdrop-blur-xl shadow-2xl relative custom-scrollbar">
-        {messages.length === 0 && (
-          <div className="h-full flex flex-col items-center justify-center text-center opacity-30">
-            <p className="text-sm italic mb-4">"Habla libremente. Tu identidad está protegida por encriptación de grado organizacional."</p>
-            <div className="h-[1px] w-12 bg-slate-700"></div>
+      <section className="relative max-w-5xl mx-auto px-6 py-10">
+        <div className="rounded-[2rem] border border-white/10 bg-slate-950/60 backdrop-blur-xl p-8 mb-8">
+          <div className="flex items-start gap-4">
+            <div className="w-14 h-14 rounded-2xl bg-fuchsia-500/10 border border-fuchsia-400/20 flex items-center justify-center">
+              <Sparkles className="w-7 h-7 text-fuchsia-300" />
+            </div>
+            <div>
+              <p className="text-[11px] uppercase tracking-[0.32em] text-fuchsia-300/80 font-semibold mb-2">
+                Psyqus AI Layer
+              </p>
+              <h1 className="text-3xl md:text-5xl font-black tracking-tight">
+                Asistente IA
+              </h1>
+              <p className="mt-3 text-slate-300 max-w-3xl">
+                Este espacio sí responde. Además, lo relevante puede ser revisado
+                por el panel del psicólogo.
+              </p>
+            </div>
           </div>
-        )}
-        <div className="space-y-6">
-          {messages.map((msg, i) => (
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-[85%] p-4 rounded-3xl text-sm leading-relaxed ${msg.role === 'user' ? 'bg-cyan-600 text-white rounded-tr-none' : 'bg-slate-800/50 text-slate-200 border border-slate-700/50 rounded-tl-none'}`}>
-                {msg.content}
-              </div>
-            </motion.div>
-          ))}
-          <div ref={scrollRef} />
         </div>
-      </div>
 
-      <form onSubmit={sendMessage} className="w-full max-w-2xl relative z-10">
-        <div className="flex gap-3 bg-slate-900/80 border border-slate-700 p-3 rounded-[2rem] focus-within:border-cyan-500 transition-all shadow-2xl">
-          <input 
-            type="text" value={input} onChange={(e) => setInput(e.target.value)}
-            className="flex-1 bg-transparent border-none outline-none px-4 text-sm text-white"
-            placeholder="Escribe un mensaje anónimo..."
-          />
-          <button type="submit" className="bg-cyan-500 p-4 rounded-2xl hover:bg-white transition-all group">
-            <svg viewBox="0 0 24 24" className="w-5 h-5 fill-black group-hover:scale-110"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-          </button>
+        <div className="rounded-[1.75rem] border border-white/10 bg-slate-950/60 p-6">
+          <div className="flex items-center gap-3 mb-5">
+            <Brain className="w-5 h-5 text-fuchsia-300" />
+            <h2 className="text-2xl font-bold">Conversación</h2>
+          </div>
+
+          <div className="space-y-4 max-h-[460px] overflow-y-auto pr-1">
+            {messages.map((message, idx) => (
+              <div
+                key={`${message.role}-${idx}`}
+                className={`rounded-2xl p-4 border ${
+                  message.role === "assistant"
+                    ? "border-fuchsia-400/20 bg-fuchsia-500/10"
+                    : "border-cyan-400/20 bg-cyan-500/10"
+                }`}
+              >
+                <p className="text-xs uppercase tracking-[0.24em] mb-2 text-slate-300">
+                  {message.role === "assistant" ? "Psyqus IA" : "Tú"}
+                </p>
+                <p className="text-sm leading-relaxed text-white">{message.content}</p>
+              </div>
+            ))}
+          </div>
+
+          <form onSubmit={handleSend} className="mt-6 flex gap-3">
+            <input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Escribe cómo te sientes o qué está pasando..."
+              className="flex-1 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder:text-slate-500 focus:outline-none focus:border-fuchsia-400/30"
+            />
+            <button
+              type="submit"
+              disabled={loading}
+              className="inline-flex items-center gap-2 rounded-2xl bg-fuchsia-500 px-5 py-3 font-bold text-black hover:bg-fuchsia-400 transition disabled:opacity-60"
+            >
+              <Send className="w-4 h-4" />
+              {loading ? "..." : "Enviar"}
+            </button>
+          </form>
         </div>
-        <p className="text-[9px] text-center text-slate-600 mt-6 uppercase tracking-widest font-medium">Psyqus Engine v2.0 • No data retention policy</p>
-      </form>
+      </section>
     </main>
   );
 }
