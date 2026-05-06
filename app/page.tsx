@@ -31,9 +31,11 @@ export default function Home() {
   }
 
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setLoading(true);
+  e.preventDefault();
+  setLoading(true);
+  setSuccess(false);
 
+  try {
     const res = await fetch("/api/prospectos", {
       method: "POST",
       headers: {
@@ -42,22 +44,31 @@ export default function Home() {
       body: JSON.stringify(form),
     });
 
-    setLoading(false);
+    const data = await res.json();
 
-    if (res.ok) {
-      setSuccess(true);
-      setForm({
-        empresa: "",
-        nombre: "",
-        telefono: "",
-        email: "",
-        rubro: "",
-        empleados: "",
-        mensaje: "",
-      });
+    if (!res.ok) {
+      console.error("Error prospectos:", data);
+      alert(data.error || "No se pudo enviar la solicitud.");
+      return;
     }
-  }
 
+    setSuccess(true);
+    setForm({
+      empresa: "",
+      nombre: "",
+      telefono: "",
+      email: "",
+      rubro: "",
+      empleados: "",
+      mensaje: "",
+    });
+  } catch (err) {
+    console.error(err);
+    alert("Error de conexión al enviar la solicitud.");
+  } finally {
+    setLoading(false);
+  }
+}
   return (
     <main className="min-h-screen bg-[#020617] text-white relative overflow-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(6,182,212,0.18),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(168,85,247,0.12),transparent_26%)]" />

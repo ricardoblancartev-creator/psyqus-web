@@ -2,11 +2,10 @@
 
 const isPublicRoute = createRouteMatcher([
   "/",
+  "/api/prospectos(.*)",
   "/sign-in(.*)",
   "/sign-up(.*)",
   "/psicologo(.*)",
-  "/privacidad(.*)",
-  "/terminos(.*)",
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
@@ -16,5 +15,8 @@ export default clerkMiddleware(async (auth, req) => {
 });
 
 export const config = {
-  matcher: ["/((?!.*\\..*|_next).*)", "/", "/(api|trpc)(.*)"],
+  matcher: [
+    "/((?!_next|.*\\..*).*)",
+    "/(api|trpc)(.*)",
+  ],
 };
