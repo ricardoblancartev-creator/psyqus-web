@@ -63,12 +63,12 @@ export default function Home() {
       }
 
       if (!res.ok) {
-        console.error("Error prospectos:", data);
         alert(data.error || "No se pudo enviar la solicitud.");
         return;
       }
 
       setSuccess(true);
+
       setForm({
         empresa: "",
         nombre: "",
@@ -111,10 +111,10 @@ export default function Home() {
             </a>
 
             <a
-              href="#cotizacion"
+              href="/diagnostico"
               className="inline-flex rounded-2xl bg-cyan-500 px-5 py-3 text-sm font-black text-black hover:bg-cyan-400 transition"
             >
-              Solicitar demo
+              Hacer diagnóstico
             </a>
           </div>
         </nav>
@@ -127,7 +127,7 @@ export default function Home() {
             </div>
 
             <h1 className="text-4xl md:text-6xl font-black tracking-tight leading-tight">
-              ¿Tienes forma de comprobar el cumplimiento de la NOM-035?
+              ¿Tu empresa cumple con estándares mínimos de bienestar psicosocial?
             </h1>
 
             <p className="mt-6 text-xl text-slate-300 leading-relaxed max-w-3xl">
@@ -135,6 +135,23 @@ export default function Home() {
               al bienestar psicosocial de sus colaboradores con evidencia clara,
               organizada y lista para revisión.
             </p>
+
+            <div className="mt-8 flex flex-col sm:flex-row gap-4">
+              <a
+                href="/diagnostico"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-cyan-500 px-7 py-4 font-black text-black hover:bg-cyan-400 transition"
+              >
+                Hacer diagnóstico gratuito
+                <ArrowRight className="w-5 h-5" />
+              </a>
+
+              <a
+                href="#cotizacion"
+                className="inline-flex items-center justify-center rounded-2xl border border-white/10 bg-white/5 px-7 py-4 font-bold text-white hover:bg-white/10 transition"
+              >
+                Solicitar demo
+              </a>
+            </div>
 
             <div className="grid md:grid-cols-3 gap-4 mt-8">
               <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
@@ -183,6 +200,7 @@ export default function Home() {
                 <h2 className="text-3xl font-black mb-2">
                   Solicita una cotización
                 </h2>
+
                 <p className="text-slate-400 mb-6">
                   Déjanos tus datos y te contactaremos para mostrarte cómo se
                   vería Psyqus en tu empresa.
@@ -303,9 +321,7 @@ export default function Home() {
         <div className="mt-16 rounded-[2rem] border border-white/10 bg-slate-950/60 backdrop-blur-xl p-6 md:p-8">
           <div className="grid md:grid-cols-4 gap-4">
             <div className="rounded-2xl border border-cyan-400/20 bg-cyan-500/10 p-5">
-              <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-400/20 flex items-center justify-center mb-4">
-                <ShieldCheck className="w-6 h-6 text-cyan-300" />
-              </div>
+              <ShieldCheck className="w-8 h-8 text-cyan-300 mb-4" />
               <p className="text-xs uppercase tracking-[0.24em] text-cyan-300 mb-2">
                 Paso 1
               </p>
@@ -317,9 +333,7 @@ export default function Home() {
             </div>
 
             <div className="rounded-2xl border border-fuchsia-400/20 bg-fuchsia-500/10 p-5">
-              <div className="w-12 h-12 rounded-2xl bg-fuchsia-500/10 border border-fuchsia-400/20 flex items-center justify-center mb-4">
-                <Brain className="w-6 h-6 text-fuchsia-300" />
-              </div>
+              <Brain className="w-8 h-8 text-fuchsia-300 mb-4" />
               <p className="text-xs uppercase tracking-[0.24em] text-fuchsia-300 mb-2">
                 Paso 2
               </p>
@@ -331,9 +345,7 @@ export default function Home() {
             </div>
 
             <div className="rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-5">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-400/20 flex items-center justify-center mb-4">
-                <FileText className="w-6 h-6 text-emerald-300" />
-              </div>
+              <FileText className="w-8 h-8 text-emerald-300 mb-4" />
               <p className="text-xs uppercase tracking-[0.24em] text-emerald-300 mb-2">
                 Paso 3
               </p>
@@ -345,9 +357,7 @@ export default function Home() {
             </div>
 
             <div className="rounded-2xl border border-orange-400/20 bg-orange-500/10 p-5">
-              <div className="w-12 h-12 rounded-2xl bg-orange-500/10 border border-orange-400/20 flex items-center justify-center mb-4">
-                <GraduationCap className="w-6 h-6 text-orange-300" />
-              </div>
+              <GraduationCap className="w-8 h-8 text-orange-300 mb-4" />
               <p className="text-xs uppercase tracking-[0.24em] text-orange-300 mb-2">
                 Paso 4
               </p>
@@ -357,12 +367,6 @@ export default function Home() {
                 fortalecer al equipo.
               </p>
             </div>
-          </div>
-
-          <div className="hidden xl:flex justify-center gap-12 mt-8 text-slate-500">
-            <ArrowRight className="w-8 h-8" />
-            <ArrowRight className="w-8 h-8" />
-            <ArrowRight className="w-8 h-8" />
           </div>
         </div>
 
@@ -421,10 +425,10 @@ export default function Home() {
           </p>
 
           <a
-            href="#cotizacion"
+            href="/diagnostico"
             className="mt-8 inline-flex rounded-2xl bg-cyan-500 px-8 py-4 font-black text-black hover:bg-cyan-400 transition"
           >
-            Solicitar cotización
+            Hacer diagnóstico gratuito
           </a>
         </div>
       </section>
