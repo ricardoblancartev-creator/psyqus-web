@@ -247,12 +247,12 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        <div className="grid xl:grid-cols-[1.05fr_0.95fr] gap-6 mb-8">
-          <div className="rounded-[1.75rem] border border-white/10 bg-slate-950/60 backdrop-blur-xl p-6 hover:border-cyan-400/15 transition">
-            <div className="flex items-center gap-3 mb-4">
-              <Activity className="w-5 h-5 text-cyan-300" />
-              <h2 className="text-2xl font-bold">Tu última evaluación</h2>
-            </div>
+          <div className="grid xl:grid-cols-[1.05fr_0.95fr] gap-6 mb-8">
+            <div className="rounded-[1.75rem] border border-white/10 bg-slate-950/60 backdrop-blur-xl p-6 hover:border-cyan-400/15 transition">
+              <div className="flex items-center gap-3 mb-4">
+                <Activity className="w-5 h-5 text-cyan-300" />
+                <h2 className="text-2xl font-bold">Tu última evaluación</h2>
+              </div>
 
             {latestSurvey ? (
               <>
@@ -333,11 +333,11 @@ export default async function DashboardPage() {
                 </h2>
               </div>
 
-              <p className="text-slate-100 leading-relaxed">
-                {latestSurvey?.interpretacion ||
-                  "Todavía no hay una interpretación personalizada guardada. Completa la nueva versión de la evaluación para generar una lectura más profunda."}
-              </p>
-            </div>
+<div className={`rounded-3xl border p-6 border-cyan-500/20 bg-cyan-500/10`}>
+  <h2 className="text-2xl font-black mb-4">Interpretación general IA</h2>
+  <p className="text-slate-200 leading-relaxed">{nextStepSuggestion(surveyRisk)}</p>
+</div>
+
 
             <div className="rounded-[1.75rem] border border-white/10 bg-slate-950/60 p-6 hover:border-cyan-400/15 transition">
               <div className="flex items-center gap-3 mb-4">
@@ -431,6 +431,7 @@ export default async function DashboardPage() {
               </Link>
             );
           })}
+        </div>
         </div>
       </section>
     </main>

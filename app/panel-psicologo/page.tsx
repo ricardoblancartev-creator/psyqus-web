@@ -1,442 +1,281 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { supabase } from "@/lib/supabase";
-
 import {
   PieChart,
   Pie,
   Cell,
-  Tooltip,
   ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
+  Tooltip,
 } from "recharts";
 
-import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
-
-const COLORS = [
-  "#22d3ee",
-  "#a855f7",
-  "#ef4444",
-  "#f59e0b",
-  "#10b981",
+const QUESTIONS = [
+  "La cantidad de trabajo que realizo suele rebasar el tiempo disponible.",
+  "Termino mi jornada con agotamiento físico o mental.",
+  "En mi trabajo hay momentos de presión tan alta que me cuesta concentrarme.",
+  "Mi trabajo me permite organizar mis tareas con claridad.",
+  "Tengo claridad sobre lo que se espera de mí en mi puesto.",
+  "Puedo tomar algunas decisiones sobre cómo realizar mi trabajo.",
+  "Mi jefe inmediato escucha mis opiniones o propuestas.",
+  "Recibo retroalimentación clara y útil sobre mi desempeño.",
+  "Cuando surge un problema, mi liderazgo lo maneja con respeto.",
+  "Siento que mi esfuerzo pasa desapercibido.",
+  "En mi trabajo rara vez se reconoce lo que hago bien.",
+  "Mis horarios o carga laboral interfieren con mi vida personal.",
+  "Me cuesta desconectarme del trabajo incluso fuera del horario laboral.",
+  "El ambiente entre compañeros suele sentirse tenso o desgastante.",
+  "En mi equipo se puede hablar con respeto incluso cuando hay desacuerdo.",
+  "He sentido aislamiento, indiferencia o exclusión dentro del trabajo.",
+  "He recibido trato humillante, burlas o descalificación en el trabajo.",
+  "Me preocupa ser castigado o señalado si expreso malestar laboral.",
+  "He presenciado formas de maltrato o agresión dentro del entorno laboral.",
+  "En general, siento que mi trabajo es psicológicamente sostenible.",
 ];
 
-const questions = [
-  {
-    id: 1,
-    text: "La cantidad de trabajo que realizo suele rebasar el tiempo disponible.",
-  },
-  {
-    id: 2,
-    text: "Termino mi jornada con agotamiento físico o mental.",
-  },
-  {
-    id: 3,
-    text: "En mi trabajo hay momentos de presión tan alta que me cuesta concentrarme.",
-  },
-];
+const LABELS: Record<0 | 1 | 2 | 3 | 4, string> = {
+  0: "Nunca",
+  1: "Casi nunca",
+  2: "A veces",
+  3: "Casi siempre",
+  4: "Siempre",
+};
 
-const labels = [
-  "Nunca",
-  "Casi nunca",
-  "A veces",
-  "Casi siempre",
-  "Siempre",
-];
+const COLORS: Record<0 | 1 | 2 | 3 | 4, string> = {
+  0: "#67e8f9",
+  1: "#c4b5fd",
+  2: "#fca5a5",
+  3: "#facc15",
+  4: "#86efac",
+};
 
 export default function PanelPsicologoPage() {
-
   const [resultados, setResultados] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchResultados();
-  }, []);
-
-  async function fetchResultados() {
-
-    const { data, error } = await supabase
-      .from("resultados_encuestas")
-      .select("*")
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      console.error(error);
+    async function load() {
+      const res = await fetch("/api/resultados");
+      const data = await res.json();
+      setResultados(Array.isArray(data) ? data : []);
     }
 
-    setResultados(data || []);
-    setLoading(false);
-  }
+    load();
+  }, []);
 
-  async function exportPDF() {
+  const resumen = useMemo(() => {
+    return QUESTIONS.map((questionText, index) => {
+      const questionNumber = String(index + 1);
 
-    const input = document.getElementById("psyqus-dashboard");
+      const totalPregunta: Record<0 | 1 | 2 | 3 | 4, number> = {
+        0: 0,
+        1: 0,
+        2: 0,
+        3: 0,
+        4: 0,
+      };
 
-    if (!input) return;
+      const areas: Record<
+        string,
+        {
+          total: number;
+          respuestas: Record<0 | 1 | 2 | 3 | 4, number>;
+        }
+      > = {};
 
-    const canvas = await html2canvas(input, {
-      scale: 2,
-      backgroundColor: "#020617",
+      resultados.forEach((item) => {
+        const respuestas = item.respuestas || {};
+        const area = item.area || "Sin área";
+        const value = Number(respuestas[questionNumber]) as 0 | 1 | 2 | 3 | 4;
+
+        if (value < 0 || value > 4 || Number.isNaN(value)) return;
+
+        totalPregunta[value] += 1;
+
+        if (!areas[area]) {
+          areas[area] = {
+            total: 0,
+            respuestas: {
+              0: 0,
+              1: 0,
+              2: 0,
+              3: 0,
+              4: 0,
+            },
+          };
+        }
+
+        areas[area].total += 1;
+        areas[area].respuestas[value] += 1;
+      });
+
+      const chartData = Object.entries(totalPregunta)
+        .map(([key, value]) => {
+          const k = Number(key) as 0 | 1 | 2 | 3 | 4;
+
+          return {
+            key: k,
+            name: LABELS[k],
+            value,
+            color: COLORS[k],
+          };
+        })
+        .filter((x) => x.value > 0);
+
+      return {
+        numero: index + 1,
+        pregunta: questionText,
+        chartData,
+        areas: Object.entries(areas).map(([area, data]) => ({
+          area,
+          ...data,
+        })),
+      };
     });
-
-    const imgData = canvas.toDataURL("image/png");
-
-    const pdf = new jsPDF("p", "mm", "a4");
-
-    const width = 210;
-    const height = (canvas.height * width) / canvas.width;
-
-    pdf.addImage(imgData, "PNG", 0, 0, width, height);
-
-    pdf.save("psyqus-organizational-report.pdf");
-  }
-
-  const totalEvaluaciones = resultados.length;
-
-  const promedio = useMemo(() => {
-
-    if (!resultados.length) return 0;
-
-    const total = resultados.reduce(
-      (acc, item) => acc + Number(item.puntaje_total || 0),
-      0
-    );
-
-    return Math.round(total / resultados.length);
-
   }, [resultados]);
 
-  const riesgoAlto = resultados.filter(
-    (item) => item.riesgo === "alto"
-  ).length;
-
-  function getQuestionData(questionId: number) {
-
-    const counts = [0, 0, 0, 0, 0];
-
-    resultados.forEach((item) => {
-
-      const respuestas = item.respuestas || {};
-
-      const value = respuestas[questionId];
-
-      if (typeof value === "number") {
-        counts[value]++;
-      }
-
-    });
-
-    return counts.map((count, index) => ({
-      name: labels[index],
-      value: count,
-    }));
-  }
-
-  function getAreaData(questionId: number) {
-
-    const grouped: Record<string, number> = {};
-
-    resultados.forEach((item) => {
-
-      const respuestas = item.respuestas || {};
-
-      const value = respuestas[questionId];
-
-      if (typeof value === "number") {
-
-        grouped[item.area || "Sin área"] =
-          (grouped[item.area || "Sin área"] || 0) + value;
-
-      }
-
-    });
-
-    return Object.entries(grouped).map(([name, value]) => ({
-      name,
-      value,
-    }));
-  }
-
-  function getPuestoData(questionId: number) {
-
-    const grouped: Record<string, number> = {};
-
-    resultados.forEach((item) => {
-
-      const respuestas = item.respuestas || {};
-
-      const value = respuestas[questionId];
-
-      if (typeof value === "number") {
-
-        grouped[item.puesto || "Sin puesto"] =
-          (grouped[item.puesto || "Sin puesto"] || 0) + value;
-
-      }
-
-    });
-
-    return Object.entries(grouped).map(([name, value]) => ({
-      name,
-      value,
-    }));
-  }
-
-  if (loading) {
-    return (
-      <main className="min-h-screen bg-[#020617] text-white flex items-center justify-center">
-        Cargando panel...
-      </main>
-    );
-  }
-
   return (
-    <main className="min-h-screen bg-[#020617] text-white px-6 py-8">
+    <main className="min-h-screen bg-[#020617] text-white p-8">
+      <section className="max-w-7xl mx-auto">
+        <div className="mb-10">
+          <p className="text-cyan-400 uppercase tracking-[0.3em] text-sm">
+            Psyqus
+          </p>
 
-      <section
-        id="psyqus-dashboard"
-        className="max-w-7xl mx-auto"
-      >
+          <h1 className="text-5xl font-black text-cyan-300 mt-2">
+            Panel Psicólogo
+          </h1>
 
-        <div className="flex justify-between items-center mb-10">
-
-          <div>
-            <p className="text-sm uppercase tracking-[0.3em] text-cyan-400">
-              Psyqus
-            </p>
-
-            <h1 className="mt-3 text-4xl font-black">
-              Organizational Intelligence
-            </h1>
-
-            <p className="mt-4 text-slate-400 max-w-3xl">
-              Detección organizacional de burnout, riesgo psicosocial,
-              desgaste emocional y comportamiento estructural por área y puesto.
-            </p>
-          </div>
-
-          <button
-            onClick={exportPDF}
-            className="rounded-2xl bg-cyan-400 px-6 py-4 font-bold text-slate-950 hover:bg-cyan-300 transition"
-          >
-            Descargar PDF
-          </button>
-
+          <p className="text-slate-400 mt-3">
+            Resultados por pregunta y área.
+          </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-4 mb-10">
+        <div className="grid md:grid-cols-3 gap-5 mb-10">
+          <div className="rounded-3xl border border-cyan-500/20 bg-slate-900/70 p-6">
+            <p className="text-slate-400">Evaluaciones</p>
+            <p className="text-5xl font-black text-cyan-300 mt-2">
+              {resultados.length}
+            </p>
+          </div>
 
           <div className="rounded-3xl border border-cyan-500/20 bg-slate-900/70 p-6">
-            <p className="text-slate-400 text-sm">
-              Evaluaciones
-            </p>
-
-            <p className="mt-2 text-5xl font-black text-cyan-300">
-              {totalEvaluaciones}
+            <p className="text-slate-400">Preguntas</p>
+            <p className="text-5xl font-black text-white mt-2">
+              {QUESTIONS.length}
             </p>
           </div>
 
-          <div className="rounded-3xl border border-fuchsia-500/20 bg-slate-900/70 p-6">
-            <p className="text-slate-400 text-sm">
-              Promedio general
-            </p>
-
-            <p className="mt-2 text-5xl font-black text-fuchsia-300">
-              {promedio}
+          <div className="rounded-3xl border border-cyan-500/20 bg-slate-900/70 p-6">
+            <p className="text-slate-400">Áreas</p>
+            <p className="text-5xl font-black text-emerald-300 mt-2">
+              {new Set(resultados.map((x) => x.area || "Sin área")).size}
             </p>
           </div>
-
-          <div className="rounded-3xl border border-red-500/20 bg-slate-900/70 p-6">
-            <p className="text-slate-400 text-sm">
-              Riesgo alto
-            </p>
-
-            <p className="mt-2 text-5xl font-black text-red-300">
-              {riesgoAlto}
-            </p>
-          </div>
-
         </div>
 
-        <div className="space-y-10">
+        <div className="space-y-8">
+          {resumen.map((item) => (
+            <div
+              key={item.numero}
+              className="rounded-3xl border border-cyan-500/20 bg-slate-900/70 p-6"
+            >
+              <h2 className="text-3xl font-black text-cyan-300">
+                Pregunta {item.numero}
+              </h2>
 
-          {questions.map((question) => {
+              <p className="text-slate-300 mt-2 mb-6">{item.pregunta}</p>
 
-            const pieData = getQuestionData(question.id);
+              <div className="grid lg:grid-cols-[0.8fr_1.2fr] gap-8 items-center">
+                <div className="h-[340px]">
+                  {item.chartData.length === 0 ? (
+                    <div className="h-full flex items-center justify-center text-slate-400">
+                      Sin datos para graficar.
+                    </div>
+                  ) : (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={item.chartData}
+                          dataKey="value"
+                          nameKey="name"
+                          cx="50%"
+                          cy="50%"
+                          outerRadius={115}
+                          labelLine={false}
+                          label={({ name, value }) => `${name}: ${value}`}
+                        >
+                          {item.chartData.map((entry) => (
+                            <Cell key={entry.key} fill={entry.color} />
+                          ))}
+                        </Pie>
 
-            const areaData = getAreaData(question.id);
-
-            const puestoData = getPuestoData(question.id);
-
-            return (
-
-              <div
-                key={question.id}
-                className="rounded-[2rem] border border-white/10 bg-slate-900/60 p-8"
-              >
-
-                <div className="mb-8">
-
-                  <p className="text-xs uppercase tracking-[0.25em] text-cyan-400">
-                    Pregunta {question.id}
-                  </p>
-
-                  <h2 className="mt-2 text-2xl font-black">
-                    {question.text}
-                  </h2>
-
+                        <Tooltip />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  )}
                 </div>
 
-                <div className="grid xl:grid-cols-3 gap-8">
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                  {item.chartData.map((entry) => (
+                    <div
+                      key={entry.key}
+                      className="rounded-2xl border border-white/10 bg-slate-950/70 p-4"
+                    >
+                      <div
+                        className="w-4 h-4 rounded-full mb-2"
+                        style={{ backgroundColor: entry.color }}
+                      />
 
-                  <div className="rounded-3xl border border-white/10 bg-[#020617] p-5">
+                      <p className="text-sm text-slate-400">{entry.name}</p>
 
-                    <h3 className="font-bold mb-4 text-cyan-300">
-                      Distribución de respuestas
-                    </h3>
-
-                    <div className="h-[300px]">
-
-                      <ResponsiveContainer width="100%" height="100%">
-
-                        <PieChart>
-
-                          <Pie
-                            data={pieData}
-                            dataKey="value"
-                            nameKey="name"
-                            outerRadius={100}
-                          >
-
-                            {pieData.map((entry, index) => (
-
-                              <Cell
-                                key={index}
-                                fill={COLORS[index % COLORS.length]}
-                              />
-
-                            ))}
-
-                          </Pie>
-
-                          <Tooltip />
-
-                        </PieChart>
-
-                      </ResponsiveContainer>
-
+                      <p className="text-3xl font-black text-white">
+                        {entry.value}
+                      </p>
                     </div>
-
-                  </div>
-
-                  <div className="rounded-3xl border border-white/10 bg-[#020617] p-5">
-
-                    <h3 className="font-bold mb-4 text-fuchsia-300">
-                      Riesgo por área
-                    </h3>
-
-                    <div className="h-[300px]">
-
-                      <ResponsiveContainer width="100%" height="100%">
-
-                        <BarChart data={areaData}>
-
-                          <CartesianGrid
-                            strokeDasharray="3 3"
-                            stroke="#1e293b"
-                          />
-
-                          <XAxis
-                            dataKey="name"
-                            stroke="#94a3b8"
-                          />
-
-                          <YAxis stroke="#94a3b8" />
-
-                          <Tooltip />
-
-                          <Bar
-                            dataKey="value"
-                            fill="#a855f7"
-                            radius={[8,8,0,0]}
-                          />
-
-                        </BarChart>
-
-                      </ResponsiveContainer>
-
-                    </div>
-
-                  </div>
-
-                  <div className="rounded-3xl border border-white/10 bg-[#020617] p-5">
-
-                    <h3 className="font-bold mb-4 text-emerald-300">
-                      Riesgo por puesto
-                    </h3>
-
-                    <div className="h-[300px]">
-
-                      <ResponsiveContainer width="100%" height="100%">
-
-                        <BarChart data={puestoData}>
-
-                          <CartesianGrid
-                            strokeDasharray="3 3"
-                            stroke="#1e293b"
-                          />
-
-                          <XAxis
-                            dataKey="name"
-                            stroke="#94a3b8"
-                          />
-
-                          <YAxis stroke="#94a3b8" />
-
-                          <Tooltip />
-
-                          <Bar
-                            dataKey="value"
-                            fill="#10b981"
-                            radius={[8,8,0,0]}
-                          />
-
-                        </BarChart>
-
-                      </ResponsiveContainer>
-
-                    </div>
-
-                  </div>
-
+                  ))}
                 </div>
-
-                <div className="mt-8 rounded-3xl border border-cyan-500/20 bg-cyan-500/10 p-6">
-
-                  <p className="text-cyan-200 leading-relaxed">
-                    La IA detectó patrones relevantes asociados a esta pregunta.
-                    Existen áreas y puestos con mayor percepción de tensión
-                    organizacional, lo que podría relacionarse con burnout,
-                    desgaste emocional o presión operativa sostenida.
-                  </p>
-
-                </div>
-
               </div>
 
-            );
-          })}
+              <div className="overflow-x-auto mt-8">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="border-b border-white/10">
+                      <th className="py-4">Área</th>
+                      <th className="py-4">Total</th>
+                      <th className="py-4">Nunca</th>
+                      <th className="py-4">Casi nunca</th>
+                      <th className="py-4">A veces</th>
+                      <th className="py-4">Casi siempre</th>
+                      <th className="py-4">Siempre</th>
+                    </tr>
+                  </thead>
 
+                  <tbody>
+                    {item.areas.length === 0 && (
+                      <tr>
+                        <td colSpan={7} className="py-6 text-slate-400">
+                          Sin datos para esta pregunta.
+                        </td>
+                      </tr>
+                    )}
+
+                    {item.areas.map((area) => (
+                      <tr key={area.area} className="border-b border-white/5">
+                        <td className="py-4 font-bold">{area.area}</td>
+                        <td className="py-4">{area.total}</td>
+                        <td className="py-4">{area.respuestas[0]}</td>
+                        <td className="py-4">{area.respuestas[1]}</td>
+                        <td className="py-4">{area.respuestas[2]}</td>
+                        <td className="py-4">{area.respuestas[3]}</td>
+                        <td className="py-4">{area.respuestas[4]}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ))}
         </div>
-
       </section>
-
     </main>
   );
 }

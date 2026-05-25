@@ -1,6 +1,8 @@
 ﻿@import "tailwindcss";
 
-@source "./app/**/*.{js,ts,jsx,tsx}";
-@source "./components/**/*.{js,ts,jsx,tsx}";
+/* Content/source paths belong in tailwind.config.js, not in CSS. Removed invalid @source rules. */
 
-/* Tus variables de fuentes o colores después de aquí */
+/* Tus variables de fuentes o colores después de aquí */ 
+* {
+  color-scheme: dark;
+}
