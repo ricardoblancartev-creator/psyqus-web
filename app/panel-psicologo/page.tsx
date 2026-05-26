@@ -73,25 +73,34 @@ export default function PanelPsicologoPage() {
         4: 0,
       };
 
-      const areas: Record<
-        string,
-        {
-          total: number;
-          respuestas: Record<0 | 1 | 2 | 3 | 4, number>;
-        }
-      > = {};
+const areas: Record<
+  string,
+  {
+    area: string;
+    puesto: string;
+    total: number;
+    respuestas: Record<0 | 1 | 2 | 3 | 4, number>;
+  }
+> = {};
+
 
       resultados.forEach((item) => {
         const respuestas = item.respuestas || {};
         const area = item.area || "Sin área";
+        const puesto = item.puesto || "Sin puesto";
+        const key = `${area}__${puesto}`;
+
         const value = Number(respuestas[questionNumber]) as 0 | 1 | 2 | 3 | 4;
 
         if (value < 0 || value > 4 || Number.isNaN(value)) return;
 
         totalPregunta[value] += 1;
 
-        if (!areas[area]) {
-          areas[area] = {
+        if (!areas[key]) {
+          areas[key] = {
+            area,
+            puesto,
+
             total: 0,
             respuestas: {
               0: 0,
@@ -103,8 +112,8 @@ export default function PanelPsicologoPage() {
           };
         }
 
-        areas[area].total += 1;
-        areas[area].respuestas[value] += 1;
+        areas[key].total += 1;
+        areas[key].respuestas[value] += 1;
       });
 
       const chartData = Object.entries(totalPregunta)
@@ -124,8 +133,7 @@ export default function PanelPsicologoPage() {
         numero: index + 1,
         pregunta: questionText,
         chartData,
-        areas: Object.entries(areas).map(([area, data]) => ({
-          area,
+        areas: Object.entries(areas).map(([key, data]) => ({
           ...data,
         })),
       };
@@ -213,33 +221,75 @@ export default function PanelPsicologoPage() {
                     </ResponsiveContainer>
                   )}
                 </div>
-
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-                  {item.chartData.map((entry) => (
-                    <div
-                      key={entry.key}
-                      className="rounded-2xl border border-white/10 bg-slate-950/70 p-4"
-                    >
-                      <div
-                        className="w-4 h-4 rounded-full mb-2"
-                        style={{ backgroundColor: entry.color }}
-                      />
-
-                      <p className="text-sm text-slate-400">{entry.name}</p>
-
-                      <p className="text-3xl font-black text-white">
-                        {entry.value}
-                      </p>
-                    </div>
-                  ))}
-                </div>
               </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-[0.8fr_1.2fr] gap-6 md:gap-8 items-center overflow-hidden">
+
+                <div className="h-[260px] md:h-[340px] w-full overflow-hidden">
+                  {item.chartData.length === 0 ? (
+                    <div className="h-full flex items-center justify-center text-slate-400">
+                      Sin datos para graficar.
+                    </div>
+                  ) : (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={item.chartData}
+                          dataKey="value"
+                          nameKey="name"
+                          cx="50%"
+                          cy="50%"
+                          outerRadius={
+                            typeof window !== "undefined" &&
+                            window.innerWidth < 768
+                              ? 85
+                              : 115
+                          }
+                          labelLine={false}
+                          label={({ name, value }) => `${name}: ${value}`}
+                        >
+                          {item.chartData.map((entry) => (
+                            <Cell key={entry.key} fill={entry.color} />
+                          ))}
+                        </Pie>
+
+                        <Tooltip />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+          {item.chartData.map((entry) => (
+            <div
+              key={entry.key}
+              className="rounded-2xl border border-white/10 bg-slate-950/70 p-3 md:p-4 overflow-hidden"
+            >
+              <div
+                className="w-4 h-4 rounded-full mb-2"
+                style={{ backgroundColor: entry.color }}
+              />
+
+              <p className="text-xs md:text-sm text-slate-400 break-words">
+                {entry.name}
+              </p>
+
+              <p className="text-2xl md:text-3xl font-black text-white">
+                {entry.value}
+              </p>
+            </div>
+          ))}
+        </div>
+
+      </div>
+
 
               <div className="overflow-x-auto mt-8">
                 <table className="w-full text-left">
                   <thead>
                     <tr className="border-b border-white/10">
                       <th className="py-4">Área</th>
+                      <th className="py-4">Puesto</th>
                       <th className="py-4">Total</th>
                       <th className="py-4">Nunca</th>
                       <th className="py-4">Casi nunca</th>
@@ -261,6 +311,9 @@ export default function PanelPsicologoPage() {
                     {item.areas.map((area) => (
                       <tr key={area.area} className="border-b border-white/5">
                         <td className="py-4 font-bold">{area.area}</td>
+                        <td className="py-4">{area.puesto}</td>
+
+
                         <td className="py-4">{area.total}</td>
                         <td className="py-4">{area.respuestas[0]}</td>
                         <td className="py-4">{area.respuestas[1]}</td>

@@ -1,17 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import {
-  Brain,
-  Moon,
-  Wind,
-  Activity,
-  CheckCircle2,
-  Play,
-  Pause,
-  RotateCcw,
-  Sparkles,
-} from "lucide-react";
+import { Brain } from "lucide-react";
 
 type HabitKey =
   | "agua"
@@ -86,6 +76,7 @@ export default function MindfulnessPage() {
       setRunning(true);
       return;
     }
+
     setRunning((prev) => !prev);
   }
 
@@ -106,19 +97,13 @@ export default function MindfulnessPage() {
   );
 
   const breathText =
-    phase === "inhale"
-      ? "Inhala"
-      : phase === "hold"
-      ? "Sostén"
-      : "Exhala";
+    phase === "inhale" ? "Inhala" : phase === "hold" ? "Sostén" : "Exhala";
 
-  // 🔥 MOVIMIENTO MUCHO MÁS NOTORIO
   const orbScale =
-    phase === "inhale"
-      ? "scale-[1.6]"
-      : phase === "hold"
-      ? "scale-[1.6]"
-      : "scale-[0.6]";
+    phase === "inhale" ? "scale-[1.35]" : phase === "hold" ? "scale-[1.45]" : "scale-[0.72]";
+
+  const duration =
+    phase === "inhale" ? "duration-[4000ms]" : phase === "hold" ? "duration-[1200ms]" : "duration-[6000ms]";
 
   return (
     <main className="min-h-screen bg-[#020617] text-white relative overflow-hidden">
@@ -140,29 +125,32 @@ export default function MindfulnessPage() {
         <div className="rounded-[2rem] border border-white/10 bg-slate-950/60 p-8 text-center">
           <h2 className="text-2xl mb-6 font-bold">Respiración guiada</h2>
 
-          {/* 🔥 NUEVA BOLITA PRO */}
-          <div className="flex justify-center items-center h-[320px]">
+          <div className="flex justify-center items-center h-[360px]">
             <div className="relative flex items-center justify-center">
 
-              {/* pulso exterior */}
-              <div className="absolute w-72 h-72 rounded-full border border-cyan-400/20 animate-ping" />
-
-              {/* glow */}
               <div
-                className={`absolute w-56 h-56 rounded-full bg-cyan-500/20 blur-3xl transition-transform duration-[1400ms] ease-in-out ${orbScale}`}
+                className={`absolute w-80 h-80 rounded-full border border-cyan-300/20 transition-all ${duration} ease-in-out ${orbScale}`}
               />
 
-              {/* esfera principal */}
               <div
-                className={`relative w-40 h-40 rounded-full bg-gradient-to-br from-cyan-300 via-cyan-500 to-fuchsia-500 shadow-[0_0_100px_rgba(34,211,238,0.6)] transition-transform duration-[1400ms] ease-in-out ${orbScale}`}
+                className={`absolute w-72 h-72 rounded-full border border-fuchsia-300/10 transition-all ${duration} ease-in-out ${orbScale}`}
               />
 
-              {/* núcleo */}
-              <div className="absolute w-4 h-4 rounded-full bg-white shadow-[0_0_25px_white]" />
+              <div
+                className={`absolute w-64 h-64 rounded-full bg-cyan-500/20 blur-3xl transition-all ${duration} ease-in-out ${orbScale}`}
+              />
+
+              <div
+                className={`relative w-44 h-44 rounded-full bg-gradient-to-br from-cyan-200 via-cyan-500 to-fuchsia-500 shadow-[0_0_120px_rgba(34,211,238,0.85)] transition-all ${duration} ease-in-out ${orbScale}`}
+              >
+                <div className="absolute inset-0 rounded-full bg-white/10 animate-pulse" />
+              </div>
+
+              <div className="absolute w-5 h-5 rounded-full bg-white shadow-[0_0_35px_white]" />
             </div>
           </div>
 
-          <p className="text-4xl font-black text-cyan-300 mt-4">
+          <p className="text-5xl font-black text-cyan-300 mt-4">
             {breathText}
           </p>
 
@@ -173,14 +161,14 @@ export default function MindfulnessPage() {
           <div className="mt-6 flex justify-center gap-3">
             <button
               onClick={toggleRun}
-              className="bg-cyan-500 px-6 py-3 rounded-xl font-bold text-black"
+              className="bg-cyan-500 px-6 py-3 rounded-xl font-bold text-black hover:bg-cyan-400 transition"
             >
               {running ? "Pausar" : "Iniciar"}
             </button>
 
             <button
               onClick={resetBreathing}
-              className="border border-white/10 px-6 py-3 rounded-xl"
+              className="border border-white/10 px-6 py-3 rounded-xl hover:bg-white/10 transition"
             >
               Reiniciar
             </button>
@@ -192,10 +180,10 @@ export default function MindfulnessPage() {
             <button
               key={key}
               onClick={() => toggleHabit(key)}
-              className={`p-4 rounded-xl border ${
+              className={`p-4 rounded-xl border transition ${
                 habits[key]
-                  ? "bg-emerald-500/10 border-emerald-400/20"
-                  : "bg-white/5 border-white/10"
+                  ? "bg-emerald-500/10 border-emerald-400/20 text-emerald-200"
+                  : "bg-white/5 border-white/10 text-slate-200 hover:bg-white/10"
               }`}
             >
               {habitLabels[key]}
