@@ -239,12 +239,16 @@ if (error) {
           </p>
 
           <h1 className="mt-4 text-5xl font-black">
-            Evaluación Organizacional
+            Clima Organizacional en tu trabajo
           </h1>
 
           <p className="mt-5 text-slate-400 leading-relaxed">
             Antes de comenzar necesitamos identificar
             el área y puesto del colaborador.
+          </p>
+
+          <p className="mt-2 text-cyan-300 text-sm"> 
+            Evaluación de percpeción del ambiente laboral.
           </p>
 
           <div className="grid md:grid-cols-2 gap-5 mt-8">
