@@ -11,6 +11,7 @@ import {
   BookOpen,
   Brain,
   ClipboardList,
+  FileText,
   GraduationCap,
   LayoutGrid,
   LineChart,
@@ -21,15 +22,25 @@ import {
 } from "lucide-react";
 
 const modules = [
-  {
-    href: "/encuesta",
-    title: "Evaluación NOM-035",
-    description: "Diagnóstico psicosocial y lectura de riesgo organizacional.",
-    icon: ClipboardList,
-    accent:
-      "from-cyan-500/20 to-cyan-500/5 border-cyan-400/20 text-cyan-300",
-    badge: "Core",
-  },
+{
+  href: "/encuesta",
+  title: "Clima Organizacional",
+  description: "Evaluación interna de ambiente laboral, bienestar y percepción del equipo.",
+  icon: ClipboardList,
+  accent:
+    "from-cyan-500/20 to-cyan-500/5 border-cyan-400/20 text-cyan-300",
+  badge: "Clima",
+},
+{
+  href: "/nom035",
+  title: "NOM-035 Oficial",
+  description: "Cuestionario I y II para identificación de factores de riesgo psicosocial.",
+  icon: Shield,
+  accent:
+    "from-emerald-500/20 to-emerald-500/5 border-emerald-400/20 text-emerald-300",
+  badge: "Oficial",
+},
+
   {
     href: "/ia",
     title: "Asistente IA",
@@ -102,6 +113,15 @@ const modules = [
       "from-rose-500/20 to-rose-500/5 border-rose-400/20 text-rose-300",
     badge: "Pro",
   },
+  {
+    href: "/nom035-resultados",
+    title: "Resultados NOM-035",
+    description: "Consulta resultados oficiales por cuestionario, área y puesto.",
+    icon: LineChart,
+    accent:
+      "from-teal-500/20 to-teal-500/5 border-teal-400/20 text-teal-300",
+    badge: "NOM-035",
+  }
 ];
 
 type Resultado = {

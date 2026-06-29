@@ -3,11 +3,17 @@
 import { useState } from "react";
 import {
   RadarChart,
+  Radar,
   PolarGrid,
   PolarAngleAxis,
   ResponsiveContainer,
-  Radar,
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  Legend,
 } from "recharts";
+
 import { motion } from "framer-motion";
 import {
   ShieldAlert,
@@ -37,7 +43,7 @@ const questions = [
   {
     category: "Documentación",
     question:
-      "¿Existen protocolos documentados de seguimiento preventivo?",
+      "¿Se encuentran formalmente documentados los protocolos de seguimiento preventivo y atención temprana de riesgos psicososciales?",
   },
   {
     category: "Riesgo",
@@ -47,12 +53,12 @@ const questions = [
   {
     category: "Riesgo",
     question:
-      "¿Se identifican áreas organizacionales con mayor desgaste laboral?",
+      "¿Se identifican cuales son las áreas con mayor desgaste laboral?",
   },
   {
     category: "Inteligencia",
     question:
-      "¿Existen métricas visuales de bienestar organizacional?",
+      "¿Existen métricas visuales (Gráficas, indicadores y registros) de bienestar organizacional?",
   },
   {
     category: "Inteligencia",
@@ -243,24 +249,31 @@ export default function DiagnosticoPage() {
             <div className="grid lg:grid-cols-2 gap-12 items-center">
               <div className="h-[350px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <RadarChart data={radarData}>
-                    <PolarGrid stroke="#334155" />
-
-                    <PolarAngleAxis
-                      dataKey="subject"
-                      tick={{
-                        fill: "#cbd5e1",
-                        fontSize: 14,
-                      }}
-                    />
-
-                    <Radar
+                  <PieChart>
+                    <Pie
+                      data={radarData}
                       dataKey="value"
-                      stroke="#06b6d4"
-                      fill="#06b6d4"
-                      fillOpacity={0.55}
-                    />
-                  </RadarChart>
+                      nameKey="subject"
+                      outerRadius={120}
+                      label
+                    >
+                      {radarData.map((entry, index) => (
+                        <Cell
+                          key={index}
+                          fill={[
+                            "#06b6d4",
+                            "#22c55e",
+                            "#f59e0b",
+                            "#a855f7",
+                            "#ef4444",
+                          ][index % 5]}
+                        />
+                      ))}
+                    </Pie>
+
+                    <Tooltip />
+                    <Legend />
+                  </PieChart>
                 </ResponsiveContainer>
               </div>
 

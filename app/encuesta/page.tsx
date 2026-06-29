@@ -78,7 +78,7 @@ const questions: Question[] = [
 
   {
     id: 9,
-    text: "Cuando surge un problema, mi liderazgo lo maneja con respeto.",
+    text: "Cuando surge un problema, mi líder lo maneja con respeto.",
     category: "Liderazgo",
   },
 
@@ -144,7 +144,7 @@ const questions: Question[] = [
 
   {
     id: 20,
-    text: "En general, siento que mi trabajo es psicológicamente sostenible.",
+    text: "Siento que mi trabajo es psicológicamente sostenible.",
     category: "Ambiente",
   },
 
