@@ -1,18 +1,37 @@
 "use client";
 
+import {
+  calificarCuestionarioI,
+  calificarCuestionarioII,
+} from "@/lib/nom035-calificacion";
 import { useEffect, useMemo, useState } from "react";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  Tooltip,
+} from "recharts";
+
 
 type Nom035Resultado = {
   id: string;
   created_at?: string;
   user_id?: string | null;
+
+  nombre?: string | null;
+  apellido?: string | null;
+  email?: string | null;
+
   area?: string | null;
   puesto?: string | null;
+
   tipo_cuestionario?: "I" | "II" | string;
   nombre_cuestionario?: string | null;
   respuestas?: Record<string, number> | null;
   puntaje_total?: number | null;
 };
+
 
 const preguntasNom035: Record<string, string> = {
   "I.1": "¿Ha presenciado o sufrido alguna vez, durante o con motivo del trabajo, un acontecimiento traumático severo?",
@@ -78,6 +97,15 @@ const preguntasNom035: Record<string, string> = {
   "II.46": "Ignoran las sugerencias para mejorar su trabajo",
 };
 
+const PIE_COLORS = [
+  "#22d3ee",
+  "#a78bfa",
+  "#facc15",
+  "#fb7185",
+  "#86efac",
+];
+
+
 
 function formatDate(date?: string) {
   if (!date) return "Sin fecha";
@@ -125,6 +153,96 @@ export default function Nom035ResultadosPage() {
   const [data, setData] = useState<Nom035Resultado[]>([]);
   const [loading, setLoading] = useState(true);
 
+const [filtroArea, setFiltroArea] = useState("TODAS");
+const [filtroPuesto, setFiltroPuesto] = useState("TODOS");
+const [filtroCuestionario, setFiltroCuestionario] = useState("TODOS");
+const [filtroRiesgo, setFiltroRiesgo] = useState("TODOS");
+const [abierto, setAbierto] = useState<string | null>(null);
+
+
+  const resultadosCalificados = useMemo(() => {
+  return data.map((evaluacion) => {
+    const respuestas = evaluacion.respuestas || {};
+
+    if (evaluacion.tipo_cuestionario === "I") {
+      return {
+        ...evaluacion,
+        calificacion: calificarCuestionarioI(respuestas),
+      };
+    }
+
+    if (evaluacion.tipo_cuestionario === "II") {
+      return {
+        ...evaluacion,
+        calificacion: calificarCuestionarioII(respuestas),
+      };
+    }
+
+    return {
+      ...evaluacion,
+      calificacion: null,
+    };
+  });
+}, [data]);
+
+const opcionesArea = useMemo(() => {
+  return Array.from(
+    new Set(
+      data
+        .map((item) => item.area)
+        .filter((area): area is string => Boolean(area))
+    )
+  ).sort();
+}, [data]);
+
+const opcionesPuesto = useMemo(() => {
+  return Array.from(
+    new Set(
+      data
+        .map((item) => item.puesto)
+        .filter((puesto): puesto is string => Boolean(puesto))
+    )
+  ).sort();
+}, [data]);
+
+const resultadosFiltrados = useMemo(() => {
+  return resultadosCalificados.filter((item: any) => {
+    const coincideArea =
+      filtroArea === "TODAS" || item.area === filtroArea;
+
+    const coincidePuesto =
+      filtroPuesto === "TODOS" || item.puesto === filtroPuesto;
+
+    const coincideCuestionario =
+      filtroCuestionario === "TODOS" ||
+      item.tipo_cuestionario === filtroCuestionario;
+
+    const nivel =
+      item.tipo_cuestionario === "II"
+        ? item.calificacion?.nivelFinal
+        : item.calificacion?.requiereValoracionClinica
+        ? "Requiere valoración"
+        : "Sin criterio de valoración";
+
+    const coincideRiesgo =
+      filtroRiesgo === "TODOS" || nivel === filtroRiesgo;
+
+    return (
+      coincideArea &&
+      coincidePuesto &&
+      coincideCuestionario &&
+      coincideRiesgo
+    );
+  });
+}, [
+  resultadosCalificados,
+  filtroArea,
+  filtroPuesto,
+  filtroCuestionario,
+  filtroRiesgo,
+]);
+
+
   useEffect(() => {
     async function load() {
       try {
@@ -171,18 +289,17 @@ const desglosePorPregunta = useMemo(() => {
     const respuestas = evaluacion.respuestas || {};
     Object.entries(respuestas).forEach(([pregunta, valor]) => {
       const clave = `${evaluacion.tipo_cuestionario || "?"}.${pregunta}`;
-      
 
       if (!conteo[clave]) {
-conteo[clave] = {
-  pregunta: clave,
-  texto: preguntasNom035[clave] || "Pregunta oficial NOM-035",
-  total: 0,
-  respuestas: {},
-  areas: {},
-  puestos: {},
-};
-
+        conteo[clave] = {
+          pregunta: clave,
+          texto: preguntasNom035[clave] || "Pregunta oficial NOM-035",
+          total: 0,
+          respuestas: {},
+          areas: {},
+          puestos: {},
+          individuales: [],
+        };
       }
 
       const respuestaTexto =
@@ -201,8 +318,6 @@ conteo[clave] = {
       const area = evaluacion.area || "Sin área";
       const puesto = evaluacion.puesto || "Sin puesto";
 
-      conteo[clave].total += 1;
-
       conteo[clave].respuestas[respuestaTexto] =
         (conteo[clave].respuestas[respuestaTexto] || 0) + 1;
 
@@ -211,6 +326,18 @@ conteo[clave] = {
 
       conteo[clave].puestos[puesto] =
         (conteo[clave].puestos[puesto] || 0) + 1;
+
+      conteo[clave].individuales.push({
+        id: evaluacion.id,
+        nombre: evaluacion.nombre || "",
+        apellido: evaluacion.apellido || "",
+        email: evaluacion.email || "",
+        area,
+        puesto,
+        respuesta: respuestaTexto,
+      });
+
+      conteo[clave].total += 1;
     });
   });
 
@@ -277,6 +404,260 @@ conteo[clave] = {
             <p className="text-4xl font-black text-fuchsia-300 mt-2">{resumen.promedio}</p>
           </div>
         </div>
+        <div className="mb-10 rounded-3xl border border-emerald-500/20 bg-slate-900/70 p-6">
+  <h2 className="text-3xl font-black text-emerald-300 mb-6">
+    Resultados individuales calificados
+  </h2>
+  <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+  <select
+    value={filtroCuestionario}
+    onChange={(e) => setFiltroCuestionario(e.target.value)}
+    className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white"
+  >
+    <option value="TODOS">Todos los cuestionarios</option>
+    <option value="I">Cuestionario I</option>
+    <option value="II">Cuestionario II</option>
+  </select>
+
+  <select
+    value={filtroArea}
+    onChange={(e) => setFiltroArea(e.target.value)}
+    className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white"
+  >
+    <option value="TODAS">Todas las áreas</option>
+
+    {opcionesArea.map((area) => (
+      <option key={area} value={area}>
+        {area}
+      </option>
+    ))}
+  </select>
+
+  <select
+    value={filtroPuesto}
+    onChange={(e) => setFiltroPuesto(e.target.value)}
+    className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white"
+  >
+    <option value="TODOS">Todos los puestos</option>
+
+    {opcionesPuesto.map((puesto) => (
+      <option key={puesto} value={puesto}>
+        {puesto}
+      </option>
+    ))}
+  </select>
+
+  <select
+    value={filtroRiesgo}
+    onChange={(e) => setFiltroRiesgo(e.target.value)}
+    className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white"
+  >
+    <option value="TODOS">Todos los niveles</option>
+    <option value="Nulo o despreciable">Nulo o despreciable</option>
+    <option value="Bajo">Bajo</option>
+    <option value="Medio">Medio</option>
+    <option value="Alto">Alto</option>
+    <option value="Muy alto">Muy alto</option>
+    <option value="Requiere valoración">Requiere valoración</option>
+    <option value="Sin criterio de valoración">
+      Sin criterio de valoración
+    </option>
+  </select>
+</div>
+
+
+  <div className="space-y-5">
+    {resultadosFiltrados.map((item: any) => (
+      <div
+        key={`calificado-${item.id}`}
+        className="rounded-2xl border border-white/10 bg-slate-950/70 p-6"
+      >
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+          <div>
+            <p className="text-xl font-black text-white">
+              {[item.nombre, item.apellido].filter(Boolean).join(" ") ||
+                "Colaborador"}
+            </p>
+
+            <p className="mt-1 text-sm text-slate-400">
+              {item.area || "Sin área"} · {item.puesto || "Sin puesto"}
+            </p>
+
+            <p className="mt-1 text-xs text-slate-500">
+              {formatDate(item.created_at)}
+            </p>
+          </div>
+
+          <span className="rounded-full border border-cyan-400/20 bg-cyan-500/10 px-4 py-2 text-sm font-bold text-cyan-300">
+            Cuestionario {item.tipo_cuestionario}
+          </span>
+        </div>
+
+        {item.tipo_cuestionario === "II" && item.calificacion && (
+          <>
+            <div className="mt-6 grid sm:grid-cols-2 gap-4">
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <p className="text-xs uppercase tracking-[0.2em] text-slate-500">
+                  Puntaje calculado
+                </p>
+
+                <p className="mt-2 text-4xl font-black text-cyan-300">
+                  {item.calificacion.puntajeFinal}
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <p className="text-xs uppercase tracking-[0.2em] text-slate-500">
+                  Nivel de riesgo
+                </p>
+
+                <p className="mt-2 text-2xl font-black text-white">
+                  {item.calificacion.nivelFinal}
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-6">
+              <p className="text-sm font-bold text-slate-300 mb-3">
+                Categorías
+              </p>
+
+              <div className="grid md:grid-cols-2 gap-3">
+                {item.calificacion.categorias.map((categoria: any) => (
+                  <div
+                    key={categoria.nombre}
+                    className="rounded-xl border border-white/10 bg-white/5 p-4"
+                  >
+                    <p className="font-semibold">{categoria.nombre}</p>
+
+                    <div className="mt-2 flex justify-between text-sm">
+                      <span className="text-slate-400">
+                        Puntaje {categoria.puntaje}
+                      </span>
+
+                      <span className="text-cyan-300 font-bold">
+                        {categoria.nivel}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="mt-6">
+              <p className="text-sm font-bold text-slate-300 mb-3">
+                Dominios
+              </p>
+
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {item.calificacion.dominios.map((dominio: any) => (
+                  <div
+                    key={dominio.nombre}
+                    className="rounded-xl border border-white/10 bg-white/5 p-4"
+                  >
+                    <p className="font-semibold">{dominio.nombre}</p>
+
+                    <div className="mt-2 flex justify-between text-sm">
+                      <span className="text-slate-400">
+                        {dominio.puntaje}
+                      </span>
+
+                      <span className="text-cyan-300 font-bold">
+                        {dominio.nivel}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+
+        <button
+  onClick={() =>
+    setAbierto(abierto === item.id ? null : item.id)
+  }
+  className="mt-6 rounded-xl border border-cyan-400/20 bg-cyan-500/10 px-4 py-3 text-sm font-bold text-cyan-300 hover:bg-cyan-500/20 transition"
+>
+  {abierto === item.id ? "Ocultar respuestas" : "Ver respuestas"}
+</button>
+{abierto === item.id && (
+  <div className="mt-5 border-t border-white/10 pt-5">
+    <h3 className="text-lg font-black text-white mb-4">
+      Respuestas individuales
+    </h3>
+
+    <div className="space-y-3">
+      {Object.entries(item.respuestas || {}).map(
+        ([numero, valor]) => {
+          const clave =
+            `${item.tipo_cuestionario}.${numero}`;
+
+          const texto =
+            preguntasNom035[clave] ||
+            `Pregunta ${numero}`;
+
+          const respuesta =
+            item.tipo_cuestionario === "I"
+              ? Number(valor) === 1
+                ? "Sí"
+                : "No"
+              : {
+                  4: "Siempre",
+                  3: "Casi siempre",
+                  2: "Algunas veces",
+                  1: "Casi nunca",
+                  0: "Nunca",
+                }[Number(valor)] || String(valor);
+
+          return (
+            <div
+              key={`${item.id}-${numero}`}
+              className="rounded-xl border border-white/10 bg-white/5 p-4"
+            >
+              <p className="text-sm font-bold text-cyan-300">
+                Pregunta {numero}
+              </p>
+
+              <p className="mt-1 text-slate-300">
+                {texto}
+              </p>
+
+              <p className="mt-3 font-black text-white">
+                Respuesta: {respuesta}
+              </p>
+            </div>
+          );
+        }
+      )}
+    </div>
+  </div>
+)}
+
+
+        {item.tipo_cuestionario === "I" && item.calificacion && (
+          <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-5">
+            <p
+              className={`text-xl font-black ${
+                item.calificacion.requiereValoracionClinica
+                  ? "text-red-300"
+                  : "text-emerald-300"
+              }`}
+            >
+              {item.calificacion.requiereValoracionClinica
+                ? "Requiere valoración"
+                : "Sin criterio de valoración"}
+            </p>
+
+            <p className="mt-3 text-slate-300">
+              {item.calificacion.mensaje}
+            </p>
+          </div>
+        )}
+      </div>
+    ))}
+  </div>
+</div>
 
         <div className="rounded-3xl border border-cyan-500/20 bg-slate-900/70 p-6">
           <h2 className="text-3xl font-black text-cyan-300 mb-6">
@@ -347,6 +728,11 @@ conteo[clave] = {
   {desglosePorPregunta.map((item: any) => {
     const respuestas = Object.entries(item.respuestas);
     const total = item.total || 1;
+    const chartData = respuestas.map(([respuesta, cantidad]) => ({
+  name: respuesta,
+  value: Number(cantidad),
+}));
+
 
     return (
       <div
@@ -362,14 +748,32 @@ conteo[clave] = {
         </p>
 
         <div className="mt-6 grid md:grid-cols-[160px_1fr] gap-6 items-center">
-          <div className="w-40 h-40 rounded-full border-[18px] border-cyan-400/40 flex items-center justify-center">
-            <div className="text-center">
-              <p className="text-4xl font-black text-cyan-300">
-                {item.total}
-              </p>
-              <p className="text-xs text-slate-400">personas</p>
-            </div>
-          </div>
+<div className="w-40 h-40">
+  <ResponsiveContainer width="100%" height="100%">
+    <PieChart>
+      <Pie
+        data={chartData}
+        dataKey="value"
+        nameKey="name"
+        cx="50%"
+        cy="50%"
+        innerRadius={42}
+        outerRadius={70}
+        paddingAngle={2}
+      >
+        {chartData.map((entry, index) => (
+          <Cell
+            key={`${entry.name}-${index}`}
+            fill={PIE_COLORS[index % PIE_COLORS.length]}
+          />
+        ))}
+      </Pie>
+
+      <Tooltip />
+    </PieChart>
+  </ResponsiveContainer>
+</div>
+
 
           <div className="space-y-3">
             {respuestas.map(([respuesta, cantidad]) => (
@@ -406,6 +810,53 @@ conteo[clave] = {
             ))}
           </div>
         </div>
+
+        <div className="mt-6 border-t border-white/10 pt-5">
+  <p className="text-xs uppercase tracking-[0.2em] text-slate-400 mb-3">
+    Respuestas individuales
+  </p>
+
+  <div className="overflow-x-auto">
+    <table className="w-full min-w-[650px] text-left text-sm">
+      <thead>
+        <tr className="border-b border-white/10 text-slate-400">
+          <th className="py-3 pr-4">Colaborador</th>
+          <th className="py-3 pr-4">Área</th>
+          <th className="py-3 pr-4">Puesto</th>
+          <th className="py-3 pr-4">Respuesta</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {item.individuales.map((persona: any, index: number) => (
+          <tr
+            key={`${persona.id}-${item.pregunta}-${index}`}
+            className="border-b border-white/5"
+          >
+            <td className="py-3 pr-4 font-semibold text-white">
+              {[persona.nombre, persona.apellido]
+                .filter(Boolean)
+                .join(" ") || "Sin nombre"}
+            </td>
+
+            <td className="py-3 pr-4 text-slate-300">
+              {persona.area}
+            </td>
+
+            <td className="py-3 pr-4 text-slate-300">
+              {persona.puesto}
+            </td>
+
+            <td className="py-3 pr-4 font-black text-cyan-300">
+              {persona.respuesta}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</div>
+
 
         <div className="mt-5">
           <p className="text-xs uppercase tracking-[0.2em] text-slate-400 mb-2">

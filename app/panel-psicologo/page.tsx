@@ -1,5 +1,6 @@
 "use client";
 
+import { supabase } from "@/lib/supabase"
 import { useEffect, useMemo, useState } from "react";
 import {
   PieChart,
@@ -8,6 +9,7 @@ import {
   ResponsiveContainer,
   Tooltip,
 } from "recharts";
+
 
 const QUESTIONS = [
   "La cantidad de trabajo que realizo suele rebasar el tiempo disponible.",
@@ -50,14 +52,20 @@ const COLORS: Record<0 | 1 | 2 | 3 | 4, string> = {
 
 export default function PanelPsicologoPage() {
   const [resultados, setResultados] = useState<any[]>([]);
+  async function load() {
+  const { data, error } = await supabase
+    .from("resultados_encuestas")
+    .select("*")
+    .order("created_at", { ascending: false });
 
+  if (error) {
+    console.error("Error cargando resultados:", error);
+    return;
+  }
+
+  setResultados(data || []);
+}
   useEffect(() => {
-    async function load() {
-      const res = await fetch("/api/resultados");
-      const data = await res.json();
-      setResultados(Array.isArray(data) ? data : []);
-    }
-
     load();
   }, []);
 
@@ -192,37 +200,7 @@ const areas: Record<
 
               <p className="text-slate-300 mt-2 mb-6">{item.pregunta}</p>
 
-              <div className="grid lg:grid-cols-[0.8fr_1.2fr] gap-8 items-center">
-                <div className="h-[340px]">
-                  {item.chartData.length === 0 ? (
-                    <div className="h-full flex items-center justify-center text-slate-400">
-                      Sin datos para graficar.
-                    </div>
-                  ) : (
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={item.chartData}
-                          dataKey="value"
-                          nameKey="name"
-                          cx="50%"
-                          cy="50%"
-                          outerRadius={115}
-                          labelLine={false}
-                          label={({ name, value }) => `${name}: ${value}`}
-                        >
-                          {item.chartData.map((entry) => (
-                            <Cell key={entry.key} fill={entry.color} />
-                          ))}
-                        </Pie>
-
-                        <Tooltip />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  )}
-                </div>
-              </div>
-
+              
               <div className="grid grid-cols-1 lg:grid-cols-[0.8fr_1.2fr] gap-6 md:gap-8 items-center overflow-hidden">
 
                 <div className="h-[260px] md:h-[340px] w-full overflow-hidden">
@@ -259,6 +237,52 @@ const areas: Record<
                   )}
                 </div>
 
+                <div className="rounded-3xl border border-white/10 bg-slate-900/70 p-6 mb-10">
+  <h2 className="text-2xl font-black text-cyan-300 mb-5">
+    Participantes
+  </h2>
+
+  <div className="overflow-x-auto">
+    <table className="w-full text-left">
+      <thead>
+        <tr className="border-b border-white/10 text-slate-400">
+          <th className="py-3 pr-4">Nombre</th>
+          <th className="py-3 pr-4">Área</th>
+          <th className="py-3 pr-4">Puesto</th>
+          <th className="py-3 pr-4">Correo</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {resultados.map((item, index) => (
+          <tr
+            key={item.id || `${item.user_id}-${index}`}
+            className="border-b border-white/5"
+          >
+            <td className="py-4 pr-4 font-semibold text-white">
+              {[item.nombre, item.apellido].filter(Boolean).join(" ") ||
+                "Sin nombre"}
+            </td>
+
+            <td className="py-4 pr-4 text-slate-300">
+              {item.area || "Sin área"}
+            </td>
+
+            <td className="py-4 pr-4 text-slate-300">
+              {item.puesto || "Sin puesto"}
+            </td>
+
+            <td className="py-4 pr-4 text-slate-400">
+              {item.email || "Sin correo"}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
           {item.chartData.map((entry) => (
             <div
@@ -285,41 +309,50 @@ const areas: Record<
 
 
               <div className="overflow-x-auto mt-8">
-                <table className="w-full text-left">
-                  <thead>
-                    <tr className="border-b border-white/10">
-                      <th className="py-4">Área</th>
-                      <th className="py-4">Puesto</th>
-                      <th className="py-4">Total</th>
-                      <th className="py-4">Nunca</th>
-                      <th className="py-4">Casi nunca</th>
-                      <th className="py-4">A veces</th>
-                      <th className="py-4">Casi siempre</th>
-                      <th className="py-4">Siempre</th>
-                    </tr>
-                  </thead>
+                <table className="w-full min-w-[900px] text-left">
+<thead>
+  <tr className="border-b border-white/10">
+    <th className="py-4 pr-8 min-w-[140px]">Área</th>
+    <th className="py-4 pr-8 min-w-[140px]">Puesto</th>
+    <th className="py-4 px-4 text-center">Total</th>
+    <th className="py-4 px-4 text-center">Nunca</th>
+    <th className="py-4 px-4 text-center whitespace-nowrap">
+      Casi nunca
+    </th>
+    <th className="py-4 px-4 text-center">A veces</th>
+    <th className="py-4 px-4 text-center whitespace-nowrap">
+      Casi siempre
+    </th>
+    <th className="py-4 px-4 text-center">Siempre</th>
+  </tr>
+</thead>
+
 
                   <tbody>
                     {item.areas.length === 0 && (
                       <tr>
-                        <td colSpan={7} className="py-6 text-slate-400">
+                        <td colSpan={8} className="py-6 text-slate-400">
                           Sin datos para esta pregunta.
                         </td>
                       </tr>
                     )}
 
-                    {item.areas.map((area) => (
-                      <tr key={area.area} className="border-b border-white/5">
-                        <td className="py-4 font-bold">{area.area}</td>
-                        <td className="py-4">{area.puesto}</td>
+                    {item.areas.map((area, index) => (
+                      <tr
+  key={`${area.area}-${area.puesto}-${index}`}
+  className="border-b border-white/5"
+>
 
+<td className="py-4 pr-8 font-bold">{area.area}</td>
+<td className="py-4 pr-8">{area.puesto}</td>
 
-                        <td className="py-4">{area.total}</td>
-                        <td className="py-4">{area.respuestas[0]}</td>
-                        <td className="py-4">{area.respuestas[1]}</td>
-                        <td className="py-4">{area.respuestas[2]}</td>
-                        <td className="py-4">{area.respuestas[3]}</td>
-                        <td className="py-4">{area.respuestas[4]}</td>
+<td className="py-4 px-4 text-center">{area.total}</td>
+<td className="py-4 px-4 text-center">{area.respuestas[0]}</td>
+<td className="py-4 px-4 text-center">{area.respuestas[1]}</td>
+<td className="py-4 px-4 text-center">{area.respuestas[2]}</td>
+<td className="py-4 px-4 text-center">{area.respuestas[3]}</td>
+<td className="py-4 px-4 text-center">{area.respuestas[4]}</td>
+
                       </tr>
                     ))}
                   </tbody>

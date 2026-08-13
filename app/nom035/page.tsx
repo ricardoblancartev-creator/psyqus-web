@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { useUser } from "@clerk/nextjs";
+import { useEffect, useState } from "react";
+import { useSession, useUser } from "@clerk/nextjs";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle2 } from "lucide-react";
-import { supabase } from "@/lib/supabase";
+import { createClerkSupabaseClient } from "@/lib/supabase-clerk";
 
 type Question = {
   id: number;
@@ -154,6 +154,7 @@ const questionnaireTwo: Question[] = [
 
 export default function EncuestaPage() {
   const { user } = useUser();
+  const {session} = useSession();
 
   const [started, setStarted] = useState(false);
   const [area, setArea] = useState("");
@@ -163,6 +164,46 @@ export default function EncuestaPage() {
     useState<"I" | "II">("I");
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [submitted, setSubmitted] = useState(false);
+  const [nombre, setNombre] = useState("");
+  const [apellido, setApellido] = useState("");
+  const [email, setEmail] = useState("");
+  const [perfilCargando, setPerfilCargando] = useState(true);
+useEffect(() => {
+  async function cargarEmpleado() {
+    if (!user || !session) return;
+
+    const supabase = createClerkSupabaseClient(async () => {
+      return session.getToken();
+    });
+
+    const { data, error } = await supabase
+      .from("empleados")
+      .select("nombre, apellido, email, area, puesto")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (error) {
+      console.error("Error cargando empleado:", error);
+      setPerfilCargando(false);
+      return;
+    }
+
+    if (data) {
+      setNombre(data.nombre || "");
+      setApellido(data.apellido || "");
+      setEmail(data.email || "");
+      setArea(data.area || "");
+      setPuesto(data.puesto || "");
+    }
+
+    setPerfilCargando(false);
+  }
+
+  cargarEmpleado();
+}, [user, session]);
+
+
+
 
   const questionnaireOptions = {
     I: "Cuestionario I - Acontecimiento traumático severo",
@@ -197,25 +238,35 @@ export default function EncuestaPage() {
     }
   };
 
-  async function saveEvaluation(finalAnswers: Record<number, number>) {
-    const total = Object.values(finalAnswers).reduce(
-      (acc, item) => acc + item,
-      0
-    );
+async function saveEvaluation(finalAnswers: Record<number, number>) {
+  if (!session) return;
 
-    const payload = {
-      user_id: user?.id ?? null,
-      area,
-      puesto,
-      tipo_cuestionario: selectedQuestionnaire,
-      nombre_cuestionario: currentQuestionnaireName,
-      respuestas: finalAnswers,
-      puntaje_total: total,
-    };
+  const total = Object.values(finalAnswers).reduce(
+    (acc, item) => acc + item,
+    0
+  );
 
-    const { error } = await supabase
-      .from("nom035_evaluaciones")
-      .insert([payload]);
+  const payload = {
+    user_id: user?.id ?? null,
+    nombre,
+    apellido,
+    email,
+    area,
+    puesto,
+    tipo_cuestionario: selectedQuestionnaire,
+    nombre_cuestionario: currentQuestionnaireName,
+    respuestas: finalAnswers,
+    puntaje_total: total,
+  };
+
+  const supabase = createClerkSupabaseClient(async () => {
+    return session.getToken();
+  });
+
+  const { error } = await supabase
+    .from("nom035_evaluaciones")
+    .insert([payload]);
+
 
     if (error) {
       console.error("Error completo Supabase:", JSON.stringify(error, null, 2));
@@ -276,41 +327,59 @@ export default function EncuestaPage() {
             </select>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-5 mt-8">
-            <div>
-              <label className="block mb-3 text-sm text-slate-400">
-                Área
-              </label>
+<div className="mt-8 rounded-2xl border border-cyan-400/20 bg-cyan-500/5 p-5">
+  <p className="text-xs uppercase tracking-[0.25em] text-cyan-400">
+    Colaborador
+  </p>
 
-              <input
-                value={area}
-                onChange={(e) => setArea(e.target.value)}
-                placeholder="Ejemplo: Ventas"
-                className="w-full rounded-2xl border border-white/10 bg-slate-900 px-5 py-4 text-white"
-              />
-            </div>
+  {perfilCargando ? (
+    <p className="mt-3 text-slate-400">
+      Cargando datos del colaborador...
+    </p>
+  ) : (
+    <>
+      <p className="mt-3 text-xl font-black text-white">
+        {nombre} {apellido}
+      </p>
 
-            <div>
-              <label className="block mb-3 text-sm text-slate-400">
-                Puesto
-              </label>
+      <p className="mt-1 text-sm text-slate-500">
+        {email}
+      </p>
 
-              <input
-                value={puesto}
-                onChange={(e) => setPuesto(e.target.value)}
-                placeholder="Ejemplo: Supervisor"
-                className="w-full rounded-2xl border border-white/10 bg-slate-900 px-5 py-4 text-white"
-              />
-            </div>
-          </div>
+      <div className="mt-4 grid md:grid-cols-2 gap-4">
+        <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+          <p className="text-xs text-slate-500 uppercase tracking-wider">
+            Área
+          </p>
 
-          <button
-            disabled={!area || !puesto}
-            onClick={() => setStarted(true)}
-            className="mt-8 w-full rounded-2xl bg-cyan-400 px-6 py-5 text-lg font-bold text-slate-950 disabled:opacity-50"
-          >
-            Comenzar evaluación
-          </button>
+          <p className="mt-1 font-semibold text-slate-200">
+            {area || "Sin área registrada"}
+          </p>
+        </div>
+
+        <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+          <p className="text-xs text-slate-500 uppercase tracking-wider">
+            Puesto
+          </p>
+
+          <p className="mt-1 font-semibold text-slate-200">
+            {puesto || "Sin puesto registrado"}
+          </p>
+        </div>
+      </div>
+    </>
+  )}
+</div>
+
+
+<button
+  disabled={perfilCargando || !nombre || !apellido || !area || !puesto}
+  onClick={() => setStarted(true)}
+  className="mt-8 w-full rounded-2xl bg-cyan-400 px-6 py-5 text-lg font-bold text-slate-950 disabled:opacity-50"
+>
+  {perfilCargando ? "Cargando perfil..." : "Comenzar evaluación"}
+</button>
+
         </div>
       </main>
     );

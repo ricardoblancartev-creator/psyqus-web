@@ -1,3 +1,4 @@
+import { createClient } from "@supabase/supabase-js";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -112,6 +113,7 @@ const modules = [
     accent:
       "from-rose-500/20 to-rose-500/5 border-rose-400/20 text-rose-300",
     badge: "Pro",
+    professionalOnly: true,
   },
   {
     href: "/nom035-resultados",
@@ -121,6 +123,7 @@ const modules = [
     accent:
       "from-teal-500/20 to-teal-500/5 border-teal-400/20 text-teal-300",
     badge: "NOM-035",
+    professionalOnly: true,
   }
 ];
 
@@ -195,13 +198,54 @@ function nextStepSuggestion(risk?: string | null) {
 }
 
 export default async function DashboardPage() {
-  const { userId } = await auth();
+  const { userId, getToken } = await auth();
   const user = await currentUser();
+  const role = user?.privateMetadata?.role;
+
+const isProfessional =
+  role === "admin" || role === "psicologo";
+
 
   if (!userId) redirect("/sign-in");
 
-  const firstName = user?.firstName || "Usuario";
-  const email = user?.emailAddresses?.[0]?.emailAddress || "Sin correo";
+const token = await getToken();
+
+const supabaseAuthed = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  {
+    accessToken: async () => token,
+  }
+);
+
+const { data: empleado, error: empleadoError } = await supabaseAuthed
+  .from("empleados")
+  .select("id, nombre, apellido, email, area, puesto")
+  .eq("user_id", userId)
+  .maybeSingle();
+
+
+if (empleadoError) {
+  console.error("Error leyendo empleado:", empleadoError);
+}
+
+
+
+if (!empleado) {
+  redirect("/onboarding");
+}
+
+const firstName = empleado?.nombre || user?.firstName || "Usuario";
+
+const fullName = empleado
+  ? `${empleado.nombre || ""} ${empleado.apellido || ""}`.trim()
+  : user?.fullName || "Usuario";
+
+const email =
+  empleado?.email ||
+  user?.emailAddresses?.[0]?.emailAddress ||
+  "Sin correo";
+
 
   const surveyRes = await supabase
     .from("resultados_encuestas")
@@ -210,46 +254,62 @@ export default async function DashboardPage() {
     .order("created_at", { ascending: false })
     .limit(1);
 
-  const latestSurvey = (surveyRes.data?.[0] || null) as Resultado | null;
-  const surveyRisk =
-    latestSurvey?.riesgo || riskFromScore(latestSurvey?.puntaje_total);
-  const surveyRiskUI = riskStyles(surveyRisk);
+const latestSurvey = (surveyRes.data?.[0] || null) as Resultado | null;
 
-  return (
-    <main className="min-h-screen bg-[#020617] text-white relative overflow-hidden">
+const surveyRisk =
+  latestSurvey?.riesgo || riskFromScore(latestSurvey?.puntaje_total);
+
+const surveyRiskUI = riskStyles(surveyRisk);
+
+const visibleModules = modules.filter(
+  (module) => !module.professionalOnly || isProfessional
+);
+
+return (
+  <main className="min-h-screen bg-[#020617] text-white relative overflow-hidden">
+
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(6,182,212,0.13),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(168,85,247,0.10),transparent_24%)]" />
       <div className="absolute inset-0 opacity-[0.06] [background-image:linear-gradient(rgba(255,255,255,0.12)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.12)_1px,transparent_1px)] [background-size:42px_42px]" />
 
       <section className="relative max-w-7xl mx-auto px-6 py-8 md:py-10">
         <div className="rounded-[2rem] border border-white/10 bg-slate-950/60 backdrop-blur-xl p-6 md:p-8 mb-8 shadow-[0_0_70px_rgba(0,255,255,0.04)]">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-2xl overflow-hidden border border-cyan-400/20 bg-black/40 shrink-0 shadow-[0_0_25px_rgba(34,211,238,0.10)]">
-                <Image
-                  src="/logo.jpg"
-                  alt="Psyqus"
-                  width={64}
-                  height={64}
-                  className="w-full h-full object-cover"
-                />
-              </div>
+<div className="flex items-center gap-4">
 
-              <div>
-                <p className="text-[11px] uppercase tracking-[0.32em] text-cyan-400/70 font-semibold mb-2">
-                  Psyqus System
-                </p>
-                <h1 className="text-3xl md:text-5xl font-black tracking-tight">
-                  Dashboard
-                </h1>
-                <p className="mt-3 text-slate-300 text-sm md:text-base max-w-2xl">
-                  Bienvenido,{" "}
-                  <span className="text-cyan-300 font-semibold">{firstName}</span>.
-                  Este espacio está centrado en tu evaluación, tu lectura personal
-                  y tus siguientes pasos dentro de Psyqus.
-                </p>
-                <p className="mt-2 text-sm text-slate-500 italic">{email}</p>
-              </div>
-            </div>
+  <div className="relative shrink-0">
+    <div className="absolute inset-0 rounded-full bg-cyan-400/20 blur-2xl scale-125" />
+
+    <div className="relative w-24 h-24 md:w-28 md:h-28 flex items-center justify-center">
+      <Image
+        src="/logo.jpg"
+        alt="Psyqus"
+        width={112}
+        height={112}
+        className="w-full h-full object-contain mix-blend-screen drop-shadow-[0_0_22px_rgba(34,211,238,0.35)]"
+      />
+    </div>
+  </div>
+
+  <div>
+    <p className="text-[11px] uppercase tracking-[0.32em] text-cyan-400/70 font-semibold mb-2">
+      Psyqus System
+    </p>
+
+    <h1 className="text-3xl md:text-5xl font-black tracking-tight">
+      Dashboard
+    </h1>
+
+    <p className="mt-3 text-slate-300 text-sm md:text-base max-w-2xl">
+      Bienvenido,{" "}
+      <span className="text-cyan-300 font-semibold">{fullName}</span>.
+      Este espacio está centrado en tu evaluación, tu lectura personal
+      y tus siguientes pasos dentro de Psyqus.
+    </p>
+
+    <p className="mt-2 text-sm text-slate-500 italic">{email}</p>
+  </div>
+
+</div>
 
             <div className="flex flex-col sm:flex-row gap-3 lg:items-end">
               <div className="inline-flex items-center gap-3 px-4 py-3 rounded-full border border-emerald-400/20 bg-emerald-500/10 shadow-[0_0_20px_rgba(16,185,129,0.10)]">
@@ -417,7 +477,7 @@ export default async function DashboardPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-          {modules.map((module) => {
+          {visibleModules.map((module) => {
             const Icon = module.icon;
 
             return (
