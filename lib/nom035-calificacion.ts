@@ -377,43 +377,59 @@ export function calificarCuestionarioI(
     Preguntas 11-15 = Sección IV
   */
 
-  const huboAcontecimiento = si(1);
+const huboAcontecimiento = si(1);
 
-  const seccionII =
-    [2, 3].filter(si).length;
+const seccionII =
+  [2, 3].filter(si).length;
 
-  const seccionIII =
-    [4, 5, 6, 7, 8, 9, 10].filter(si).length;
+const seccionIII =
+  [4, 5, 6, 7, 8, 9, 10].filter(si).length;
 
-  const seccionIV =
-    [11, 12, 13, 14, 15].filter(si).length;
+const seccionIV =
+  [11, 12, 13, 14, 15].filter(si).length;
 
-  if (!huboAcontecimiento) {
-    return {
-      tipo: "I",
-      requiereValoracionClinica: false,
-      seccionII,
-      seccionIII,
-      seccionIV,
-      mensaje:
-        "No se reportó acontecimiento traumático severo en la Sección I.",
-    };
-  }
+/*
+  IMPORTANTE:
+  Para los registros históricos de Psyqus no usamos
+  únicamente la pregunta 1 como condición para ignorar
+  todas las respuestas posteriores.
 
-  const requiereValoracionClinica =
-    seccionII >= 1 ||
-    seccionIII >= 3 ||
-    seccionIV >= 2;
+  Se conservan y analizan las respuestas realmente
+  registradas en las secciones II, III y IV.
+*/
 
+const tieneRespuestasPosteriores =
+  seccionII > 0 ||
+  seccionIII > 0 ||
+  seccionIV > 0;
+
+if (!huboAcontecimiento && !tieneRespuestasPosteriores) {
+  return {
+    tipo: "I",
+    requiereValoracionClinica: false,
+    seccionII,
+    seccionIII,
+    seccionIV,
+    mensaje:
+      "No se registraron respuestas que alcancen criterios de seguimiento en el Cuestionario I.",
+  };
+}
+
+const requiereValoracionClinica =
+  seccionII >= 1 ||
+  seccionIII >= 3 ||
+  seccionIV >= 2;
   return {
     tipo: "I",
     requiereValoracionClinica,
     seccionII,
     seccionIII,
     seccionIV,
-    mensaje: requiereValoracionClinica
-      ? "El resultado cumple criterio para atención clínica conforme a la Guía de Referencia I."
-      : "Se reportó un acontecimiento traumático severo, pero las respuestas posteriores no alcanzan los criterios establecidos para atención clínica.",
+mensaje: requiereValoracionClinica
+  ? "Las respuestas registradas alcanzan los criterios de seguimiento establecidos para el Cuestionario I."
+  : huboAcontecimiento
+  ? "Se reportó un acontecimiento traumático severo, pero las respuestas posteriores no alcanzan los criterios establecidos para seguimiento."
+  : "Se registraron respuestas afirmativas posteriores, pero no alcanzan los criterios establecidos para seguimiento.",
   };
 }
 
