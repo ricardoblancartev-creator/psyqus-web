@@ -170,3 +170,11 @@ La versión instalada de Clerk no acepta `skipCache` en `getToken`; ese intento 
 - Cambios de build: se eliminó la página duplicada `app/api/pulso/page.tsx`, conservando `app/api/pulso/route.ts` y `app/pulso/page.tsx`. `/admin` ahora es un Server Component que renderiza el panel protegido por Clerk; se eliminó la importación inválida de Server Component desde un Client Component y no se publica la contraseña hardcodeada anterior.
 - Comprobación: `npm run build` terminó correctamente después de compilar, generar 44 páginas, crear trazas y finalizar la optimización.
 - Publicación: todavía pendiente de commit, push y despliegue. Se excluirán secretos, `respaldos_shorts/`, temporales y artefactos de build; no se modificaron audio ni gráficos en esta preparación.
+
+### 2026-10-19 — Commit, push y bloqueo de despliegue
+
+- Publicación de código: se creó el commit `748c54c` (`Publica Shorts ilustrados con audio integrado`) y se hizo push correctamente a `origin/main` en `github.com/ricardoblancartev-creator/psyqus-web.git`. El árbol de trabajo quedó limpio.
+- Build: `npm run build` terminó correctamente después de corregir la página duplicada de `/api/pulso` y la importación de Server Component desde `/admin`.
+- Vercel: se intentó desplegar al proyecto existente `psyqus-web-lvhs` con `vercel deploy --prod --yes --force`. El CLI identificó el proyecto, pero falló con `Failed to get package info: Failed to fetch dist-tags from npm` y terminó con `Error: fetch failed`.
+- Producción: no se confirmó una versión nueva en `psyqus.com`; la solicitud directa a `https://psyqus.com/shorts/meditar-sin-mente-en-blanco.mp4` terminó en timeout de conexión (`curl: (28) Connection timed out after 20037 milliseconds`). No se afirma que producción sirva todavía los MP4 nuevos.
+- Pendiente concreto: repetir el despliegue cuando Vercel/npm sea accesible o revisar el despliegue automático de Git del proyecto existente. No se creó otro proyecto ni se modificaron audio o gráficos durante la publicación.
