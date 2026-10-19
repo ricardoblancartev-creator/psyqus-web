@@ -2,3 +2,15 @@ node_modules
 .next
 .vercel
 .env.local
+.env*
+
+# Local generation backups and build artifacts
+respaldos_shorts/
+__pycache__/
+*.pyc
+tsconfig.tsbuildinfo
+public/shorts/*-muestra.mp4
+*.tmp.mp4
+*.visual.tmp.mp4
+*.final.tmp.mp4
+*.bak

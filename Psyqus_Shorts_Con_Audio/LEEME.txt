@@ -1,0 +1,43 @@
+PSYQUS: SHORTS CON NARRACIÓN Y MÚSICA
+
+Incluye 11 videos anteriores con pista AAC (voz en español y música original),
+y 3 lecciones ilustradas sobre meditación. Las ilustraciones y transiciones
+renovadas están en las tres lecciones nuevas. No hay sincronización labial.
+Los once videos anteriores conservan su diseño y ajustan su duración para
+que la narración termine antes de cambiar de escena.
+
+INSTALACIÓN
+1. Coloca esta carpeta dentro de C:\dev\psyqus-web.
+2. Detén el servidor de desarrollo.
+3. En la terminal de esa carpeta ejecuta: py instalar.py
+   Si hace falta FFmpeg: py -m pip install imageio-ffmpeg
+4. El instalador verifica hashes, respalda los archivos reemplazados y
+   comprueba que cada MP4 pueda decodificar una pista de audio.
+5. Agrega las tres lecciones al catálogo SHORTS_LOCALES si encuentra esa
+   estructura. Si tu reproductor cambió, deja catalogo_meditacion.json para
+   que Codex lo integre sin reemplazar tu página.
+6. Inicia Psyqus, recarga /shorts y pulsa Activar sonido.
+
+La reproducción automática suele comenzar silenciada. Activar sonido debe
+ser una acción del usuario. No se solucionan archivos mudos cambiando muted.
+La música ya está mezclada dentro de cada video; no añadas otra canción
+con reproducción independiente en el reproductor.
+
+IMPORTANTE PARA EL DESARROLLO
+Los generadores anteriores que usen -an vuelven a producir videos sin audio.
+Este paquete instala MP4 terminados y no ejecuta esos generadores. Actualiza
+el flujo de generación antes de regenerarlos. TypeScript sin errores no
+comprueba el audio de un archivo multimedia.
+
+CONTENIDO DE MEDITACIÓN
+- Meditar no es dejar la mente en blanco.
+- Cómo puede ayudar la meditación.
+- Una pausa antes de responder.
+Los resultados de la meditación varían. Los guiones explican que no sustituye
+la atención profesional ni cambios necesarios en las condiciones de trabajo.
+Referencia conceptual consultada el 16/10/2026:
+https://www.nccih.nih.gov/health/meditation-and-mindfulness-effectiveness-and-safety
+
+Voz sintética en español mexicano. Música instrumental original, sin muestras
+de canciones comerciales. Ilustraciones originales de campaña; no representan
+una actualización del modelo VRM instalado en la app.

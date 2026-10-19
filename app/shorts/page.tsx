@@ -1,22 +1,26 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+} from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import PsyqusNavigation from "@/components/PsyqusNavigation";
 import {
-  Brain,
-  BookOpen,
-  Activity,
-  ClipboardList,
-  HeartHandshake,
+  Play,
+  Pause,
   Volume2,
   VolumeX,
-  Play,
-  Loader2,
-  Sparkles,
+  ChevronUp,
+  ChevronDown,
+  ArrowRight,
 } from "lucide-react";
 
-type ShortBienestar = {
+type Short = {
+  poster_url?: string;
   id: string;
   titulo: string;
   descripcion: string | null;
@@ -27,275 +31,442 @@ type ShortBienestar = {
   orden: number | null;
 };
 
+const SHORTS_LOCALES: Short[] = [
+{"id": "psyqus-meditar-sin-mente-en-blanco", "titulo": "Meditar no es dejar la mente en blanco", "descripcion": "Meditar no significa dejar la mente en blanco. Distraerte puede ser parte de la práctica.", "categoria": "Meditación", "video_url": "/shorts/meditar-sin-mente-en-blanco.mp4", "poster_url": "/shorts/meditar-sin-mente-en-blanco.jpg", "cta_label": "Explorar herramientas", "cta_href": "/mindfulness", "orden": -89},
+{"id": "psyqus-meditacion-y-estres", "titulo": "Cómo puede ayudar la meditación", "descripcion": "La meditación puede ayudar a algunas personas a manejar el estrés. Los resultados varían; no es una solución inmediata ni universal.", "categoria": "Meditación", "video_url": "/shorts/meditacion-y-estres.mp4", "poster_url": "/shorts/meditacion-y-estres.jpg", "cta_label": "Explorar herramientas", "cta_href": "/mindfulness", "orden": -88},
+{"id": "psyqus-pausa-antes-de-responder", "titulo": "Una pausa antes de responder", "descripcion": "Antes de responder un mensaje difícil, si puedes y es seguro, date unos momentos para revisar qué necesitas.", "categoria": "Meditación", "video_url": "/shorts/pausa-antes-de-responder.mp4", "poster_url": "/shorts/pausa-antes-de-responder.jpg", "cta_label": "Explorar herramientas", "cta_href": "/mindfulness", "orden": -87},
+
+{"id": "psyqus-estres-senales", "titulo": "Tu estrés puede avisar antes", "descripcion": "Hoy te cuesta concentrarte y hasta un mensaje pequeño te pesa.", "categoria": "Estrés", "video_url": "/shorts/estres-senales.mp4", "poster_url": "/shorts/estres-senales.jpg", "cta_label": "Seguir aprendiendo", "cta_href": "/psicoeducacion", "orden": -20},
+{"id": "psyqus-anticipar-saturacion", "titulo": "Antes de llegar al límite", "descripcion": "Te llega otro pendiente y dices que sí sin revisar lo que ya tienes.", "categoria": "Estrés", "video_url": "/shorts/anticipar-saturacion.mp4", "poster_url": "/shorts/anticipar-saturacion.jpg", "cta_label": "Seguir aprendiendo", "cta_href": "/psicoeducacion", "orden": -19},
+{"id": "psyqus-companeros-acuerdos", "titulo": "Llevarse bien también se acuerda", "descripcion": "Tu compañero entrega tarde y tú terminas corrigiendo todo.", "categoria": "Convivencia", "video_url": "/shorts/companeros-acuerdos.mp4", "poster_url": "/shorts/companeros-acuerdos.jpg", "cta_label": "Seguir aprendiendo", "cta_href": "/psicoeducacion", "orden": -18},
+{"id": "psyqus-chat-malentendidos", "titulo": "Un mensaje seco no cuenta todo", "descripcion": "Lees el mensaje y piensas: seguro está enojado conmigo.", "categoria": "Convivencia", "video_url": "/shorts/chat-malentendidos.mp4", "poster_url": "/shorts/chat-malentendidos.jpg", "cta_label": "Seguir aprendiendo", "cta_href": "/psicoeducacion", "orden": -17},
+{"id": "psyqus-pedir-con-asertividad", "titulo": "Pedir un cambio sin atacar", "descripcion": "La conversación se vuelve una pelea y lo que necesitas queda perdido.", "categoria": "Comunicación", "video_url": "/shorts/pedir-con-asertividad.mp4", "poster_url": "/shorts/pedir-con-asertividad.jpg", "cta_label": "Seguir aprendiendo", "cta_href": "/psicoeducacion", "orden": -16},
+{"id": "psyqus-poner-limites", "titulo": "Decir que no sin pelear", "descripcion": "Ya tienes dos entregas y te pasan una tercera.", "categoria": "Comunicación", "video_url": "/shorts/poner-limites.mp4", "poster_url": "/shorts/poner-limites.jpg", "cta_label": "Seguir aprendiendo", "cta_href": "/psicoeducacion", "orden": -15},
+{"id": "psyqus-reconocer-violencia", "titulo": "No todo es una broma", "descripcion": "Se burlan de ti delante del equipo y después dicen que era jugando.", "categoria": "Buen trato", "video_url": "/shorts/reconocer-violencia.mp4", "poster_url": "/shorts/reconocer-violencia.jpg", "cta_label": "Pedir apoyo", "cta_href": "/buzon", "orden": -14},
+{"id": "psyqus-acompanar-companero", "titulo": "Si un compañero te cuenta algo", "descripcion": "Alguien te cuenta que se siente intimidado por otra persona del trabajo.", "categoria": "Buen trato", "video_url": "/shorts/acompanar-companero.mp4", "poster_url": "/shorts/acompanar-companero.jpg", "cta_label": "Pedir apoyo", "cta_href": "/buzon", "orden": -13},
+
+  {
+    id: "psyqus-enfoque",
+    titulo: "Un paso a la vez",
+    descripcion: "Una pausa para elegir qué pendiente atender primero.",
+    categoria: "Enfoque",
+    video_url: "/shorts/enfoque.mp4",
+    cta_label: "Recuperar concentración",
+    cta_href: "/mindfulness",
+    orden: 1,
+  },
+  {
+    id: "psyqus-pausa",
+    titulo: "Tu pausa empieza aquí",
+    descripcion: "Suelta los hombros y tómate un momento a tu ritmo.",
+    categoria: "Pausa",
+    video_url: "/shorts/pausa.mp4",
+    cta_label: "Hacer una pausa",
+    cta_href: "/mindfulness",
+    orden: 2,
+  },
+  {
+    id: "psyqus-cierre",
+    titulo: "Por hoy, cierra aquí",
+    descripcion: "Deja anotado lo pendiente y el primer paso para mañana.",
+    categoria: "Descanso",
+    video_url: "/shorts/cierre.mp4",
+    cta_label: "Explorar herramientas",
+    cta_href: "/mindfulness",
+    orden: 3,
+  },
+];
+
+function internalHref(value: string | null) {
+  return value &&
+    /^\/(?!\/)/.test(value) &&
+    !/[\\\u0000-\u001f]/.test(value)
+    ? value
+    : null;
+}
+
 export default function ShortsPage() {
-  const [shorts, setShorts] = useState<ShortBienestar[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const feedRef = useRef<HTMLElement>(null);
+
+  const [shorts, setShorts] = useState<Short[]>(SHORTS_LOCALES);
   const [muted, setMuted] = useState(true);
+  const [categoria, setCategoria] = useState("Todos");
+  const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {
-    async function cargarContenido() {
-      setLoading(true);
-      setError("");
+    const controller = new AbortController();
+    let mounted = true;
 
-      const { data, error } = await supabase
-        .from("contenido_bienestar")
-        .select(
-          `
-          id,
-          titulo,
-          descripcion,
-          categoria,
-          video_url,
-          cta_label,
-          cta_href,
-          orden
-        `
-        )
-        .eq("activo", true)
-        .order("orden", { ascending: true });
+    async function cargar() {
+      try {
+        const result = await supabase
+          .from("contenido_bienestar")
+          .select(
+            "id,titulo,descripcion,categoria,video_url,cta_label,cta_href,orden"
+          )
+          .eq("activo", true)
+          .order("orden", { ascending: true })
+          .abortSignal(controller.signal);
 
-      if (error) {
-        console.error("Error cargando Psyqus Shorts:", error);
-        setError(
-          "Todavía no fue posible cargar el contenido de bienestar."
+        if (!mounted || result.error) return;
+
+        const catalogo = new Map<string, Short>();
+        const localesPorArchivo = new Map(
+          SHORTS_LOCALES.map((video) => [
+            video.video_url
+              .split("/")
+              .pop()
+              ?.replace(/\.mp4$/, ""),
+            video,
+          ])
         );
-        setLoading(false);
-        return;
-      }
 
-      setShorts((data || []) as ShortBienestar[]);
-      setLoading(false);
+        SHORTS_LOCALES.forEach((video) => {
+          catalogo.set(video.id, video);
+        });
+
+        ((result.data || []) as Short[]).forEach((video) => {
+          if (!video.video_url) return;
+
+          const archivo = video.video_url
+            .split("?")[0]
+            .split("/")
+            .pop()
+            ?.replace(/\.mp4$/, "");
+          const local = archivo
+            ? localesPorArchivo.get(archivo)
+            : undefined;
+
+          if (local) {
+            catalogo.set(local.id, {
+              ...local,
+              ...video,
+              // Supabase may still return the old URL without audio.
+              video_url: local.video_url,
+              poster_url: video.poster_url || local.poster_url,
+            });
+          } else {
+            catalogo.set(video.id || video.video_url, video);
+          }
+        });
+
+        setShorts(
+          Array.from(catalogo.values()).sort(
+            (a, b) => (a.orden ?? 999) - (b.orden ?? 999)
+          )
+        );
+      } catch {
+        // Los videos locales siguen disponibles.
+      }
     }
 
-    cargarContenido();
+    void cargar();
+
+    return () => {
+      mounted = false;
+      controller.abort();
+    };
   }, []);
 
-  if (loading) {
-    return (
-      <main className="flex min-h-[100dvh] items-center justify-center bg-[#020617] text-white">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-7 w-7 animate-spin text-cyan-400" />
-          <p className="text-sm text-slate-400">
-            Preparando tu espacio...
-          </p>
-        </div>
-      </main>
+  const categorias = [
+    "Todos",
+    ...Array.from(
+      new Set(
+        shorts
+          .map((short) => short.categoria)
+          .filter(
+            (value): value is string =>
+              Boolean(value) && value !== "Todos"
+          )
+      )
+    ),
+  ];
+
+  const visibles =
+    categoria === "Todos"
+      ? shorts
+      : shorts.filter((short) => short.categoria === categoria);
+
+  function mover(direction: number) {
+    const feed = feedRef.current;
+    if (!feed) return;
+
+    const next = Math.max(
+      0,
+      Math.min(visibles.length - 1, activeIndex + direction)
     );
-  }
 
-  if (error) {
-    return (
-      <main className="flex min-h-[100dvh] items-center justify-center bg-[#020617] px-6 text-white">
-        <div className="max-w-md text-center">
-          <Brain className="mx-auto mb-5 h-10 w-10 text-cyan-400" />
-
-          <h1 className="text-xl font-semibold">
-            Psyqus
-          </h1>
-
-          <p className="mt-3 text-sm leading-6 text-slate-400">
-            {error}
-          </p>
-
-          <Link
-            href="/dashboard"
-            className="mt-7 inline-flex rounded-full border border-white/10 bg-white/5 px-5 py-3 text-sm transition hover:bg-white/10"
-          >
-            Volver al inicio
-          </Link>
-        </div>
-      </main>
-    );
-  }
-
-  if (shorts.length === 0) {
-    return (
-      <main className="flex min-h-[100dvh] flex-col bg-[#020617] text-white">
-        <div className="flex flex-1 items-center justify-center px-6 pb-24">
-          <div className="max-w-sm text-center">
-            <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-3xl border border-cyan-400/20 bg-cyan-400/10">
-              <Sparkles className="h-7 w-7 text-cyan-400" />
-            </div>
-
-            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-cyan-400">
-              Psyqus Shorts
-            </p>
-
-            <h1 className="mt-3 text-2xl font-semibold">
-              Tu espacio de bienestar
-            </h1>
-
-            <p className="mt-3 text-sm leading-6 text-slate-400">
-              Aún no hay contenido publicado.
-              Cuando se agreguen nuevos videos aparecerán aquí.
-            </p>
-          </div>
-        </div>
-
-        <BottomNavigation />
-      </main>
-    );
+    feed.scrollTo({
+      top: next * feed.clientHeight,
+      behavior: "smooth",
+    });
   }
 
   return (
-    <main className="relative h-[100dvh] overflow-hidden bg-black text-white">
-      <div className="absolute left-0 right-0 top-0 z-30 bg-gradient-to-b from-black/70 to-transparent px-5 pb-10 pt-[max(1.25rem,env(safe-area-inset-top))]">
-        <div className="mx-auto flex max-w-xl items-center justify-between">
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-cyan-300">
-              Psyqus
-            </p>
+    <main
+      className="fixed inset-0 overflow-hidden bg-[#05070b] text-white"
+      style={
+        {
+          "--feed-height":
+            "calc(100dvh - 136px - env(safe-area-inset-top) - env(safe-area-inset-bottom))",
+        } as CSSProperties
+      }
+    >
+      <header
+        className="flex items-center justify-between gap-3 px-4"
+        style={{
+          height: "calc(52px + env(safe-area-inset-top))",
+          paddingTop: "env(safe-area-inset-top)",
+        }}
+      >
+        <h1 className="text-lg font-bold tracking-tight">
+          Psyqus <span className="text-cyan-300">Shorts</span>
+        </h1>
 
-            <h1 className="text-lg font-semibold">
-              Para ti
-            </h1>
-          </div>
+        <select
+          aria-label="Categoría"
+          value={categoria}
+          onChange={(event) => {
+            setCategoria(event.target.value);
+            setActiveIndex(0);
+          }}
+          className="max-w-[45%] rounded-full border border-white/15 bg-slate-900 px-3 py-1.5 text-xs"
+        >
+          {categorias.map((item) => (
+            <option key={item} value={item}>
+              {item === "Todos" ? "Para ti" : item}
+            </option>
+          ))}
+        </select>
+      </header>
 
-          <Link
-            href="/ia"
-            className="flex items-center gap-2 rounded-full border border-white/15 bg-black/30 px-3 py-2 text-xs backdrop-blur-md"
-          >
-            <Brain className="h-4 w-4 text-cyan-300" />
-            Hablar con Psyqus
-          </Link>
-        </div>
-      </div>
+      <section
+        key={categoria}
+        ref={feedRef}
+        aria-label="Videos de bienestar"
+        tabIndex={0}
+        onScroll={(event) => {
+          const feed = event.currentTarget;
 
-      <section className="h-full snap-y snap-mandatory overflow-y-scroll">
-        {shorts.map((short) => (
+          setActiveIndex(
+            Math.round(
+              feed.scrollTop / Math.max(1, feed.clientHeight)
+            )
+          );
+        }}
+        onKeyDown={(event) => {
+          if (event.target !== event.currentTarget) return;
+
+          if (
+            event.key === "ArrowDown" ||
+            event.key === "ArrowUp"
+          ) {
+            event.preventDefault();
+            mover(event.key === "ArrowDown" ? 1 : -1);
+          }
+        }}
+        className="snap-y snap-mandatory overflow-y-auto overscroll-y-contain outline-none [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        style={{ height: "var(--feed-height)" }}
+      >
+        {visibles.map((short, index) => (
           <ShortCard
-            key={short.id}
+            key={short.video_url}
             short={short}
+            active={index === activeIndex}
             muted={muted}
             setMuted={setMuted}
           />
         ))}
       </section>
 
-      <BottomNavigation />
+      <div className="fixed right-5 top-1/2 hidden -translate-y-1/2 flex-col gap-3 md:flex">
+        <button
+          type="button"
+          aria-label="Short anterior"
+          disabled={activeIndex === 0}
+          onClick={() => mover(-1)}
+          className="rounded-full bg-white/10 p-3 hover:bg-white/20 disabled:opacity-25"
+        >
+          <ChevronUp />
+        </button>
+
+        <button
+          type="button"
+          aria-label="Siguiente short"
+          disabled={activeIndex >= visibles.length - 1}
+          onClick={() => mover(1)}
+          className="rounded-full bg-white/10 p-3 hover:bg-white/20 disabled:opacity-25"
+        >
+          <ChevronDown />
+        </button>
+      </div>
+
+      <PsyqusNavigation />
     </main>
   );
 }
 
 function ShortCard({
   short,
+  active,
   muted,
   setMuted,
 }: {
-  short: ShortBienestar;
+  short: Short;
+  active: boolean;
   muted: boolean;
   setMuted: (value: boolean) => void;
 }) {
-  const videoRef = useRef<HTMLVideoElement | null>(null);
-  const containerRef = useRef<HTMLElement | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const manualPause = useRef(false);
 
   const [playing, setPlaying] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+  const [progress, setProgress] = useState(0);
+
+  const href = internalHref(short.cta_href);
 
   useEffect(() => {
-    const element = containerRef.current;
     const video = videoRef.current;
+    if (!video) return;
 
-    if (!element || !video) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && entry.intersectionRatio >= 0.7) {
-          video.play().catch(() => {});
-          setPlaying(true);
-        } else {
-          video.pause();
-          setPlaying(false);
-        }
-      },
-      {
-        threshold: [0.25, 0.7, 0.9],
+    function sync() {
+      if (
+        active &&
+        !document.hidden &&
+        !manualPause.current
+      ) {
+        void video!.play().catch(() => setPlaying(false));
+      } else {
+        video!.pause();
       }
-    );
+    }
 
-    observer.observe(element);
+    if (!active) manualPause.current = false;
+
+    sync();
+
+    document.addEventListener("visibilitychange", sync);
 
     return () => {
-      observer.disconnect();
+      document.removeEventListener("visibilitychange", sync);
       video.pause();
     };
-  }, []);
+  }, [active, attempt]);
 
   function togglePlay() {
     const video = videoRef.current;
-
-    if (!video) return;
+    if (!video || !active) return;
 
     if (video.paused) {
-      video.play().catch(() => {});
-      setPlaying(true);
+      manualPause.current = false;
+      void video.play().catch(() => setPlaying(false));
     } else {
+      manualPause.current = true;
       video.pause();
-      setPlaying(false);
     }
   }
 
   return (
     <article
-      ref={containerRef}
-      className="relative h-[100dvh] w-full snap-start snap-always overflow-hidden bg-[#020617]"
+      aria-label={short.titulo}
+      className="grid w-full snap-start snap-always place-items-center"
+      style={{
+        height: "var(--feed-height)",
+        minHeight: "var(--feed-height)",
+      }}
     >
-      <video
-        ref={videoRef}
-        src={short.video_url}
-        muted={muted}
-        loop
-        playsInline
-        preload="metadata"
-        onClick={togglePlay}
-        className="absolute inset-0 h-full w-full object-cover"
-      />
+      <div
+        className="relative h-full overflow-hidden bg-black"
+        style={{
+          width: "min(100%, calc(var(--feed-height) * 9 / 16))",
+        }}
+      >
+        <video
+          key={attempt}
+          ref={videoRef}
+          src={short.video_url} poster={short.poster_url || undefined}
+          muted={muted}
+          loop
+          playsInline
+          preload={active ? "auto" : "metadata"}
+          aria-label={short.titulo}
+          data-short-active={active ? "true" : "false"}
+          onPlay={() => setPlaying(true)}
+          onPause={() => setPlaying(false)}
+          onError={() => {
+            setFailed(true);
+            setPlaying(false);
+          }}
+          onTimeUpdate={(event) => {
+            const video = event.currentTarget;
 
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/90" />
+            setProgress(
+              video.duration > 0
+                ? video.currentTime / video.duration
+                : 0
+            );
+          }}
+          className="absolute inset-0 h-full w-full object-contain"
+        />
 
-      {!playing && (
         <button
+          type="button"
           onClick={togglePlay}
-          aria-label="Reproducir video"
-          className="absolute left-1/2 top-1/2 z-20 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/40 backdrop-blur-md"
+          tabIndex={active ? 0 : -1}
+          aria-label={
+            playing ? "Pausar video" : "Reproducir video"
+          }
+          className="absolute inset-0 flex items-center justify-center"
         >
-          <Play className="ml-1 h-7 w-7 fill-white text-white" />
+          {!playing && !failed && (
+            <span className="rounded-full bg-black/45 p-5">
+              <Play className="h-8 w-8 fill-white" />
+            </span>
+          )}
         </button>
-      )}
 
-      <div className="absolute bottom-28 left-0 right-0 z-20">
-        <div className="mx-auto flex max-w-xl items-end gap-4 px-5">
-          <div className="min-w-0 flex-1">
-            {short.categoria && (
-              <span className="mb-3 inline-flex rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-[11px] font-medium text-cyan-200 backdrop-blur-md">
-                {short.categoria}
-              </span>
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/85 to-transparent" />
+
+        <div className="absolute bottom-24 right-3 flex flex-col gap-3">
+          <button
+            type="button"
+            onClick={togglePlay}
+            tabIndex={active ? 0 : -1}
+            aria-label={playing ? "Pausar" : "Reproducir"}
+            className="rounded-full bg-black/45 p-2.5"
+          >
+            {playing ? (
+              <Pause className="h-5 w-5" />
+            ) : (
+              <Play className="h-5 w-5" />
             )}
-
-            <h2 className="max-w-lg text-2xl font-semibold leading-tight tracking-tight">
-              {short.titulo}
-            </h2>
-
-            {short.descripcion && (
-              <p className="mt-3 max-w-lg text-sm leading-6 text-white/75">
-                {short.descripcion}
-              </p>
-            )}
-
-            {short.cta_label && short.cta_href && (
-              <Link
-                href={short.cta_href}
-                className="mt-5 inline-flex items-center rounded-full bg-white px-5 py-3 text-sm font-semibold text-slate-950 transition active:scale-95"
-              >
-                {short.cta_label}
-              </Link>
-            )}
-          </div>
+          </button>
 
           <button
-            onClick={() => setMuted(!muted)}
-            aria-label={muted ? "Activar sonido" : "Silenciar"}
-            className="mb-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/15 bg-black/35 backdrop-blur-md"
+            type="button"
+            onClick={() => {
+              const nextMuted = !muted;
+              setMuted(nextMuted);
+
+              const activeVideo = document.querySelector<HTMLVideoElement>(
+                "video[data-short-active=\"true\"]"
+              );
+
+              if (activeVideo) {
+                activeVideo.volume = 1;
+                activeVideo.muted = nextMuted;
+                if (!nextMuted && activeVideo.paused) {
+                  void activeVideo.play().catch(() => undefined);
+                }
+              }
+            }}
+            tabIndex={active ? 0 : -1}
+            aria-label={
+              muted ? "Activar sonido" : "Silenciar video"
+            }
+            className="rounded-full bg-black/45 p-2.5"
           >
             {muted ? (
               <VolumeX className="h-5 w-5" />
@@ -304,62 +475,59 @@ function ShortCard({
             )}
           </button>
         </div>
+
+        <div className="absolute inset-x-0 bottom-3 px-4">
+          <p className="text-xs font-semibold text-cyan-200">
+            @psyqus
+          </p>
+
+          <h2 className="mt-1 truncate text-sm font-semibold">
+            {short.titulo}
+          </h2>
+
+          {href && short.cta_label && (
+            <Link
+              href={href}
+              tabIndex={active ? 0 : -1}
+              className="mt-1.5 inline-flex max-w-full items-center gap-1.5 rounded-full bg-white/15 px-3 py-1.5 text-xs backdrop-blur"
+            >
+              <span className="truncate">
+                {short.cta_label}
+              </span>
+              <ArrowRight className="h-3.5 w-3.5 shrink-0" />
+            </Link>
+          )}
+        </div>
+
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-0.5 bg-white/20">
+          <div
+            className="h-full bg-cyan-300"
+            style={{ width: `${progress * 100}%` }}
+          />
+        </div>
+
+        {failed && (
+          <div
+            role="alert"
+            className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-black/90 px-5 text-center"
+          >
+            <p className="text-sm">
+              No se pudo reproducir este video.
+            </p>
+
+            <button
+              type="button"
+              onClick={() => {
+                setFailed(false);
+                setAttempt((value) => value + 1);
+              }}
+              className="rounded-full bg-cyan-300 px-4 py-2 text-sm font-bold text-black"
+            >
+              Reintentar
+            </button>
+          </div>
+        )}
       </div>
     </article>
-  );
-}
-
-function BottomNavigation() {
-  const items = [
-    {
-      href: "/shorts",
-      label: "Shorts",
-      icon: Play,
-    },
-    {
-      href: "/psicoeducacion",
-      label: "Aprender",
-      icon: BookOpen,
-    },
-    {
-      href: "/pulso",
-      label: "Pulso",
-      icon: Activity,
-    },
-    {
-      href: "/encuesta",
-      label: "Evaluar",
-      icon: ClipboardList,
-    },
-    {
-      href: "/buzon",
-      label: "Ayuda",
-      icon: HeartHandshake,
-    },
-  ];
-
-  return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/10 bg-[#020617]/90 backdrop-blur-xl">
-      <div className="mx-auto flex max-w-xl items-center justify-around px-2 pb-[max(0.55rem,env(safe-area-inset-bottom))] pt-2">
-        {items.map((item) => {
-          const Icon = item.icon;
-
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex min-w-[58px] flex-col items-center gap-1 rounded-xl px-2 py-1.5 text-[10px] transition ${
-                item.href === "/shorts"
-                  ? "text-cyan-300"
-                  : "text-slate-400 hover:text-white"
-              }`}
-            >
-              <Icon className="h-5 w-5" />
-              <span>{item.label}</span>
-            </Link>
-          );
-        })}
-      </div>
-    </nav>
   );
 }

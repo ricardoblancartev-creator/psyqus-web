@@ -1,0 +1,179 @@
+{
+  "files": [
+    {
+      "path": "public/shorts/acompanar-companero.jpg",
+      "sha256": "994b328c7082be861b8bf471f00a181d401693f28eb3bdd9ea7ba7ba6053e524"
+    },
+    {
+      "path": "public/shorts/acompanar-companero.mp4",
+      "sha256": "ecc76447f264c3142f9604c5d79eb5e12a6ba3900cfb8df0e2959bab45bbef4e",
+      "audio": "AAC estéreo 48 kHz",
+      "duration": 28.75
+    },
+    {
+      "path": "public/shorts/anticipar-saturacion.jpg",
+      "sha256": "792054266d79f59dc882fda39afbba6d69f7533147495d2f56b8f7cf23261b5d"
+    },
+    {
+      "path": "public/shorts/anticipar-saturacion.mp4",
+      "sha256": "08cb5b78e394795567d14eca9f0ff0cf6d1508d42c9143741fea27d620ff5d44",
+      "audio": "AAC estéreo 48 kHz",
+      "duration": 28.208333
+    },
+    {
+      "path": "public/shorts/chat-malentendidos.jpg",
+      "sha256": "ddd17b4fd6fafa78357b1daefd953d4807b87d83219d27e3afc0205fef3dc753"
+    },
+    {
+      "path": "public/shorts/chat-malentendidos.mp4",
+      "sha256": "5e0e438bb39489c535fe340478fe1bfb9e6ce492334d2d3b55c3f5d3de8466e2",
+      "audio": "AAC estéreo 48 kHz",
+      "duration": 30.166667
+    },
+    {
+      "path": "public/shorts/cierre.jpg",
+      "sha256": "684e3c86c829f135a9a6b5e6feed3f1b60c8df02a919a6a662389f653525d952"
+    },
+    {
+      "path": "public/shorts/cierre.mp4",
+      "sha256": "ccba747db675a18ec150f7f61f1e83dd3dbb4d326b3a236d87ab344eb7485893",
+      "audio": "AAC estéreo 48 kHz",
+      "duration": 24.0
+    },
+    {
+      "path": "public/shorts/companeros-acuerdos.jpg",
+      "sha256": "5f1c02812de7530f88949966de4f58ea5c995a5b21c8ad0327e164ae46a1ec9f"
+    },
+    {
+      "path": "public/shorts/companeros-acuerdos.mp4",
+      "sha256": "0138f53d439ff5bb3befab6a1de21319a625a1dc396c930bda24e9ae748e7ecb",
+      "audio": "AAC estéreo 48 kHz",
+      "duration": 28.541667
+    },
+    {
+      "path": "public/shorts/enfoque.jpg",
+      "sha256": "5e741bb90ca2938475785c73ac535de0346520f6bfa01162b2ffd5d82a1f3328"
+    },
+    {
+      "path": "public/shorts/enfoque.mp4",
+      "sha256": "235da53cdd31ed6a949627bec067271b1f0fa88580eb4dd09e7b01152d3b55ac",
+      "audio": "AAC estéreo 48 kHz",
+      "duration": 24.083333
+    },
+    {
+      "path": "public/shorts/estres-senales.jpg",
+      "sha256": "d0dbc81064fc139a66dc1cf0e70a85d2a97debbbd051bdeee02f9e408cf417b3"
+    },
+    {
+      "path": "public/shorts/estres-senales.mp4",
+      "sha256": "b10b45b846f57d8fda513b4e8dd53f7bc398837a91163c8c5d20a4de0f3ff98c",
+      "audio": "AAC estéreo 48 kHz",
+      "duration": 28.875
+    },
+    {
+      "path": "public/shorts/meditacion-y-estres.jpg",
+      "sha256": "f313f42a72bc9b9c7b82d4716443a5e714054e48af557f199160992080e6a1e3"
+    },
+    {
+      "path": "public/shorts/meditacion-y-estres.mp4",
+      "sha256": "344f7d8c228a6b2646cfc9cff59b390d1b062f4299a2180ad42a295e4886cecd",
+      "audio": "AAC estéreo 48 kHz",
+      "duration": 36.666667
+    },
+    {
+      "path": "public/shorts/meditar-sin-mente-en-blanco.jpg",
+      "sha256": "db527ca435d02b3f949e6f287527e3043fddadaf8eb59beaf41debad66cef391"
+    },
+    {
+      "path": "public/shorts/meditar-sin-mente-en-blanco.mp4",
+      "sha256": "95fda4461941aeeaa6472f39d58a8c219822b9575ae056fd32a09673e1bdc3b3",
+      "audio": "AAC estéreo 48 kHz",
+      "duration": 32.541667
+    },
+    {
+      "path": "public/shorts/pausa-antes-de-responder.jpg",
+      "sha256": "babdd5ffd668bb32049ddc3c3f6f55bd4fb9502fccbb85588ab5460004ffc9fb"
+    },
+    {
+      "path": "public/shorts/pausa-antes-de-responder.mp4",
+      "sha256": "861aa4b063f3d79ee566ffb1aecd9dfdb2efacb92c143fd99773d43060188fa1",
+      "audio": "AAC estéreo 48 kHz",
+      "duration": 36.875
+    },
+    {
+      "path": "public/shorts/pausa.jpg",
+      "sha256": "aebfc16777e02ff3bddc21e677c8fde9eb06891415bff4bc8a0e4e7bb9c63973"
+    },
+    {
+      "path": "public/shorts/pausa.mp4",
+      "sha256": "ed7b225f4f4dc61da43adec22ca10c3aba583e59ad2a14a55ac880ee430e397c",
+      "audio": "AAC estéreo 48 kHz",
+      "duration": 24.0
+    },
+    {
+      "path": "public/shorts/pedir-con-asertividad.jpg",
+      "sha256": "36b3214921e056cabfd389c5da24c74a283eb3e328aeb9c3a515878c3f5c97ac"
+    },
+    {
+      "path": "public/shorts/pedir-con-asertividad.mp4",
+      "sha256": "ae5406e4e7f2ac2405dcee7916f9b4d287fb8c09c37532ddcfa483c111baa89b",
+      "audio": "AAC estéreo 48 kHz",
+      "duration": 28.166667
+    },
+    {
+      "path": "public/shorts/poner-limites.jpg",
+      "sha256": "51070c771df3d9475df116113ee96aa32f8421c1e3224819566caa5ab45f3679"
+    },
+    {
+      "path": "public/shorts/poner-limites.mp4",
+      "sha256": "c9beec176910255e503ff2f531b7ecf33fd6e1dfb6b201e9f602c0735763c432",
+      "audio": "AAC estéreo 48 kHz",
+      "duration": 28.0
+    },
+    {
+      "path": "public/shorts/reconocer-violencia.jpg",
+      "sha256": "7e61621efce03c20f978253a82387404137cb23eb053d55405df7a3ce33b2df9"
+    },
+    {
+      "path": "public/shorts/reconocer-violencia.mp4",
+      "sha256": "de6c8ce26edcb1c6845c1888723cdda37d13ac1ed321573af6726f03fc3d468f",
+      "audio": "AAC estéreo 48 kHz",
+      "duration": 29.25
+    }
+  ],
+  "new_entries": [
+    {
+      "id": "psyqus-meditar-sin-mente-en-blanco",
+      "titulo": "Meditar no es dejar la mente en blanco",
+      "descripcion": "Meditar no significa dejar la mente en blanco. Distraerte puede ser parte de la práctica.",
+      "categoria": "Meditación",
+      "video_url": "/shorts/meditar-sin-mente-en-blanco.mp4",
+      "poster_url": "/shorts/meditar-sin-mente-en-blanco.jpg",
+      "cta_label": "Explorar herramientas",
+      "cta_href": "/mindfulness",
+      "orden": -89
+    },
+    {
+      "id": "psyqus-meditacion-y-estres",
+      "titulo": "Cómo puede ayudar la meditación",
+      "descripcion": "La meditación puede ayudar a algunas personas a manejar el estrés. Los resultados varían; no es una solución inmediata ni universal.",
+      "categoria": "Meditación",
+      "video_url": "/shorts/meditacion-y-estres.mp4",
+      "poster_url": "/shorts/meditacion-y-estres.jpg",
+      "cta_label": "Explorar herramientas",
+      "cta_href": "/mindfulness",
+      "orden": -88
+    },
+    {
+      "id": "psyqus-pausa-antes-de-responder",
+      "titulo": "Una pausa antes de responder",
+      "descripcion": "Antes de responder un mensaje difícil, si puedes y es seguro, date unos momentos para revisar qué necesitas.",
+      "categoria": "Meditación",
+      "video_url": "/shorts/pausa-antes-de-responder.mp4",
+      "poster_url": "/shorts/pausa-antes-de-responder.jpg",
+      "cta_label": "Explorar herramientas",
+      "cta_href": "/mindfulness",
+      "orden": -87
+    }
+  ]
+}

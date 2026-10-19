@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^7.0.5",
+    "@pixiv/three-vrm": "^3.4.2",
     "@react-pdf/renderer": "^4.5.1",
     "@supabase/auth-helpers-nextjs": "^0.15.0",
     "@supabase/supabase-js": "^2.101.1",
@@ -29,6 +30,7 @@
     "recharts": "^3.8.1",
     "resend": "^6.12.2",
     "tailwind-merge": "^3.5.0",
+    "three": "^0.180.0",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
@@ -36,6 +38,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/three": "^0.180.0",
     "autoprefixer": "^10.4.27",
     "eslint": "^9.39.4",
     "eslint-config-next": "^16.1.7",

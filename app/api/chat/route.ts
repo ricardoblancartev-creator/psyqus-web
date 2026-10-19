@@ -197,7 +197,28 @@ export async function POST(req: Request) {
         messages: [
           {
             role: "system",
-            content: SYSTEM_PROMPT,
+            content:
+  SYSTEM_PROMPT +
+  (body?.mode === "avatar"
+    ? `
+ESTILO PARA EL ACOMPAÑANTE HABLADO:
+
+Responde normalmente con 2 a 4 frases y máximo
+90 palabras, salvo que la seguridad requiera más.
+
+Usa texto plano, sin Markdown, asteriscos,
+encabezados ni rutas escritas.
+
+Propón una acción concreta y como máximo
+una pregunta.
+
+Si recomiendas un recurso de Psyqus, menciona
+su nombre sin imprimir su ruta.
+
+Mantén todas las reglas de seguridad anteriores.
+`
+    : ""),
+
           },
           ...recentMessages,
         ],
