@@ -1,6 +1,13 @@
 import OpenAI from "openai";
 import { supabaseAdmin } from "@/lib/supabase/supabaseAdmin";
-import { obtenerUsuario } from "@/lib/auth-servidor";
+import {
+  obtenerUsuario,
+  respuestaNoAutorizado,
+} from "@/lib/auth-servidor";
+import {
+  revisarLimites,
+  respuestaLimite,
+} from "@/lib/limite-uso";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -167,6 +174,25 @@ export async function POST(req: Request) {
       );
     }
 
+    /*
+      Cualquier usuario con sesión puede conversar,
+      con límite por usuario para cuidar el costo.
+    */
+    const userId = await obtenerUsuario();
+
+    if (!userId) {
+      return respuestaNoAutorizado();
+    }
+
+    const limite = revisarLimites(`chat:${userId}`, [
+      { maximo: 20, ventanaMs: 60_000 },
+      { maximo: 300, ventanaMs: 24 * 60 * 60_000 },
+    ]);
+
+    if (!limite.permitido) {
+      return respuestaLimite(limite);
+    }
+
     const body = await req.json();
 
     const incomingMessages: ChatMessage[] =
@@ -259,13 +285,11 @@ Mantén todas las reglas de seguridad anteriores.
     let guardado: boolean | undefined;
 
     if (body?.source === "orientador_bienestar") {
-      const userId = await obtenerUsuario();
-
       const ultimoMensaje = [...recentMessages]
         .reverse()
         .find((message) => message.role === "user");
 
-      if (userId && ultimoMensaje) {
+      if (ultimoMensaje) {
         const { error: saveError } = await supabaseAdmin
           .from("interacciones_psyqus")
           .insert([

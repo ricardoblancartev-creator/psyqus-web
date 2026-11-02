@@ -1,6 +1,22 @@
 import { NextResponse } from "next/server";
+import {
+  obtenerIp,
+  revisarLimite,
+  respuestaLimite,
+} from "@/lib/limite-uso";
 
 export async function POST(req: Request) {
+  // Frena intentos repetidos de adivinar la contraseña.
+  const limite = revisarLimite(
+    `psicologo-auth:${obtenerIp(req)}`,
+    10,
+    15 * 60_000
+  );
+
+  if (!limite.permitido) {
+    return respuestaLimite(limite);
+  }
+
   try {
     const body = await req.json();
     const password = typeof body?.password === "string" ? body.password : "";
