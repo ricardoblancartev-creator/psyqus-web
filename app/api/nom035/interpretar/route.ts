@@ -1,4 +1,13 @@
 import OpenAI from "openai";
+import {
+  obtenerProfesional,
+  respuestaNoAutorizado,
+  respuestaProhibido,
+} from "@/lib/auth-servidor";
+import {
+  revisarLimites,
+  respuestaLimite,
+} from "@/lib/limite-uso";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -7,6 +16,30 @@ const openai = new OpenAI({
 
 export async function POST(req: Request) {
   try {
+    /*
+      Solo profesionales (admin o psicologo), con
+      límite por usuario. La página pide una
+      interpretación por pregunta abierta.
+    */
+    const { userId, rol } = await obtenerProfesional();
+
+    if (!userId) {
+      return respuestaNoAutorizado();
+    }
+
+    if (!rol) {
+      return respuestaProhibido();
+    }
+
+    const limite = revisarLimites(`interpretar:${userId}`, [
+      { maximo: 60, ventanaMs: 10 * 60_000 },
+      { maximo: 500, ventanaMs: 24 * 60 * 60_000 },
+    ]);
+
+    if (!limite.permitido) {
+      return respuestaLimite(limite);
+    }
+
     const body = await req.json();
 
     const {
