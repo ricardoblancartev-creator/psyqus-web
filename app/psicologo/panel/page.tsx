@@ -1,5 +1,5 @@
-import { createClient } from "@supabase/supabase-js";
 import { auth, currentUser } from "@clerk/nextjs/server";
+import { supabaseAdmin } from "@/lib/supabase/supabaseAdmin";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 
@@ -118,18 +118,15 @@ export default async function PsicologoPanelPage() {
   }
 
   /* =======================================================
-     SUPABASE AUTENTICADO
+     SUPABASE (SERVICE ROLE, SOLO SERVIDOR)
+
+     El rol profesional ya se verificó arriba con Clerk.
+     Con RLS por usuario, el token del profesional solo
+     vería sus propias filas; los agregados se leen con
+     el cliente de servidor.
   ======================================================= */
 
-  const token = await getToken();
-
-  const supabaseAuthed = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      accessToken: async () => token,
-    }
-  );
+  const supabaseAuthed = supabaseAdmin;
 
   /* =======================================================
      NOM-035

@@ -1,6 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { supabaseAdmin } from "@/lib/supabase/supabaseAdmin";
 import {
   Activity,
   AlertTriangle,
@@ -88,9 +88,11 @@ export default async function ResultadosPage() {
   const { userId } = await auth();
   if (!userId) redirect("/sign-in");
 
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from("resultados_encuestas")
-    .select("*")
+    .select(
+      "id, user_id, puntaje_total, created_at, riesgo, interpretacion, dimensiones"
+    )
     .eq("user_id", userId)
     .order("created_at", { ascending: false })
     .limit(10);

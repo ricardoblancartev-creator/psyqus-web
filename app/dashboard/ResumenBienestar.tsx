@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 
-import { supabase } from "@/lib/supabase";
+import { supabaseAdmin } from "@/lib/supabase/supabaseAdmin";
 import SignOutAction from "@/components/SignOutAction";
 import MapaDeCalor from "@/app/dashboard/components/MapaDeCalor";
 import { calificarCuestionarioII } from "@/lib/nom035-calificacion";
@@ -378,7 +378,7 @@ const pulsoCompletado = Boolean(pulsoSemanal);
     const {
       data: nom035Data,
       error: nom035Error,
-    } = await supabase
+    } = await supabaseAdmin
       .from("nom035_evaluaciones")
       .select(
         `
