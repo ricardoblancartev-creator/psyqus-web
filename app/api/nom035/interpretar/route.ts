@@ -65,7 +65,7 @@ export async function POST(req: Request) {
     */
     const casosAnonimos = Array.isArray(casosRelevantes)
       ? casosRelevantes.slice(0, 500).map(
-          (persona: any, index: number) => ({
+          (persona: { respuesta?: unknown } | null, index: number) => ({
             caso: index + 1,
             respuesta: String(persona?.respuesta ?? "").slice(0, 40),
           })

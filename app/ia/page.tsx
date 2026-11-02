@@ -1,7 +1,6 @@
 "use client";
 
 import { FormEvent, useEffect, useRef, useState } from "react";
-import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -57,8 +56,6 @@ const initialMessage: ChatMessage = {
 };
 
 export default function IAPage() {
-  const { user } = useUser();
-
   const [messages, setMessages] = useState<ChatMessage[]>([
     initialMessage,
   ]);
