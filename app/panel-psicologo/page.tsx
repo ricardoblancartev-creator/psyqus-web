@@ -162,7 +162,6 @@ export default async function PanelPsicologoPage() {
 
   const {
     userId,
-    getToken,
   } = await auth();
 
   if (!userId) {

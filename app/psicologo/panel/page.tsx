@@ -100,7 +100,7 @@ export default async function PsicologoPanelPage() {
      SEGURIDAD
   ======================================================= */
 
-  const { userId, getToken } = await auth();
+  const { userId } = await auth();
 
   if (!userId) {
     redirect("/sign-in");
