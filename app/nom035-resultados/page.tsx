@@ -16,6 +16,7 @@ import {
 } from "recharts";
 
 import JSZip from "jszip";
+import { jsPDF } from "jspdf";
 import * as XLSX from "xlsx";
 
 type Nom035Resultado = {
@@ -901,6 +902,32 @@ export default function Nom035ResultadosPage() {
     EXCEL BÁSICO
   */
 
+﻿  function descargarReporteOrganizacion() {
+    const pdf=new jsPDF({unit:"mm",format:"a4"}); const m=16,w=pdf.internal.pageSize.getWidth(),h=pdf.internal.pageSize.getHeight(),cw=w-m*2; let y=18;
+    const p=(s:string,n=9)=>{pdf.setFontSize(n);pdf.setTextColor(71,85,105);const l=pdf.splitTextToSize(s,cw);pdf.text(l,m,y);y+=l.length*n*.43+4;};
+    const page=(n=10)=>{if(y+n>h-18){pdf.addPage();y=18;}};
+    const ev=resultadosCalificados.filter((x:any)=>x.tipo_cuestionario==="II"&&x.calificacion) as any[];
+    const levels=["Nulo o despreciable","Bajo","Medio","Alto","Muy alto"], counts=levels.map(level=>({level,count:ev.filter(x=>x.calificacion.nivelFinal===level).length})), total=ev.length;
+    const pred=counts.slice().sort((a,b)=>b.count-a.count)[0], high=ev.filter(x=>["Alto","Muy alto"].includes(x.calificacion.nivelFinal)).length;
+    const cats=new Map<string,{levels:Record<string,number>;scores:number[]}>();
+    ev.forEach(x=>(x.calificacion.categorias||[]).forEach((c:any)=>{const v=cats.get(c.nombre)||{levels:{},scores:[]};v.levels[c.nivel]=(v.levels[c.nivel]||0)+1;v.scores.push(Number(c.puntaje||0));cats.set(c.nombre,v);}));
+    pdf.setFillColor(8,47,73);pdf.rect(0,0,w,36,"F");pdf.setTextColor(255,255,255);pdf.setFont("helvetica","bold");pdf.setFontSize(21);pdf.text("Psyqus",m,17);pdf.setFontSize(14);pdf.text("Estado organizacional NOM-035",m,27);y=47;
+    p("Reporte descriptivo de la informacion disponible en Resultados NOM-035. No se agregan datos ni se sustituyen los criterios de la evaluacion.",10);
+    pdf.setTextColor(15,23,42);pdf.setFontSize(12);pdf.text("Resumen de la organizacion",m,y);y+=8;
+    [["Miembros evaluados",resumen.miembros],["Cuestionario I",resumen.cuestionarioI],["Cuestionario II",resumen.cuestionarioII],["Areas registradas",resumen.areas]].forEach((a:any,i)=>{const cw2=(cw-8)/2,x=m+(i%2)*(cw2+8),top=y+Math.floor(i/2)*22;pdf.setFillColor(241,245,249);pdf.roundedRect(x,top,cw2,17,2,2,"F");pdf.setFontSize(8);pdf.setTextColor(71,85,105);pdf.text(a[0],x+5,top+6);pdf.setFontSize(13);pdf.setTextColor(8,145,178);pdf.text(String(a[1]),x+5,top+13);});y+=54;
+    pdf.setTextColor(15,23,42);pdf.setFontSize(12);pdf.text("Interpretacion general",m,y);y+=8;
+    if(!total)p("No hay evaluaciones del Cuestionario II con calificacion disponible. No es posible emitir una conclusion general de riesgo organizacional con estos datos."); else {p("El nivel predominante entre las "+total+" evaluaciones del Cuestionario II es "+pred.level+", con "+pred.count+" registro(s). "+high+" evaluacion(es) ("+Math.round(high/total*100)+"%) estan en nivel Alto o Muy alto y requieren atencion y seguimiento profesional conforme al contexto de la organizacion.");p("Esta lectura resume la distribucion observada; no diagnostica a personas ni determina por si sola la existencia de un riesgo generalizado.");}
+    page(30);pdf.setTextColor(15,23,42);pdf.setFontSize(12);pdf.text("Distribucion de niveles",m,y);y+=8;
+    if(!total)p("Sin registros calificados para mostrar."); else counts.forEach(({level,count})=>{page(12);const pct=Math.round(count/total*100),bar=Math.max(2,(cw-62)*count/total);pdf.setFontSize(9);pdf.setTextColor(51,65,85);pdf.text(level,m,y+4);pdf.setFillColor(226,232,240);pdf.roundedRect(m+45,y,cw-62,6,1.5,1.5,"F");pdf.setFillColor(34,211,238);pdf.roundedRect(m+45,y,bar,6,1.5,1.5,"F");pdf.text(count+" ("+pct+"%)",w-m,y+4,{align:"right"});y+=11;});
+    y+=5;page(30);pdf.setTextColor(15,23,42);pdf.setFontSize(12);pdf.text("Conclusiones generales por categoria",m,y);y+=8;
+    if(!cats.size)p("No hay categorias calculadas para las evaluaciones disponibles.");
+    else cats.forEach((v,name)=>{page(16);const d=Object.entries(v.levels).sort((a,b)=>b[1]-a[1])[0]?.[0]||"Sin dato";const avg=v.scores.reduce((a,b)=>a+b,0)/v.scores.length;pdf.setFontSize(9);pdf.setTextColor(15,23,42);const lines=pdf.splitTextToSize(name,cw-70);pdf.text(lines,m,y+4);pdf.setTextColor(71,85,105);pdf.text("Nivel predominante: "+d,w-m,y+4,{align:"right"});
+      pdf.text("Promedio de puntaje: "+avg.toFixed(1),m,y+4+lines.length*4);y+=Math.max(15,lines.length*4+9);});
+    page(30);y+=5;pdf.setTextColor(15,23,42);pdf.setFontSize(12);pdf.text("Alcance del reporte",m,y);y+=8;
+    p("El reporte utiliza los mismos resultados y calificaciones visibles en esta pantalla. La interpretacion general debe complementarse con entrevistas, observacion del contexto laboral y el plan de accion que corresponda. No sustituye la interpretacion profesional ni las obligaciones de la NOM-035.");
+    pdf.setFontSize(8);pdf.setTextColor(100,116,139);pdf.text("Psyqus | Reporte organizacional NOM-035",m,h-10);pdf.save("Psyqus_Estado_Organizacion_NOM035.pdf");
+  }
+
   function exportarExcel() {
     const workbook = XLSX.utils.book_new();
 
@@ -1785,6 +1812,10 @@ export default function Nom035ResultadosPage() {
                 className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-sm font-black text-emerald-300 hover:bg-emerald-500/20"
               >
                 Exportar Excel
+              </button>
+
+              <button onClick={descargarReporteOrganizacion} disabled={loading} className="rounded-xl border border-violet-400/30 bg-violet-500/10 px-4 py-3 text-sm font-black text-violet-300 hover:bg-violet-500/20 disabled:opacity-50">
+                Descargar reporte PDF
               </button>
 
             </div>

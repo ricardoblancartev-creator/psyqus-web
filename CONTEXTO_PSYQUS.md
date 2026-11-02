@@ -178,3 +178,57 @@ La versión instalada de Clerk no acepta `skipCache` en `getToken`; ese intento 
 - Vercel: se intentó desplegar al proyecto existente `psyqus-web-lvhs` con `vercel deploy --prod --yes --force`. El CLI identificó el proyecto, pero falló con `Failed to get package info: Failed to fetch dist-tags from npm` y terminó con `Error: fetch failed`.
 - Producción: no se confirmó una versión nueva en `psyqus.com`; la solicitud directa a `https://psyqus.com/shorts/meditar-sin-mente-en-blanco.mp4` terminó en timeout de conexión (`curl: (28) Connection timed out after 20037 milliseconds`). No se afirma que producción sirva todavía los MP4 nuevos.
 - Pendiente concreto: repetir el despliegue cuando Vercel/npm sea accesible o revisar el despliegue automático de Git del proyecto existente. No se creó otro proyecto ni se modificaron audio o gráficos durante la publicación.
+
+
+### 2026-10-30 — Reporte PDF organizacional NOM-035
+
+- Cambios realizados: en `app/nom035-resultados/page.tsx` se agregó el botón “Descargar reporte PDF” junto a las exportaciones existentes. Genera un PDF con resumen organizacional, interpretación general basada en los niveles calculados del Cuestionario II, distribución por nivel y conclusiones agregadas por categoría. No incluye gráficas y no crea resultados nuevos. Si faltan evaluaciones calificables, el PDF lo expresa en lugar de inferir una conclusión.
+- Acceso: se conserva el layout protegido actual de `/nom035-resultados`, que requiere sesión Clerk y rol `admin` o `psicologo`.
+- Comprobaciones: `jspdf` ya estaba instalado. El typecheck no reporta errores en NOM-035; conserva errores ajenos preexistentes en `Avatar3D.tsx` (tipo del buffer del analizador) y conflicto de casing `MockData.ts/mockData.ts`. Next compiló correctamente y generó las 44 páginas estáticas; se observó la fase de finalización de optimización/trazas, pero la sesión de terminal perdió el proceso antes de recibir el código de salida final. No se hizo commit, push ni despliegue.
+- Pendiente: probar la descarga autenticada en el navegador en `/nom035-resultados` con un usuario profesional y revisar el PDF generado con datos reales; no se compartió una página ni se descargó/renderizó un PDF en esta tarea.
+
+### 2026-11-01 — Psyqus Behavioral: laboratorio de filas en gasolineras
+
+- Cambios realizados: se creó la ruta protegida `/gasolineras` como primer módulo experimental de Psyqus Behavioral. Permite variar bombas abiertas, llegadas por hora, tiempo de atención, duración del escenario y proporción de tres perfiles hipotéticos; compara una asignación de fila habitual contra orientación a la fila estimada más corta. Incluye métricas, percentil 90, abandonos estimados y gráfico de espera.
+- Alcance del modelo: simulación local determinista por minuto para explorar supuestos; no representa datos medidos, no hace diagnósticos psicológicos ni persiste información. La intervención de orientación también modifica supuestos de paciencia/abandono, por lo que sus resultados deben leerse como ilustrativos.
+- Comprobaciones: revisión del estado Git antes de editar; se conservaron los cambios existentes en `CONTEXTO_PSYQUS.md` y `app/nom035-resultados/page.tsx`. Los diagnósticos del editor para `app/gasolineras/page.tsx` no reportaron errores. No se ejecutó build ni pruebas.
+- Pendientes: decidir si se agrega un acceso desde el menú Psyqus, validar el modelo con datos observados y acordar con especialistas qué variables conductuales son defendibles antes de usarlo para decisiones operativas.
+
+### 2026-11-01 — Ajuste del modelo experimental de gasolineras
+
+- Cambios realizados: el botón ahora ejecuta y guarda una corrida explícita de 25 repeticiones; los resultados no se recalculan al mover controles, y la interfaz avisa si se cambiaron parámetros desde la corrida mostrada. La comparación usa eventos aleatorios pareados: ambos escenarios reciben las mismas llegadas, mezcla de perfiles, servicios y ruido de elección. La única diferencia es la señal para seleccionar bomba (cantidad visible en fila frente a carga de servicio estimada).
+- Corrección de alcance: se retiraron cambios diferenciales de paciencia y abandono. Ahora se informa que el modelo no contempla cambios de fila ni abandonos. El tiempo de servicio se representa con una distribución uniforme ±40% del promedio. Los perfiles siguen siendo supuestos de ruido de elección, no categorías psicológicas medidas.
+- Comprobaciones: los diagnósticos del editor no reportan errores en `app/gasolineras/page.tsx`. No se ejecutaron pruebas ni build.
+- Pendientes: calibrar llegadas y servicios con observaciones de una estación piloto; evaluar convergencia de resultados con más repeticiones y validar el criterio conductual con especialistas antes de interpretarlo como efecto causal.
+
+### 2026-11-01 — Descripciones de Psyqus Behavioral y guion comercial
+
+- Cambios realizados: se añadieron explicaciones junto a controles y métricas de `/gasolineras`, con ejemplos de uso e indicaciones para interpretar espera acumulada, atendidos, variación porcentual y percentil 90. Los perfiles se renombraron como estilos de elección para reducir la apariencia de categorías psicológicas medidas. Se creó `psyqus-behavioral-guion-comercial.md` con guion de 45 segundos, versión vertical de 15 segundos, storyboard y guía de producción.
+- Enfoque de comunicación: el guion presenta el producto como experimental y recomienda un piloto validado con datos de una estación; no promete reducción de espera ni ahorros no medidos.
+- Comprobaciones: los diagnósticos del editor no reportaron errores en `app/gasolineras/page.tsx`. Se preparó guion/storyboard; no se produjo ni exportó un archivo de video MP4.
+- Pendientes: grabar capturas reales de la interfaz, añadir canal de contacto aprobado y producir la pieza audiovisual final.
+
+### 2026-11-01 — Publicación del guion en desarrollo local
+
+- Cambios realizados: se copió el guion comercial a `public/psyqus-behavioral-guion-comercial.md` para que Next.js lo sirva en `/psyqus-behavioral-guion-comercial.md`; se añadió un enlace al final de `/gasolineras`. El archivo público y el original tienen el mismo hash SHA-256 al momento de este cambio.
+- Comprobaciones: hash de ambas copias verificado; diagnósticos del editor sin errores en `app/gasolineras/page.tsx`. No se ejecutó build ni se probó la URL en navegador.
+- Pendientes: si se edita el guion original, volver a sincronizar la copia dentro de `public/`.
+
+### 2026-11-01 — Presentación visual del guion comercial
+
+- Cambios realizados: se creó `/gasolineras/comercial` como página Psyqus con storyboard de 45 segundos, versión vertical de 15 segundos, guía de producción y aviso de prototipo experimental. El enlace desde `/gasolineras` ahora abre esta página; desde ahí se puede descargar el Markdown.
+- Comprobaciones: diagnósticos del editor sin errores en `app/gasolineras/page.tsx` y `app/gasolineras/comercial/page.tsx`. No se ejecutó build ni se validó visualmente en navegador.
+- Pendientes: si se actualiza el texto del guion, sincronizar la presentación visual, el Markdown original y la copia publicada.
+
+### 2026-11-01 — Redirección de la URL Markdown a la presentación
+
+- Cambios realizados: la URL anterior `/psyqus-behavioral-guion-comercial.md` ahora redirige a `/gasolineras/comercial` mediante `next.config.mjs`, para que no se abra como texto plano. La descarga Markdown quedó en `public/descargas/psyqus-behavioral-guion-comercial.md` y la presentación apunta a esa copia.
+- Comprobaciones: los diagnósticos del editor no reportan errores en `next.config.mjs` ni en ambas páginas. No se ejecutó build ni navegador. El cambio de redirección requiere reiniciar Next.js para que lea la configuración nueva.
+- Pendientes: validar la redirección en navegador después de reiniciar el servidor.
+
+### 2026-11-01 — Producción del video comercial Psyqus Behavioral
+
+- Cambios realizados: se generó `public/videos/psyqus-behavioral-comercial.mp4`, pieza gráfica animada de 45.5 s en 1280×720, H.264/AAC, con seis escenas, transiciones, subtítulos integrados, narración sintetizada en español y pista musical sintética. Se incorporó reproductor y descarga en `/gasolineras/comercial`; el poster quedó en `public/videos/psyqus-behavioral-poster.png`. El guion y el texto narrado se sincronizaron.
+- Alcance visual: son escenas gráficas ilustrativas, no metraje real de una estación. La voz disponible en este equipo es Microsoft Helena Desktop (español de España). Las curvas y parámetros del anuncio están identificados como ilustrativos.
+- Comprobaciones: FFprobe confirma 45.5 s, H.264 1280×720 y audio AAC estéreo a 48 kHz; se revisó una hoja de seis fotogramas. Los diagnósticos del editor no reportaron errores en las páginas de simulación/comercial ni en el generador de escenas. Se eliminaron los fotogramas y audios temporales.
+- Pendientes: probar reproducción en navegador tras reiniciar Next.js y, si se desea una voz mexicana o metraje de estación, producir una segunda versión con esos activos.
