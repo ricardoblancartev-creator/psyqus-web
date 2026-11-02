@@ -782,20 +782,15 @@ export default function Nom035ResultadosPage() {
         }
       );
 
+    /*
+      A Groq solo se envía la respuesta de cada caso,
+      sin nombre, área ni puesto: es un tercero y son
+      datos sensibles. Los nombres siguen visibles
+      para el profesional dentro de Psyqus.
+    */
     const casosParaIA = casosRelevantes.map(
-      (persona: any) => ({
-        nombre:
-          formatearNombre(
-            [
-              persona.nombre,
-              persona.apellido,
-            ]
-              .filter(Boolean)
-              .join(" ")
-          ) || "Sin nombre",
-
-        area: persona.area || "Sin área",
-        puesto: persona.puesto || "Sin puesto",
+      (persona: any, index: number) => ({
+        caso: index + 1,
         respuesta: persona.respuesta,
       })
     );

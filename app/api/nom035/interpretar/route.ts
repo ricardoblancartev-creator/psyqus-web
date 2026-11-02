@@ -25,13 +25,27 @@ export async function POST(req: Request) {
       );
     }
 
+    /*
+      Defensa en servidor: aunque el navegador envíe
+      más campos, a Groq solo llega número de caso y
+      respuesta (sin nombre, área, puesto ni correo).
+    */
+    const casosAnonimos = Array.isArray(casosRelevantes)
+      ? casosRelevantes.slice(0, 500).map(
+          (persona: any, index: number) => ({
+            caso: index + 1,
+            respuesta: String(persona?.respuesta ?? "").slice(0, 40),
+          })
+        )
+      : [];
+
     const datos = {
       cuestionario,
       numeroPregunta,
       pregunta,
       total,
       distribucion,
-      casosRelevantes,
+      casosRelevantes: casosAnonimos,
     };
 
     const completion = await openai.chat.completions.create({
@@ -84,9 +98,11 @@ y 5 "Nunca",
 
 debes explicar ese patrón completo.
 
-5. Los casos relevantes son proporcionados por Psyqus.
-Puedes mencionarlos por nombre,
-pero solamente con la respuesta real que se te proporcionó.
+5. Los casos relevantes son proporcionados por Psyqus
+de forma anónima (número de caso y respuesta).
+Refiérete a ellos solo por cantidad o número de caso,
+con la respuesta real que se te proporcionó.
+Nunca inventes nombres, áreas ni puestos.
 
 6. Una pregunta aislada NO permite diagnosticar psicológicamente a una persona.
 
