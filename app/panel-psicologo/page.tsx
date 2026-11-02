@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
+import { supabaseAdmin } from "@/lib/supabase/supabaseAdmin";
 import {
   auth,
   currentUser,
@@ -183,44 +183,15 @@ export default async function PanelPsicologoPage() {
     redirect("/dashboard");
   }
 
-  /* =======================================================
-     SUPABASE AUTENTICADO
-  ======================================================= */
-
-  const token =
-    await getToken();
-
-  const supabaseAuthed =
-    createClient(
-      process.env
-        .NEXT_PUBLIC_SUPABASE_URL!,
-      process.env
-        .NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        accessToken: async () =>
-          token,
-      }
-    );
-
   /*
-   * Este cliente usa SERVICE ROLE.
+   * Todas las lecturas usan SERVICE ROLE
+   * (lib/supabase/supabaseAdmin, solo servidor)
+   * después de validar el rol con Clerk.
    *
-   * IMPORTANTE:
-   * Este archivo es Server Component.
-   * La clave NO se envía al navegador.
-   *
-   * Se utiliza aquí únicamente para
-   * obtener agregados profesionales
-   * del pulso después de validar el
-   * rol del usuario con Clerk.
+   * Con RLS por usuario, el token del
+   * profesional solo vería sus propias filas.
    */
-  const supabaseAdmin =
-    createClient(
-      process.env
-        .NEXT_PUBLIC_SUPABASE_URL!,
-      process.env
-        .SUPABASE_SERVICE_ROLE_KEY!
-    );
+  const supabaseAuthed = supabaseAdmin;
 
   /* =======================================================
      NOM-035

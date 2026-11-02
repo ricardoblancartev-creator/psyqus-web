@@ -1,24 +1,65 @@
-import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { supabaseAdmin } from "@/lib/supabase/supabaseAdmin";
+import {
+  obtenerProfesional,
+  respuestaNoAutorizado,
+  respuestaProhibido,
+} from "@/lib/auth-servidor";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+/*
+  Resultados de clima organizacional para
+  profesionales (admin o psicologo).
 
+  Ninguna página la consume hoy; se devuelven solo
+  campos para análisis por área, sin datos de
+  identificación.
+*/
 export async function GET() {
-  const { data, error } = await supabase
-    .from("resultados_encuestas")
-    .select("*")
-    .order("created_at", {
-      ascending: false,
-    });
+  try {
+    const { userId, rol } = await obtenerProfesional();
 
-  if (error) {
-    console.log(error);
+    if (!userId) {
+      return respuestaNoAutorizado();
+    }
 
-    return NextResponse.json([]);
+    if (!rol) {
+      return respuestaProhibido();
+    }
+
+    const { data, error } = await supabaseAdmin
+      .from("resultados_encuestas")
+      .select(
+        `
+          id,
+          created_at,
+          area,
+          puesto,
+          puntaje_total,
+          riesgo
+        `
+      )
+      .order("created_at", {
+        ascending: false,
+      });
+
+    if (error) {
+      console.error(
+        "Error leyendo resultados_encuestas:",
+        error
+      );
+
+      return Response.json(
+        { error: "DATABASE_ERROR" },
+        { status: 500 }
+      );
+    }
+
+    return Response.json(data || []);
+  } catch (error) {
+    console.error("GET /api/resultados:", error);
+
+    return Response.json(
+      { error: "INTERNAL_ERROR" },
+      { status: 500 }
+    );
   }
-
-  return NextResponse.json(data || []);
 }

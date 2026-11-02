@@ -1,4 +1,6 @@
-import { supabase } from "@/lib/supabase";
+import { redirect } from "next/navigation";
+import { supabaseAdmin } from "@/lib/supabase/supabaseAdmin";
+import { obtenerProfesional } from "@/lib/auth-servidor";
 import {
   Activity,
   AlertTriangle,
@@ -71,15 +73,30 @@ function percent(value: number, total: number) {
 }
 
 export default async function InsightsPage() {
+  /*
+    Vista organizacional: solo admin o psicologo.
+    Se leen únicamente campos agregables, sin
+    identificar personas ni el texto del buzón.
+  */
+  const { userId, rol } = await obtenerProfesional();
+
+  if (!userId) {
+    redirect("/sign-in");
+  }
+
+  if (!rol) {
+    redirect("/dashboard");
+  }
+
   const [surveyRes, buzonRes] = await Promise.all([
-    supabase
+    supabaseAdmin
       .from("resultados_encuestas")
-      .select("*")
+      .select("id, puntaje_total, created_at, riesgo, dimensiones")
       .order("created_at", { ascending: false })
       .limit(50),
-    supabase
+    supabaseAdmin
       .from("buzon_mensajes")
-      .select("*")
+      .select("id, riesgo, created_at")
       .order("created_at", { ascending: false })
       .limit(50),
   ]);
