@@ -1,5 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  async redirects() {
+    return [
+      {
+        source: "/psyqus-behavioral-guion-comercial.md",
+        destination: "/gasolineras/comercial",
+        permanent: false,
+      },
+    ];
+  },
   eslint: {
     // Ignora errores de ESLint (comillas, tipos, etc.)
     ignoreDuringBuilds: true,
