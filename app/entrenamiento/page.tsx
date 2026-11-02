@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
-import { supabase } from "@/lib/supabase";
 import {
   ArrowLeft,
   ArrowRight,
@@ -293,12 +292,24 @@ export default function EntrenamientoPage() {
 
       setLoadingProgress(true);
 
-      const { data, error } = await supabase
-        .from("progreso_entrenamiento")
-        .select("track_id, station, completed")
-        .eq("user_id", user.id);
+      let data: any[] = [];
 
-      if (error) {
+      try {
+        const response = await fetch(
+          "/api/progreso/entrenamiento",
+          { cache: "no-store" }
+        );
+
+        if (!response.ok) {
+          throw new Error(`Error HTTP ${response.status}`);
+        }
+
+        const json = await response.json();
+
+        data = Array.isArray(json?.progreso)
+          ? json.progreso
+          : [];
+      } catch (error) {
         console.error(
           "Error cargando progreso_entrenamiento:",
           error
@@ -347,21 +358,30 @@ export default function EntrenamientoPage() {
     setSaving(true);
     setSaveError("");
 
-    const { error } = await supabase
-      .from("progreso_entrenamiento")
-      .upsert(
+    let error: unknown = null;
+
+    try {
+      const response = await fetch(
+        "/api/progreso/entrenamiento",
         {
-          user_id: user.id,
-          track_id: activeTrack.id,
-          station: next.step,
-          started: true,
-          completed: next.completed,
-          updated_at: new Date().toISOString(),
-        },
-        {
-          onConflict: "user_id,track_id",
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            track_id: activeTrack.id,
+            station: next.step,
+            completed: next.completed,
+          }),
         }
       );
+
+      if (!response.ok) {
+        error = `Error HTTP ${response.status}`;
+      }
+    } catch (fetchError) {
+      error = fetchError;
+    }
 
     setSaving(false);
 

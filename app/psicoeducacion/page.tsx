@@ -8,7 +8,6 @@ import {
 
 import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
-import { supabase } from "@/lib/supabase";
 
 import {
   ArrowLeft,
@@ -630,22 +629,26 @@ export default function PsicoeducacionPage() {
 
       setLoadingProgress(true);
 
-      const {
-        data,
-        error,
-      } = await supabase
-        .from(
-          "progreso_psicoeducacion"
-        )
-        .select(
-          "lesson_id, stage, completed, quiz_passed"
-        )
-        .eq(
-          "user_id",
-          user.id
+      let data: any[] = [];
+
+      try {
+        const response = await fetch(
+          "/api/progreso/psicoeducacion",
+          { cache: "no-store" }
         );
 
-      if (error) {
+        if (!response.ok) {
+          throw new Error(
+            `Error HTTP ${response.status}`
+          );
+        }
+
+        const json = await response.json();
+
+        data = Array.isArray(json?.progreso)
+          ? json.progreso
+          : [];
+      } catch (error) {
         console.error(
           "Error cargando progreso_psicoeducacion:",
           error
@@ -733,36 +736,32 @@ export default function PsicoeducacionPage() {
     setSaving(true);
     setSaveError("");
 
-    const { error } =
-      await supabase
-        .from(
-          "progreso_psicoeducacion"
-        )
-        .upsert(
-          {
-            user_id:
-              user.id,
+    let error: unknown = null;
 
-            lesson_id:
-              lessonId,
-
-            stage:
-              next.stage,
-
-            completed:
-              next.completed,
-
-            quiz_passed:
-              next.quizPassed,
-
-            updated_at:
-              new Date().toISOString(),
+    try {
+      const response = await fetch(
+        "/api/progreso/psicoeducacion",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json",
           },
-          {
-            onConflict:
-              "user_id,lesson_id",
-          }
-        );
+          body: JSON.stringify({
+            lesson_id: lessonId,
+            stage: next.stage,
+            completed: next.completed,
+            quiz_passed: next.quizPassed,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        error = `Error HTTP ${response.status}`;
+      }
+    } catch (fetchError) {
+      error = fetchError;
+    }
 
     setSaving(false);
 

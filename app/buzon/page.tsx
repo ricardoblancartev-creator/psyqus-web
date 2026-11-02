@@ -3,7 +3,6 @@
 import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
-import { supabase } from "@/lib/supabase";
 import {
   ArrowLeft,
   CheckCircle2,
@@ -48,22 +47,18 @@ export default function BuzonPage() {
         return;
       }
 
-      const { error: insertError } = await supabase
-        .from("interacciones_psyqus")
-        .insert([
-          {
-            user_id: user.id,
-            tipo: "buzon",
-            mensaje: clean,
-            respuesta: null,
-            resumen_riesgo: null,
-          },
-        ]);
+      const response = await fetch("/api/buzon", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ mensaje: clean }),
+      });
 
-      if (insertError) {
+      if (!response.ok) {
         console.error(
-          "Error Supabase en Pedir ayuda:",
-          insertError
+          "Error en Pedir ayuda:",
+          response.status
         );
 
         setError(

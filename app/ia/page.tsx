@@ -3,7 +3,6 @@
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
-import { supabase } from "@/lib/supabase";
 import {
   ArrowLeft,
   ArrowRight,
@@ -136,29 +135,14 @@ export default function IAPage() {
 
       setMessages(updatedMessages);
 
-      if (user?.id) {
-        const { error } = await supabase
-          .from("interacciones_psyqus")
-          .insert([
-            {
-              user_id: user.id,
-              tipo: "ia",
-              mensaje: clean,
-              respuesta: reply,
-              resumen_riesgo: null,
-            },
-          ]);
-
-        if (error) {
-          console.error(
-            "No se pudo guardar la interacción:",
-            error
-          );
-
-          setSaveWarning(
-            "La conversación funcionó, pero esta interacción no pudo registrarse en Psyqus."
-          );
-        }
+      /*
+        /api/chat guarda la interacción en el servidor
+        con el user_id de la sesión de Clerk.
+      */
+      if (data.guardado === false) {
+        setSaveWarning(
+          "La conversación funcionó, pero esta interacción no pudo registrarse en Psyqus."
+        );
       }
     } catch (error) {
       console.error("Error en Orientador Psyqus:", error);

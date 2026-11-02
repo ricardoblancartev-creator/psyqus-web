@@ -1,4 +1,6 @@
 import OpenAI from "openai";
+import { supabaseAdmin } from "@/lib/supabase/supabaseAdmin";
+import { obtenerUsuario } from "@/lib/auth-servidor";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -248,8 +250,50 @@ Mantén todas las reglas de seguridad anteriores.
       );
     }
 
+    /*
+      El Orientador de /ia registra la interacción.
+      Se guarda aquí, en servidor, con el user_id de
+      la sesión de Clerk; la respuesta es la que generó
+      este servidor, no la que envíe el navegador.
+    */
+    let guardado: boolean | undefined;
+
+    if (body?.source === "orientador_bienestar") {
+      const userId = await obtenerUsuario();
+
+      const ultimoMensaje = [...recentMessages]
+        .reverse()
+        .find((message) => message.role === "user");
+
+      if (userId && ultimoMensaje) {
+        const { error: saveError } = await supabaseAdmin
+          .from("interacciones_psyqus")
+          .insert([
+            {
+              user_id: userId,
+              tipo: "ia",
+              mensaje: ultimoMensaje.content.slice(0, 4000),
+              respuesta: reply,
+              resumen_riesgo: null,
+            },
+          ]);
+
+        if (saveError) {
+          console.error(
+            "No se pudo guardar la interacción:",
+            saveError
+          );
+        }
+
+        guardado = !saveError;
+      } else {
+        guardado = false;
+      }
+    }
+
     return Response.json({
       reply,
+      guardado,
     });
   } catch (error) {
     console.error(
