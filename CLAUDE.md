@@ -32,18 +32,22 @@ Next.js 15 App Router + React 19, TypeScript, Tailwind v4 (`@tailwindcss/postcss
 
 **Autenticación.** `middleware.ts` protege todas las rutas con Clerk excepto una lista pública explícita (`/`, `/diagnostico`, `/api/prospectos`, `/sign-in`, `/sign-up`, `/psicologo`). Las nuevas rutas públicas se agregan ahí. El inicio de sesión de Clerk vive en `app/sign-in/[[...rest]]/page.tsx` y debe seguir siendo una ruta catch-all.
 
-El panel del psicólogo usa un **acceso separado, sin Clerk**: `app/psicologo/page.tsx` envía una contraseña a `app/api/psicologo-auth/route.ts` (comparada con `PSICOLOGO_PASSWORD`) y guarda `sessionStorage.psicologo_auth`; `app/panel-psicologo` depende de esa marca.
+Los roles profesionales (`admin`, `psicologo`) viven en `privateMetadata.role` de Clerk. Los layouts de `app/panel-psicologo` y `app/nom035-resultados` y las propias páginas los verifican en servidor; en rutas API usar `obtenerProfesional()` de `lib/auth-servidor.ts`. La contraseña de `/psicologo` (`PSICOLOGO_PASSWORD`, guarda `sessionStorage.psicologo_auth`) es solo una capa adicional: la protección real es el rol en Clerk.
 
-**Clientes de Supabase** (hay varios; elegir con cuidado):
-- `lib/supabase-clerk.ts` → `createClerkSupabaseClient(getToken)`: clave anon + JWT de Clerk como `accessToken`, de modo que RLS aplica por usuario. Usarlo para datos del usuario (ver `app/dashboard/ResumenBienestar.tsx`, `app/dashboard/page.tsx`).
-- `lib/supabase/supabaseAdmin.ts`: clave service-role, solo en servidor (rutas API).
-- `lib/supabase.ts` y `lib/supabase/client.ts`: clientes anon simples.
+**Acceso a datos** (ver `SEGURIDAD_FASE_1.md` y `supabase/rls-fase-1.sql`):
+- `lib/supabase/supabaseAdmin.ts`: service-role, `server-only`. Usarlo en route handlers y Server Components **después** de verificar sesión (y rol si son datos de otros), filtrando por el `userId` de la sesión. El `user_id` nunca se toma del cuerpo de la petición.
+- `lib/supabase-clerk.ts` → `createClerkSupabaseClient(getToken)`: clave anon + JWT de Clerk; con RLS solo da acceso a las filas propias en `empleados`, `nom035_evaluaciones`, `resultados_encuestas` y `pulsos_semanales` (lo usan `/encuesta`, `/nom035`, `/onboarding`, el dashboard y `/api/pulso`).
+- `lib/supabase.ts` y `lib/supabase/client.ts` (anon sin sesión): solo para contenido público como `contenido_bienestar`. No usarlos para datos de empleados.
+- Las escrituras del navegador pasan por rutas de servidor: `/api/buzon`, `/api/chat` (guarda la interacción de `/ia`), `/api/progreso/entrenamiento`, `/api/progreso/psicoeducacion`.
+- Límites de uso con `lib/limite-uso.ts` (en memoria, por instancia; aproximado en Vercel).
 
 Tablas principales: `resultados_encuestas`, `empleados`, `nom035_evaluaciones`, `pulsos_semanales`, `interacciones_psyqus`, `progreso_entrenamiento`, `contenido_bienestar`, `buzon_mensajes`, `prospectos`.
 
 **NOM-035.** Las constantes del cuestionario están en `app/nom035/constants.ts`; la calificación según las Guías de Referencia I/II (categorías, dominios y niveles de riesgo de "Nulo o despreciable" a "Muy alto") está centralizada en `lib/nom035-calificacion.ts`: reutilizarla en vez de recalificar en otro lugar. La interfaz de resultados es `app/nom035-resultados/page.tsx` (llama a `/api/nom035-resultados` y `/api/nom035/interpretar`); los reportes PDF usan `@react-pdf/renderer` (`components/ReportePsyqusPDF.tsx`, `BotonReportePDF.tsx`).
 
-**Dos directorios `api/`.** `app/api/*` son route handlers de Next.js. El `api/` de la raíz contiene funciones serverless de Python para Vercel (`BaseHTTPRequestHandler` + `xlsxwriter`, dependencias en `requirements.txt`) para las exportaciones de NOM-035 a Excel/Word.
+**Dos directorios `api/`.** `app/api/*` son route handlers de Next.js. El `api/` de la raíz contiene funciones serverless de Python para Vercel (`BaseHTTPRequestHandler` + `xlsxwriter`, dependencias en `requirements.txt`) para las exportaciones de NOM-035 a Excel/Word. No poner archivos `.ts` en el `api/` de la raíz: Vercel podría publicarlos como funciones fuera de Next.js y sin pasar por Clerk.
+
+La interpretación con IA (`/api/nom035/interpretar`) solo recibe número de caso y respuesta; no enviar a Groq nombres, áreas, puestos ni correos.
 
 **Chat con IA.** `app/api/chat/route.ts` usa el SDK de OpenAI apuntando a Groq (`baseURL` api.groq.com, modelo `openai/gpt-oss-120b`, clave en `OPENAI_API_KEY`). Su system prompt define al "Orientador de bienestar": no clínico, nunca diagnostica y solo recomienda rutas de Psyqus que existen realmente; actualizar esa lista al agregar o quitar secciones. `app/experiencia` es la interfaz del acompañante con avatares VRM (`app/dashboard/components/Avatar3D.tsx`, `@pixiv/three-vrm`, modelos en `public/avatars/`) con voz de `SpeechSynthesis` del navegador.
 
