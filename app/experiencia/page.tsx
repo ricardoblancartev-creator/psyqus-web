@@ -7,7 +7,7 @@ import {
   useState,
 } from "react";
 import Link from "next/link";
-import dynamic from "next/dynamic";
+import AvatarIlustrado from "@/components/AvatarIlustrado";
 import {
   BookOpen,
   HeartPulse,
@@ -23,17 +23,11 @@ import {
   ArrowLeft,
 } from "lucide-react";
 
-const Avatar3D = dynamic(
-  () => import("../dashboard/components/Avatar3D"),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="flex h-[420px] items-center justify-center text-sm text-slate-400">
-        Preparando personaje…
-      </div>
-    ),
-  }
-);
+/*
+  El avatar 3D (app/dashboard/components/Avatar3D.tsx) se conserva,
+  pero la experiencia usa el acompañante ilustrado, con el mismo
+  estilo cálido de los Shorts.
+*/
 
 type Avatar = "mujer" | "hombre";
 
@@ -363,10 +357,12 @@ export default function ExperienciaPage() {
               </button>
             </div>
 
-            <Avatar3D
-              avatar={avatar}
-              hablando={hablando}
-            />
+            <div className="mt-4">
+              <AvatarIlustrado
+                avatar={avatar}
+                hablando={hablando}
+              />
+            </div>
 
             <div className="mt-4 flex justify-center gap-3">
               {(["mujer", "hombre"] as Avatar[]).map(

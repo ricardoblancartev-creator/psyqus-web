@@ -6,6 +6,7 @@ import Image from "next/image";
 
 import { supabaseAdmin } from "@/lib/supabase/supabaseAdmin";
 import SignOutAction from "@/components/SignOutAction";
+import PerfilBienestar from "@/components/PerfilBienestar";
 import MapaDeCalor from "@/app/dashboard/components/MapaDeCalor";
 import { calificarCuestionarioII } from "@/lib/nom035-calificacion";
 
@@ -352,6 +353,27 @@ if (pulsoError) {
 }
 
 const pulsoCompletado = Boolean(pulsoSemanal);
+
+/*
+  Último pulso (de cualquier semana) para el perfil
+  bio-psico-social-espiritual. Se usa "*" porque la
+  columna "sentido" puede no existir todavía; es la
+  fila propia del usuario.
+*/
+const { data: ultimoPulso, error: ultimoPulsoError } = await supabaseAuthed
+  .from("pulsos_semanales")
+  .select("*")
+  .eq("user_id", userId)
+  .order("semana_inicio", { ascending: false })
+  .limit(1)
+  .maybeSingle();
+
+if (ultimoPulsoError) {
+  console.error(
+    "Error leyendo último pulso:",
+    ultimoPulsoError
+  );
+}
 
 
   /* =======================================================
@@ -786,6 +808,12 @@ const pulsoCompletado = Boolean(pulsoSemanal);
     </div>
   </Link>
 </section>
+
+        {/* =================================================
+            PERFIL BIO-PSICO-SOCIAL-ESPIRITUAL
+        ================================================= */}
+
+        <PerfilBienestar pulso={ultimoPulso || null} />
 
 
         {/* =================================================

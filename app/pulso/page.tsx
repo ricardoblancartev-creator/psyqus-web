@@ -19,6 +19,7 @@ type Pulso = {
   energia: number;
   desconexion: number;
   apoyo: number;
+  sentido?: number | null;
   dificultad: string | null;
 };
 
@@ -122,6 +123,10 @@ export default function PulsoPage() {
   const [apoyo, setApoyo] =
     useState<number | null>(null);
 
+  // Dimensión espiritual del perfil: sentido o propósito.
+  const [sentido, setSentido] =
+    useState<number | null>(null);
+
   const [
     dificultad,
     setDificultad,
@@ -181,6 +186,10 @@ export default function PulsoPage() {
             pulso.apoyo
           );
 
+          setSentido(
+            pulso.sentido ?? null
+          );
+
           setDificultad(
             pulso.dificultad ||
               ""
@@ -205,7 +214,8 @@ export default function PulsoPage() {
   const completo =
     energia !== null &&
     desconexion !== null &&
-    apoyo !== null;
+    apoyo !== null &&
+    sentido !== null;
 
   async function guardarPulso() {
     if (
@@ -239,6 +249,8 @@ export default function PulsoPage() {
               desconexion,
 
               apoyo,
+
+              sentido,
 
               dificultad:
                 dificultad ||
@@ -315,7 +327,7 @@ export default function PulsoPage() {
 
           <p className="mt-4 text-base md:text-lg leading-relaxed text-slate-400">
 
-            Tres preguntas rápidas para conocer
+            Cuatro preguntas rápidas para conocer
             cómo viviste esta semana de trabajo.
 
           </p>
@@ -464,6 +476,56 @@ export default function PulsoPage() {
                     value={apoyo}
                     onChange={(value) => {
                       setApoyo(
+                        value
+                      );
+
+                      setSaved(
+                        false
+                      );
+                    }}
+                    low="Nada"
+                    high="Mucho"
+                  />
+
+                </div>
+
+              </div>
+
+            </div>
+
+          </section>
+
+          {/* SENTIDO (dimensión espiritual) */}
+
+          <section className="rounded-[1.7rem] border border-white/10 bg-slate-950/65 p-6">
+
+            <div className="flex items-start gap-4">
+
+              <div className="w-11 h-11 rounded-xl border border-violet-400/20 bg-violet-500/10 flex items-center justify-center shrink-0">
+
+                <Sparkles className="w-5 h-5 text-violet-300" />
+
+              </div>
+
+              <div className="flex-1">
+
+                <p className="text-[10px] uppercase tracking-[0.2em] text-slate-600">
+                  Sentido
+                </p>
+
+                <h2 className="mt-1 text-lg font-black">
+
+                  ¿Sentiste que lo que hiciste
+                  esta semana tuvo sentido para ti?
+
+                </h2>
+
+                <div className="mt-5">
+
+                  <Scale
+                    value={sentido}
+                    onChange={(value) => {
+                      setSentido(
                         value
                       );
 

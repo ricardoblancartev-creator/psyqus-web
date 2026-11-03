@@ -7,19 +7,22 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 
 import ClimaOrganizacional from "./ClimaOrganizacional";
-import { calificarCuestionarioII } from "@/lib/nom035-calificacion";
+import {
+  calificarCuestionarioI,
+  calificarCuestionarioII,
+  type NivelRiesgo,
+} from "@/lib/nom035-calificacion";
 
 import {
-  Activity,
+  AlertTriangle,
   ArrowLeft,
   ArrowRight,
-  BarChart3,
-  Brain,
+  Building2,
   ClipboardList,
-  HeartHandshake,
-  MessageCircle,
+  HeartPulse,
+  Inbox,
   ShieldCheck,
-  Sparkles,
+  TrendingDown,
   TrendingUp,
   Users,
 } from "lucide-react";
@@ -43,21 +46,11 @@ function aplicaClientes(
     normalizarPuesto(item.puesto);
 
   return (
-    puesto.includes(
-      "oficial de caja"
-    ) ||
-    puesto.includes(
-      "oficial de cajas"
-    ) ||
-    puesto.includes(
-      "ejecutiva"
-    ) ||
-    puesto.includes(
-      "ejecutivo de cuenta"
-    ) ||
-    puesto.includes(
-      "gestor de cobranza"
-    ) ||
+    puesto.includes("oficial de caja") ||
+    puesto.includes("oficial de cajas") ||
+    puesto.includes("ejecutiva") ||
+    puesto.includes("ejecutivo de cuenta") ||
+    puesto.includes("gestor de cobranza") ||
     puesto.includes("une")
   );
 }
@@ -69,9 +62,7 @@ function aplicaSubordinados(
     normalizarPuesto(item.puesto);
 
   return (
-    puesto.includes(
-      "gerente general"
-    ) ||
+    puesto.includes("gerente general") ||
     puesto === "coordinador" ||
     puesto === "coordinadora"
   );
@@ -99,32 +90,21 @@ function respuestasAplicables(
   return respuestas;
 }
 
-function getMonday() {
-  const now = new Date();
-
-  const day = now.getDay();
-
-  const diff =
-    day === 0
-      ? -6
-      : 1 - day;
+function lunesDe(
+  fecha: Date
+) {
+  const day = fecha.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
 
   const monday = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate() + diff
+    fecha.getFullYear(),
+    fecha.getMonth(),
+    fecha.getDate() + diff
   );
 
-  const year =
-    monday.getFullYear();
-
-  const month = String(
-    monday.getMonth() + 1
-  ).padStart(2, "0");
-
-  const date = String(
-    monday.getDate()
-  ).padStart(2, "0");
+  const year = monday.getFullYear();
+  const month = String(monday.getMonth() + 1).padStart(2, "0");
+  const date = String(monday.getDate()).padStart(2, "0");
 
   return `${year}-${month}-${date}`;
 }
@@ -132,24 +112,59 @@ function getMonday() {
 function promedio(
   values: number[]
 ) {
-  if (!values.length) {
+  const validos = values.filter((value) =>
+    Number.isFinite(value)
+  );
+
+  if (!validos.length) {
     return null;
   }
 
   return (
     Math.round(
-      (values.reduce(
-        (
-          total,
-          value
-        ) => total + value,
-        0
-      ) /
-        values.length) *
+      (validos.reduce((total, value) => total + value, 0) /
+        validos.length) *
         10
     ) / 10
   );
 }
+
+function nombreCompleto(
+  item: any
+) {
+  const texto = [item.nombre, item.apellido]
+    .filter(Boolean)
+    .join(" ")
+    .trim();
+
+  return texto || "Sin nombre";
+}
+
+function claveMiembro(
+  item: any
+) {
+  return String(
+    item.user_id ||
+      `${item.nombre || ""}-${item.apellido || ""}`
+  )
+    .trim()
+    .toLocaleLowerCase("es-MX");
+}
+
+const NIVELES: {
+  nivel: NivelRiesgo;
+  corto: string;
+  barra: string;
+  texto: string;
+}[] = [
+  { nivel: "Nulo o despreciable", corto: "Nulo", barra: "bg-emerald-400", texto: "text-emerald-300" },
+  { nivel: "Bajo", corto: "Bajo", barra: "bg-teal-400", texto: "text-teal-300" },
+  { nivel: "Medio", corto: "Medio", barra: "bg-amber-400", texto: "text-amber-300" },
+  { nivel: "Alto", corto: "Alto", barra: "bg-orange-500", texto: "text-orange-300" },
+  { nivel: "Muy alto", corto: "Muy alto", barra: "bg-rose-500", texto: "text-rose-300" },
+];
+
+const ELEVADOS: NivelRiesgo[] = ["Alto", "Muy alto"];
 
 /* =========================================================
    PAGE
@@ -160,23 +175,18 @@ export default async function PanelPsicologoPage() {
      ACCESO PROFESIONAL
   ======================================================= */
 
-  const {
-    userId,
-  } = await auth();
+  const { userId } = await auth();
 
   if (!userId) {
     redirect("/sign-in");
   }
 
-  const user =
-    await currentUser();
+  const user = await currentUser();
 
-  const role =
-    user?.privateMetadata?.role;
+  const role = user?.privateMetadata?.role;
 
   const isProfessional =
-    role === "admin" ||
-    role === "psicologo";
+    role === "admin" || role === "psicologo";
 
   if (!isProfessional) {
     redirect("/dashboard");
@@ -186,1012 +196,788 @@ export default async function PanelPsicologoPage() {
    * Todas las lecturas usan SERVICE ROLE
    * (lib/supabase/supabaseAdmin, solo servidor)
    * después de validar el rol con Clerk.
-   *
-   * Con RLS por usuario, el token del
-   * profesional solo vería sus propias filas.
    */
-  const supabaseAuthed = supabaseAdmin;
 
-  /* =======================================================
-     NOM-035
-  ======================================================= */
+  const hoy = new Date();
+  const semanaActual = lunesDe(hoy);
+  const semanaAnterior = lunesDe(
+    new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() - 7)
+  );
+  const haceSieteDias = new Date(
+    hoy.getTime() - 7 * 24 * 60 * 60 * 1000
+  ).toISOString();
 
-  const {
-    data: nomData,
-    error: nomError,
-  } = await supabaseAuthed
-    .from(
-      "nom035_evaluaciones"
-    )
-    .select(
-      `
-        tipo_cuestionario,
-        area,
-        puesto,
-        respuestas
-      `
-    );
+  const [
+    nomRes,
+    climaRes,
+    pulsosRes,
+    buzonRes,
+    empleadosRes,
+  ] = await Promise.all([
+    supabaseAdmin
+      .from("nom035_evaluaciones")
+      .select(
+        "user_id, nombre, apellido, area, puesto, tipo_cuestionario, respuestas, created_at"
+      ),
+    supabaseAdmin
+      .from("resultados_encuestas")
+      .select("*")
+      .order("created_at", { ascending: false }),
+    supabaseAdmin
+      .from("pulsos_semanales")
+      .select("energia, desconexion, apoyo, dificultad, semana_inicio")
+      .in("semana_inicio", [semanaActual, semanaAnterior]),
+    supabaseAdmin
+      .from("interacciones_psyqus")
+      .select("created_at")
+      .eq("tipo", "buzon")
+      .order("created_at", { ascending: false }),
+    supabaseAdmin
+      .from("empleados")
+      .select("user_id", { count: "exact", head: true }),
+  ]);
 
-  if (nomError) {
-    console.error(
-      "Error NOM-035:",
-      nomError
-    );
+  for (const [nombre, res] of [
+    ["NOM-035", nomRes],
+    ["clima", climaRes],
+    ["pulso", pulsosRes],
+    ["buzón", buzonRes],
+    ["empleados", empleadosRes],
+  ] as const) {
+    if (res.error) {
+      console.error(`Error leyendo ${nombre} en panel profesional:`, res.error);
+    }
   }
 
-  const cuestionarioII = (
-    nomData || []
-  ).filter(
-    (item: any) =>
-      item.tipo_cuestionario ===
-      "II"
+  /* =======================================================
+     NOM-035 · CUESTIONARIO II (estado general y áreas)
+  ======================================================= */
+
+  const nomData = nomRes.data || [];
+
+  const evaluacionesII = nomData
+    .filter((item: any) => item.tipo_cuestionario === "II")
+    .map((item: any) => ({
+      ...item,
+      resultado: calificarCuestionarioII(respuestasAplicables(item)),
+    }));
+
+  const totalII = evaluacionesII.length;
+
+  const conteoNiveles = NIVELES.map((n) => ({
+    ...n,
+    cantidad: evaluacionesII.filter(
+      (item: any) => item.resultado.nivelFinal === n.nivel
+    ).length,
+  }));
+
+  const elevados = conteoNiveles
+    .filter((n) => ELEVADOS.includes(n.nivel))
+    .reduce((total, n) => total + n.cantidad, 0);
+
+  const porcentajeElevado = totalII
+    ? Math.round((elevados / totalII) * 100)
+    : 0;
+
+  const nivelPredominante = totalII
+    ? [...conteoNiveles].sort((a, b) => b.cantidad - a.cantidad)[0]
+    : null;
+
+  /* Áreas: cuántos evaluados, cuántos en riesgo alto o muy alto
+     y la categoría que más aparece en niveles altos. */
+  const areasMapa = new Map<
+    string,
+    { total: number; elevados: number; categorias: Record<string, number> }
+  >();
+
+  for (const item of evaluacionesII as any[]) {
+    const area = String(item.area || "Sin área").trim() || "Sin área";
+    const registro =
+      areasMapa.get(area) || { total: 0, elevados: 0, categorias: {} };
+
+    registro.total += 1;
+
+    if (ELEVADOS.includes(item.resultado.nivelFinal)) {
+      registro.elevados += 1;
+    }
+
+    for (const categoria of item.resultado.categorias || []) {
+      if (ELEVADOS.includes(categoria.nivel)) {
+        registro.categorias[categoria.nombre] =
+          (registro.categorias[categoria.nombre] || 0) + 1;
+      }
+    }
+
+    areasMapa.set(area, registro);
+  }
+
+  const areas = Array.from(areasMapa.entries())
+    .map(([area, info]) => {
+      const categoriaPrincipal =
+        Object.entries(info.categorias).sort((a, b) => b[1] - a[1])[0]?.[0] ||
+        null;
+
+      return {
+        area,
+        total: info.total,
+        elevados: info.elevados,
+        porcentaje: info.total
+          ? Math.round((info.elevados / info.total) * 100)
+          : 0,
+        categoriaPrincipal,
+      };
+    })
+    .sort(
+      (a, b) =>
+        b.porcentaje - a.porcentaje ||
+        b.elevados - a.elevados ||
+        a.area.localeCompare(b.area, "es-MX")
+    );
+
+  const areaPrioritaria = areas.find((a) => a.elevados > 0) || null;
+
+  /* =======================================================
+     CASOS A DAR SEGUIMIENTO
+     Guía I con criterios de valoración clínica, o
+     Guía II con nivel final Alto o Muy alto.
+  ======================================================= */
+
+  const casosMapa = new Map<
+    string,
+    {
+      nombre: string;
+      area: string;
+      puesto: string;
+      motivos: { texto: string; tono: "rose" | "orange" | "violet" }[];
+      prioridad: number;
+    }
+  >();
+
+  function agregarCaso(
+    item: any,
+    motivo: { texto: string; tono: "rose" | "orange" | "violet" },
+    prioridad: number
+  ) {
+    const clave = claveMiembro(item);
+    const caso = casosMapa.get(clave) || {
+      nombre: nombreCompleto(item),
+      area: String(item.area || "Sin área"),
+      puesto: String(item.puesto || "Sin puesto"),
+      motivos: [],
+      prioridad: 0,
+    };
+
+    caso.motivos.push(motivo);
+    caso.prioridad = Math.max(caso.prioridad, prioridad);
+    casosMapa.set(clave, caso);
+  }
+
+  for (const item of nomData as any[]) {
+    if (item.tipo_cuestionario !== "I") continue;
+
+    const resultado = calificarCuestionarioI(item.respuestas || {});
+
+    if (resultado.requiereValoracionClinica) {
+      agregarCaso(
+        item,
+        { texto: "Guía I: requiere valoración clínica", tono: "violet" },
+        3
+      );
+    }
+  }
+
+  for (const item of evaluacionesII as any[]) {
+    if (item.resultado.nivelFinal === "Muy alto") {
+      agregarCaso(item, { texto: "Riesgo muy alto", tono: "rose" }, 2);
+    } else if (item.resultado.nivelFinal === "Alto") {
+      agregarCaso(item, { texto: "Riesgo alto", tono: "orange" }, 1);
+    }
+  }
+
+  const casos = Array.from(casosMapa.values()).sort(
+    (a, b) =>
+      b.prioridad - a.prioridad ||
+      b.motivos.length - a.motivos.length ||
+      a.nombre.localeCompare(b.nombre, "es-MX")
   );
 
-  const resultadosNom =
-    cuestionarioII.map(
-      (item: any) => {
-        const resultado =
-          calificarCuestionarioII(
-            respuestasAplicables(
-              item
-            )
-          );
+  const casosGuiaI = casos.filter((c) =>
+    c.motivos.some((m) => m.tono === "violet")
+  ).length;
 
-        return {
-          ...item,
-          resultado,
-        };
+  /* =======================================================
+     PULSO SEMANAL Y BUZÓN
+  ======================================================= */
+
+  const pulsos = pulsosRes.data || [];
+  const pulsosSemana = pulsos.filter(
+    (p: any) => p.semana_inicio === semanaActual
+  );
+  const pulsosPrevios = pulsos.filter(
+    (p: any) => p.semana_inicio === semanaAnterior
+  );
+
+  const indicadoresPulso = [
+    {
+      clave: "energia",
+      titulo: "Energía",
+      pregunta: "¿Cómo estuvo tu energía esta semana?",
+    },
+    {
+      clave: "desconexion",
+      titulo: "Desconexión",
+      pregunta: "¿Pudiste desconectarte del trabajo al terminar?",
+    },
+    {
+      clave: "apoyo",
+      titulo: "Apoyo del equipo",
+      pregunta: "¿Te sentiste apoyado por tu equipo?",
+    },
+  ].map((ind) => {
+    const actual = promedio(
+      pulsosSemana.map((p: any) => Number(p[ind.clave]))
+    );
+    const previo = promedio(
+      pulsosPrevios.map((p: any) => Number(p[ind.clave]))
+    );
+
+    return {
+      ...ind,
+      actual,
+      cambio:
+        actual !== null && previo !== null
+          ? Math.round((actual - previo) * 10) / 10
+          : null,
+    };
+  });
+
+  const totalEmpleados = empleadosRes.count ?? null;
+  const participacion =
+    totalEmpleados && totalEmpleados > 0
+      ? Math.round((pulsosSemana.length / totalEmpleados) * 100)
+      : null;
+
+  const dificultades = Object.entries(
+    pulsosSemana.reduce((acc: Record<string, number>, p: any) => {
+      const texto = String(p.dificultad || "").trim();
+
+      if (texto && texto !== "Nada en particular") {
+        acc[texto] = (acc[texto] || 0) + 1;
       }
-    );
 
-  const totalNom =
-    resultadosNom.length;
+      return acc;
+    }, {})
+  )
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 4);
 
-  const niveles = {
-    nulo: resultadosNom.filter(
-      (item: any) =>
-        item.resultado
-          .nivelFinal ===
-        "Nulo o despreciable"
-    ).length,
+  const buzon = buzonRes.data || [];
+  const buzonSemana = buzon.filter(
+    (m: any) => m.created_at && m.created_at >= haceSieteDias
+  ).length;
+  const ultimoBuzon = buzon[0]?.created_at
+    ? new Date(buzon[0].created_at).toLocaleDateString("es-MX", {
+        day: "numeric",
+        month: "long",
+      })
+    : null;
 
-    bajo: resultadosNom.filter(
-      (item: any) =>
-        item.resultado
-          .nivelFinal ===
-        "Bajo"
-    ).length,
+  const clima = climaRes.data || [];
 
-    medio: resultadosNom.filter(
-      (item: any) =>
-        item.resultado
-          .nivelFinal ===
-        "Medio"
-    ).length,
-
-    alto: resultadosNom.filter(
-      (item: any) =>
-        item.resultado
-          .nivelFinal ===
-        "Alto"
-    ).length,
-
-    muyAlto:
-      resultadosNom.filter(
-        (item: any) =>
-          item.resultado
-            .nivelFinal ===
-          "Muy alto"
-      ).length,
-  };
-
-  const casosElevados =
-    niveles.alto +
-    niveles.muyAlto;
-
-  const porcentajeElevado =
-    totalNom > 0
-      ? Math.round(
-          (casosElevados /
-            totalNom) *
-            100
-        )
-      : 0;
-
-  /* =======================================================
-     CLIMA ORGANIZACIONAL
-  ======================================================= */
-
-  const {
-    data: resultadosClima,
-    error: climaError,
-  } = await supabaseAuthed
-    .from(
-      "resultados_encuestas"
-    )
-    .select("*")
-    .order("created_at", {
-      ascending: false,
-    });
-
-  if (climaError) {
-    console.error(
-      "Error clima:",
-      climaError
-    );
-  }
-
-  const clima =
-    resultadosClima || [];
-
-  const totalClima =
-    clima.length;
-
-  const totalAreas =
-    new Set(
-      clima.map(
-        (item: any) =>
-          item.area ||
-          "Sin área"
-      )
-    ).size;
-
-  /* =======================================================
-     PULSO SEMANAL
-  ======================================================= */
-
-  const semanaActual =
-    getMonday();
-
-  const {
-    data: pulsos,
-    error: pulsoError,
-  } = await supabaseAdmin
-    .from(
-      "pulsos_semanales"
-    )
-    .select(
-      `
-        energia,
-        desconexion,
-        apoyo,
-        dificultad,
-        semana_inicio
-      `
-    )
-    .eq(
-      "semana_inicio",
-      semanaActual
-    );
-
-  if (pulsoError) {
-    console.error(
-      "Error pulso profesional:",
-      pulsoError
-    );
-  }
-
-  const pulseAccess =
-    !pulsoError;
-
-  const pulsosSemana =
-    pulseAccess
-      ? pulsos || []
-      : [];
-
-  const energiaPromedio =
-    promedio(
-      pulsosSemana.map(
-        (item: any) =>
-          Number(
-            item.energia
-          )
-      )
-    );
-
-  const desconexionPromedio =
-    promedio(
-      pulsosSemana.map(
-        (item: any) =>
-          Number(
-            item.desconexion
-          )
-      )
-    );
-
-  const apoyoPromedio =
-    promedio(
-      pulsosSemana.map(
-        (item: any) =>
-          Number(
-            item.apoyo
-          )
-      )
-    );
-
-  /* =======================================================
-     DIFICULTADES DEL PULSO
-  ======================================================= */
-
-  const dificultadesConteo =
-    pulsosSemana.reduce(
-      (
-        acc: Record<
-          string,
-          number
-        >,
-        item: any
-      ) => {
-        const dificultad =
-          String(
-            item.dificultad ||
-              ""
-          ).trim();
-
-        if (!dificultad) {
-          return acc;
-        }
-
-        acc[dificultad] =
-          (acc[dificultad] ||
-            0) + 1;
-
-        return acc;
-      },
-      {}
-    );
-
-  const dificultadesOrdenadas =
-    Object.entries(
-      dificultadesConteo
-    ).sort(
-      (a, b) =>
-        b[1] - a[1]
-    );
+  const fechaHoy = hoy.toLocaleDateString("es-MX", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
 
   /* =======================================================
      UI
   ======================================================= */
 
   return (
-    <main className="min-h-screen bg-[#020617] text-white relative overflow-hidden">
-      {/* FONDO */}
-
-      <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(circle_at_top_left,rgba(6,182,212,0.11),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(168,85,247,0.08),transparent_28%)]" />
-
-      <div className="fixed inset-0 pointer-events-none opacity-[0.035] [background-image:linear-gradient(rgba(255,255,255,0.12)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.12)_1px,transparent_1px)] [background-size:42px_42px]" />
-
-      <section className="relative max-w-7xl mx-auto px-5 md:px-6 py-7 md:py-10">
-        {/* =================================================
-            HEADER
-        ================================================= */}
-
+    <main className="min-h-screen bg-[#020617] text-white">
+      <div className="mx-auto max-w-6xl px-5 py-8 md:px-8 md:py-10">
+        {/* ENCABEZADO */}
         <header className="mb-8">
           <Link
             href="/dashboard"
-            className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-white transition"
+            className="inline-flex items-center gap-2 text-sm text-slate-400 transition hover:text-white"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="h-4 w-4" />
             Volver al inicio
           </Link>
 
-          <div className="mt-6 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
+          <div className="mt-5 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
             <div>
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl border border-cyan-400/20 bg-cyan-500/10 flex items-center justify-center">
-                  <ShieldCheck className="w-6 h-6 text-cyan-300" />
-                </div>
-
-                <div>
-                  <p className="text-[10px] uppercase tracking-[0.25em] font-black text-cyan-300">
-                    Psyqus Professional
-                  </p>
-
-                  <h1 className="text-3xl md:text-5xl font-black tracking-tight">
-                    Centro
-                    Profesional
-                  </h1>
-                </div>
-              </div>
-
-              <p className="mt-4 max-w-3xl text-sm md:text-base leading-relaxed text-slate-400">
-                Información para
-                evaluar, comprender y
-                dar seguimiento al
-                bienestar psicosocial
-                de la organización.
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-300">
+                Panel del psicólogo
+              </p>
+              <h1 className="mt-2 text-3xl font-black tracking-tight md:text-4xl">
+                ¿Cómo está la organización?
+              </h1>
+              <p className="mt-2 text-sm capitalize text-slate-400">
+                {fechaHoy}
               </p>
             </div>
 
             <Link
               href="/nom035-resultados"
-              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-cyan-300 px-5 py-3.5 text-sm font-black text-slate-950 hover:bg-cyan-200 transition"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-cyan-300 px-5 py-3 text-sm font-black text-slate-950 transition hover:bg-cyan-200"
             >
-              Abrir NOM-035
-
-              <ArrowRight className="w-4 h-4" />
+              Ver resultados NOM-035 completos
+              <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
         </header>
 
-        {/* =================================================
-            MENÚ INTERNO
-        ================================================= */}
-
-        <nav className="mb-8 overflow-x-auto">
-          <div className="min-w-max inline-flex gap-1 rounded-2xl border border-white/10 bg-slate-950/70 p-2">
-            <a
-              href="#panorama"
-              className="rounded-xl bg-cyan-400 px-4 py-2.5 text-sm font-black text-slate-950"
-            >
-              Panorama
-            </a>
-
-            <a
-              href="#nom035"
-              className="rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-300 hover:bg-white/5"
-            >
-              NOM-035
-            </a>
-
-            <a
-              href="#pulso"
-              className="rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-300 hover:bg-white/5"
-            >
-              Seguimiento
-            </a>
-
-            <a
-              href="#clima"
-              className="rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-300 hover:bg-white/5"
-            >
-              Clima
-            </a>
-          </div>
-        </nav>
-
-        {/* =================================================
-            PANORAMA
-        ================================================= */}
-
+        {/* RESUMEN EN 4 TARJETAS */}
         <section
-          id="panorama"
-          className="mb-8 scroll-mt-6"
+          aria-label="Resumen"
+          className="mb-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
         >
-          <div className="mb-5">
-            <div className="flex items-center gap-2 text-cyan-300">
-              <Sparkles className="w-5 h-5" />
-
-              <p className="text-xs font-black uppercase tracking-[0.22em]">
-                Panorama
-              </p>
-            </div>
-
-            <h2 className="mt-2 text-2xl md:text-3xl font-black">
-              Estado de la
-              organización
-            </h2>
-          </div>
-
-          <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-4">
-            {/* NOM */}
-
-            <div className="rounded-[1.7rem] border border-white/10 bg-slate-950/70 p-5">
-              <ShieldCheck className="w-5 h-5 text-emerald-300" />
-
-              <p className="mt-5 text-xs uppercase tracking-[0.16em] text-slate-500">
-                NOM-035 II
-              </p>
-
-              <p className="mt-2 text-4xl font-black">
-                {nomError
-                  ? "—"
-                  : totalNom}
-              </p>
-
-              <p className="mt-2 text-xs text-slate-600">
-                evaluaciones
-                registradas
-              </p>
-            </div>
-
-            {/* CLIMA */}
-
-            <div className="rounded-[1.7rem] border border-white/10 bg-slate-950/70 p-5">
-              <ClipboardList className="w-5 h-5 text-fuchsia-300" />
-
-              <p className="mt-5 text-xs uppercase tracking-[0.16em] text-slate-500">
-                Evaluación interna
-              </p>
-
-              <p className="mt-2 text-4xl font-black">
-                {climaError
-                  ? "—"
-                  : totalClima}
-              </p>
-
-              <p className="mt-2 text-xs text-slate-600">
-                respuestas
-                registradas
-              </p>
-            </div>
-
-            {/* ÁREAS */}
-
-            <div className="rounded-[1.7rem] border border-white/10 bg-slate-950/70 p-5">
-              <Users className="w-5 h-5 text-indigo-300" />
-
-              <p className="mt-5 text-xs uppercase tracking-[0.16em] text-slate-500">
-                Áreas
-              </p>
-
-              <p className="mt-2 text-4xl font-black">
-                {climaError
-                  ? "—"
-                  : totalAreas}
-              </p>
-
-              <p className="mt-2 text-xs text-slate-600">
-                representadas en
-                clima
-              </p>
-            </div>
-
-            {/* PULSO */}
-
-            <div className="rounded-[1.7rem] border border-white/10 bg-slate-950/70 p-5">
-              <Activity className="w-5 h-5 text-cyan-300" />
-
-              <p className="mt-5 text-xs uppercase tracking-[0.16em] text-slate-500">
-                Pulso semanal
-              </p>
-
-              <p className="mt-2 text-4xl font-black">
-                {pulseAccess
-                  ? pulsosSemana.length
-                  : "—"}
-              </p>
-
-              <p className="mt-2 text-xs text-slate-600">
-                registros esta
-                semana
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* =================================================
-            NOM-035
-        ================================================= */}
-
-        <section
-          id="nom035"
-          className="mb-8 rounded-[2rem] border border-emerald-400/15 bg-slate-950/70 p-6 md:p-8 scroll-mt-6"
-        >
-          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
-            <div>
-              <div className="flex items-center gap-2 text-emerald-300">
-                <BarChart3 className="w-5 h-5" />
-
-                <p className="text-xs font-black uppercase tracking-[0.22em]">
-                  NOM-035
-                </p>
-              </div>
-
-              <h2 className="mt-3 text-2xl md:text-3xl font-black">
-                Panorama
-                psicosocial
-              </h2>
-
-              <p className="mt-3 text-sm leading-relaxed text-slate-400 max-w-2xl">
-                Distribución
-                calculada con las
-                respuestas reales
-                del Cuestionario II
-                registradas en
-                Psyqus.
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-5 py-4 min-w-[190px]">
-              <p className="text-[10px] uppercase tracking-[0.18em] text-slate-500">
-                Alto o muy alto
-              </p>
-
-              <p className="mt-2 text-3xl font-black">
-                {nomError
-                  ? "—"
-                  : casosElevados}
-              </p>
-
-              {!nomError && (
-                <p className="mt-1 text-sm text-slate-500">
-                  {
-                    porcentajeElevado
-                  }
-                  % del total
-                </p>
-              )}
-            </div>
-          </div>
-
-          {nomError ? (
-            <div className="mt-7 rounded-2xl border border-amber-400/20 bg-amber-500/[0.05] p-5">
-              <p className="text-sm text-amber-200">
-                No fue posible
-                consultar las
-                evaluaciones
-                NOM-035 con esta
-                sesión
-                profesional.
-              </p>
-            </div>
-          ) : (
-            <div className="mt-8 grid sm:grid-cols-2 lg:grid-cols-5 gap-3">
-              {[
-                {
-                  label:
-                    "Nulo o despreciable",
-                  value:
-                    niveles.nulo,
-                },
-                {
-                  label: "Bajo",
-                  value:
-                    niveles.bajo,
-                },
-                {
-                  label: "Medio",
-                  value:
-                    niveles.medio,
-                },
-                {
-                  label: "Alto",
-                  value:
-                    niveles.alto,
-                },
-                {
-                  label:
-                    "Muy alto",
-                  value:
-                    niveles.muyAlto,
-                },
-              ].map(
-                (item) => (
-                  <div
-                    key={
-                      item.label
-                    }
-                    className="rounded-2xl border border-white/10 bg-white/[0.025] p-5"
-                  >
-                    <p className="text-xs text-slate-500">
-                      {
-                        item.label
-                      }
-                    </p>
-
-                    <p className="mt-3 text-3xl font-black">
-                      {
-                        item.value
-                      }
-                    </p>
-
-                    <p className="mt-1 text-xs text-slate-600">
-                      {totalNom >
-                      0
-                        ? Math.round(
-                            (item.value /
-                              totalNom) *
-                              100
-                          )
-                        : 0}
-                      %
-                    </p>
-                  </div>
-                )
-              )}
-            </div>
-          )}
-
-          <Link
-            href="/nom035-resultados"
-            className="mt-7 inline-flex items-center gap-2 rounded-xl bg-emerald-400 px-5 py-3 text-sm font-black text-slate-950 hover:bg-emerald-300 transition"
+          <a
+            href="#nom035"
+            className="rounded-2xl border border-white/10 bg-slate-900/60 p-5 transition hover:border-cyan-400/40"
           >
-            Ver análisis completo
+            <div className="flex items-center gap-2 text-sm font-semibold text-slate-300">
+              <ShieldCheck className="h-4 w-4 text-cyan-300" />
+              Estado NOM-035
+            </div>
+            <p className="mt-3 text-3xl font-black">
+              {totalII ? `${porcentajeElevado}%` : "—"}
+            </p>
+            <p className="mt-1 text-sm text-slate-400">
+              {totalII
+                ? `en riesgo alto o muy alto, de ${totalII} evaluados`
+                : "Aún no hay evaluaciones de la Guía II"}
+            </p>
+          </a>
 
-            <ArrowRight className="w-4 h-4" />
-          </Link>
+          <a
+            href="#casos"
+            className="rounded-2xl border border-white/10 bg-slate-900/60 p-5 transition hover:border-rose-400/40"
+          >
+            <div className="flex items-center gap-2 text-sm font-semibold text-slate-300">
+              <AlertTriangle className="h-4 w-4 text-rose-300" />
+              Casos a dar seguimiento
+            </div>
+            <p className="mt-3 text-3xl font-black">{casos.length}</p>
+            <p className="mt-1 text-sm text-slate-400">
+              {casosGuiaI
+                ? `${casosGuiaI} con Guía I que requiere valoración clínica`
+                : "personas con riesgo alto o Guía I positiva"}
+            </p>
+          </a>
+
+          <a
+            href="#areas"
+            className="rounded-2xl border border-white/10 bg-slate-900/60 p-5 transition hover:border-amber-400/40"
+          >
+            <div className="flex items-center gap-2 text-sm font-semibold text-slate-300">
+              <Building2 className="h-4 w-4 text-amber-300" />
+              Área que atender primero
+            </div>
+            <p className="mt-3 truncate text-2xl font-black">
+              {areaPrioritaria ? areaPrioritaria.area : "Ninguna por ahora"}
+            </p>
+            <p className="mt-1 text-sm text-slate-400">
+              {areaPrioritaria
+                ? `${areaPrioritaria.elevados} de ${areaPrioritaria.total} en riesgo alto o muy alto`
+                : "Ningún área tiene personas en riesgo alto"}
+            </p>
+          </a>
+
+          <a
+            href="#pulso"
+            className="rounded-2xl border border-white/10 bg-slate-900/60 p-5 transition hover:border-emerald-400/40"
+          >
+            <div className="flex items-center gap-2 text-sm font-semibold text-slate-300">
+              <HeartPulse className="h-4 w-4 text-emerald-300" />
+              Pulso y buzón
+            </div>
+            <p className="mt-3 text-3xl font-black">
+              {pulsosSemana.length}
+              <span className="text-lg font-bold text-slate-400">
+                {" "}
+                pulsos
+              </span>
+            </p>
+            <p className="mt-1 text-sm text-slate-400">
+              {buzonSemana} solicitudes de ayuda en los últimos 7 días
+            </p>
+          </a>
         </section>
 
-        {/* =================================================
-            PULSO SEMANAL
-        ================================================= */}
+        {/* 1. ESTADO GENERAL NOM-035 */}
+        <section id="nom035" className="mb-10 scroll-mt-6">
+          <SectionTitle
+            numero="1"
+            titulo="Estado general NOM-035"
+            explicacion="Resultado final de la Guía de Referencia II de cada persona evaluada, con la calificación oficial."
+          />
 
-        <section
-          id="pulso"
-          className="mb-8 rounded-[2rem] border border-cyan-400/15 bg-slate-950/70 p-6 md:p-8 scroll-mt-6"
-        >
-          <div className="flex items-center gap-3">
-            <TrendingUp className="w-6 h-6 text-cyan-300" />
+          <div className="rounded-2xl border border-white/10 bg-slate-900/60 p-6">
+            {totalII ? (
+              <>
+                <p className="text-lg leading-relaxed text-slate-200">
+                  De <strong className="text-white">{totalII} personas evaluadas</strong>,
+                  el nivel más frecuente es{" "}
+                  <strong className={nivelPredominante?.texto}>
+                    {nivelPredominante?.corto.toLowerCase()}
+                  </strong>
+                  .{" "}
+                  {elevados > 0 ? (
+                    <>
+                      <strong className="text-white">{elevados}</strong>{" "}
+                      {elevados === 1 ? "persona está" : "personas están"} en
+                      riesgo alto o muy alto ({porcentajeElevado}%).
+                    </>
+                  ) : (
+                    "Nadie está en riesgo alto o muy alto."
+                  )}
+                </p>
 
-            <div>
-              <p className="text-xs uppercase tracking-[0.2em] font-black text-cyan-300">
-                Seguimiento
-                continuo
+                <div
+                  className="mt-6 flex h-5 w-full overflow-hidden rounded-full bg-slate-800"
+                  role="img"
+                  aria-label="Distribución de niveles de riesgo"
+                >
+                  {conteoNiveles
+                    .filter((n) => n.cantidad > 0)
+                    .map((n) => (
+                      <div
+                        key={n.nivel}
+                        className={n.barra}
+                        style={{ width: `${(n.cantidad / totalII) * 100}%` }}
+                      />
+                    ))}
+                </div>
+
+                <dl className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-5">
+                  {conteoNiveles.map((n) => (
+                    <div
+                      key={n.nivel}
+                      className="rounded-xl bg-slate-950/60 px-4 py-3"
+                    >
+                      <dt className="flex items-center gap-2 text-sm text-slate-400">
+                        <span className={`h-2.5 w-2.5 rounded-full ${n.barra}`} />
+                        {n.corto}
+                      </dt>
+                      <dd className="mt-1 text-2xl font-black tabular-nums">
+                        {n.cantidad}
+                        <span className="ml-1 text-sm font-semibold text-slate-500">
+                          ({Math.round((n.cantidad / totalII) * 100)}%)
+                        </span>
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+              </>
+            ) : (
+              <p className="text-slate-400">
+                Todavía no hay evaluaciones de la Guía II registradas.
               </p>
-
-              <h2 className="mt-1 text-2xl md:text-3xl font-black">
-                Pulso semanal
-              </h2>
-            </div>
+            )}
           </div>
+        </section>
 
-          {pulseAccess ? (
-            <>
-              <p className="mt-4 text-sm text-slate-400 max-w-3xl">
-                Lectura agregada
-                de los registros
-                disponibles de esta
-                semana. No
-                corresponde a una
-                evaluación NOM-035
-                ni a un diagnóstico
-                psicológico.
-              </p>
+        {/* 2. CASOS A DAR SEGUIMIENTO */}
+        <section id="casos" className="mb-10 scroll-mt-6">
+          <SectionTitle
+            numero="2"
+            titulo="Casos a dar seguimiento"
+            explicacion="Personas con Guía I que alcanza los criterios de valoración clínica, o con riesgo final alto o muy alto en la Guía II. Primero los más urgentes."
+          />
 
-              {/* MÉTRICAS */}
-
-              <div className="mt-6 grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {/* PARTICIPACIÓN */}
-
-                <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
-                  <p className="text-xs uppercase tracking-[0.16em] text-slate-500">
-                    Participación
-                  </p>
-
-                  <p className="mt-2 text-3xl font-black">
-                    {
-                      pulsosSemana.length
-                    }
-                  </p>
-
-                  <p className="mt-1 text-xs text-slate-600">
-                    pulsos
-                    registrados
-                  </p>
-                </div>
-
-                {/* ENERGÍA */}
-
-                <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
-                  <p className="text-xs uppercase tracking-[0.16em] text-slate-500">
-                    Energía
-                  </p>
-
-                  <p className="mt-2 text-3xl font-black">
-                    {energiaPromedio ??
-                      "—"}
-                  </p>
-
-                  <p className="mt-1 text-xs text-slate-600">
-                    promedio / 5
-                  </p>
-                </div>
-
-                {/* DESCONEXIÓN */}
-
-                <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
-                  <p className="text-xs uppercase tracking-[0.16em] text-slate-500">
-                    Desconexión
-                  </p>
-
-                  <p className="mt-2 text-3xl font-black">
-                    {desconexionPromedio ??
-                      "—"}
-                  </p>
-
-                  <p className="mt-1 text-xs text-slate-600">
-                    promedio / 5
-                  </p>
-                </div>
-
-                {/* APOYO */}
-
-                <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
-                  <p className="text-xs uppercase tracking-[0.16em] text-slate-500">
-                    Apoyo
-                  </p>
-
-                  <p className="mt-2 text-3xl font-black">
-                    {apoyoPromedio ??
-                      "—"}
-                  </p>
-
-                  <p className="mt-1 text-xs text-slate-600">
-                    promedio / 5
-                  </p>
-                </div>
-              </div>
-
-              {/* =============================================
-                  LO MÁS DIFÍCIL
-              ============================================= */}
-
-              {dificultadesOrdenadas.length >
-                0 && (
-                <div className="mt-6 rounded-2xl border border-white/10 bg-white/[0.025] p-5 md:p-6">
-                  <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
-                    <div>
-                      <p className="text-xs uppercase tracking-[0.18em] text-cyan-300 font-black">
-                        Señales de la
-                        semana
+          <div className="overflow-hidden rounded-2xl border border-white/10 bg-slate-900/60">
+            {casos.length ? (
+              <ul className="divide-y divide-white/5">
+                {casos.map((caso, index) => (
+                  <li
+                    key={`${caso.nombre}-${index}`}
+                    className="flex flex-col gap-3 px-6 py-4 md:flex-row md:items-center md:justify-between"
+                  >
+                    <div className="min-w-0">
+                      <p className="font-bold text-white">{caso.nombre}</p>
+                      <p className="text-sm text-slate-400">
+                        {caso.area} · {caso.puesto}
                       </p>
-
-                      <h3 className="mt-2 text-xl font-black">
-                        Lo más difícil
-                        esta semana
-                      </h3>
                     </div>
 
-                    <p className="text-xs text-slate-600">
-                      Basado únicamente
-                      en los pulsos
-                      registrados.
-                    </p>
-                  </div>
+                    <div className="flex flex-wrap gap-2">
+                      {caso.motivos.map((motivo) => (
+                        <span
+                          key={motivo.texto}
+                          className={
+                            motivo.tono === "violet"
+                              ? "rounded-full border border-violet-400/40 bg-violet-500/10 px-3 py-1 text-xs font-bold text-violet-200"
+                              : motivo.tono === "rose"
+                                ? "rounded-full border border-rose-400/40 bg-rose-500/10 px-3 py-1 text-xs font-bold text-rose-200"
+                                : "rounded-full border border-orange-400/40 bg-orange-500/10 px-3 py-1 text-xs font-bold text-orange-200"
+                          }
+                        >
+                          {motivo.texto}
+                        </span>
+                      ))}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="px-6 py-5 text-slate-400">
+                No hay casos que cumplan los criterios de seguimiento.
+              </p>
+            )}
 
-                  <div className="mt-5 space-y-3">
-                    {dificultadesOrdenadas.map(
-                      ([
-                        dificultad,
-                        cantidad,
-                      ]) => {
-                        const porcentaje =
-                          pulsosSemana.length >
-                          0
-                            ? Math.round(
-                                (cantidad /
-                                  pulsosSemana.length) *
-                                  100
-                              )
-                            : 0;
+            <div className="border-t border-white/5 bg-slate-950/40 px-6 py-3 text-sm text-slate-400">
+              El detalle de respuestas de cada persona está en{" "}
+              <Link
+                href="/nom035-resultados"
+                className="font-semibold text-cyan-300 hover:text-cyan-200"
+              >
+                Resultados NOM-035
+              </Link>
+              .
+            </div>
+          </div>
+        </section>
 
-                        return (
-                          <div
-                            key={
-                              dificultad
-                            }
-                            className="rounded-xl border border-white/10 bg-slate-950/50 p-4"
-                          >
-                            <div className="flex items-center justify-between gap-4">
-                              <div>
-                                <p className="text-sm font-semibold text-slate-200">
-                                  {
-                                    dificultad
-                                  }
-                                </p>
+        {/* 3. ÁREAS QUE ATENDER */}
+        <section id="areas" className="mb-10 scroll-mt-6">
+          <SectionTitle
+            numero="3"
+            titulo="Áreas que atender"
+            explicacion="Porcentaje de personas de cada área con riesgo alto o muy alto, y la categoría de la NOM-035 que más se repite en niveles altos."
+          />
 
-                                <p className="mt-1 text-xs text-slate-600">
-                                  {
-                                    porcentaje
-                                  }
-                                  % de los
-                                  pulsos de
-                                  esta semana
-                                </p>
-                              </div>
+          <div className="rounded-2xl border border-white/10 bg-slate-900/60 p-6">
+            {areas.length ? (
+              <ul className="space-y-5">
+                {areas.map((a) => (
+                  <li key={a.area}>
+                    <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                      <p className="font-bold text-white">
+                        {a.area}
+                        <span className="ml-2 text-sm font-normal text-slate-500">
+                          {a.total} {a.total === 1 ? "persona" : "personas"}
+                          {a.total < 3 ? " · pocas respuestas" : ""}
+                        </span>
+                      </p>
+                      <p className="text-sm tabular-nums text-slate-300">
+                        <strong
+                          className={
+                            a.porcentaje >= 40
+                              ? "text-rose-300"
+                              : a.porcentaje >= 20
+                                ? "text-amber-300"
+                                : "text-emerald-300"
+                          }
+                        >
+                          {a.porcentaje}%
+                        </strong>{" "}
+                        en riesgo alto
+                      </p>
+                    </div>
 
-                              <div className="min-w-[48px] h-12 rounded-xl border border-cyan-400/15 bg-cyan-500/[0.06] flex items-center justify-center">
-                                <span className="text-lg font-black text-cyan-300">
-                                  {
-                                    cantidad
-                                  }
-                                </span>
-                              </div>
-                            </div>
+                    <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-slate-800">
+                      <div
+                        className={
+                          a.porcentaje >= 40
+                            ? "h-full bg-rose-500"
+                            : a.porcentaje >= 20
+                              ? "h-full bg-amber-400"
+                              : "h-full bg-emerald-400"
+                        }
+                        style={{ width: `${Math.max(a.porcentaje, 2)}%` }}
+                      />
+                    </div>
 
-                            <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-white/5">
-                              <div
-                                className="h-full rounded-full bg-cyan-300 transition-all"
-                                style={{
-                                  width: `${porcentaje}%`,
-                                }}
-                              />
-                            </div>
-                          </div>
-                        );
-                      }
+                    {a.categoriaPrincipal && (
+                      <p className="mt-2 text-sm text-slate-400">
+                        Lo que más pesa:{" "}
+                        <span className="font-semibold text-slate-200">
+                          {a.categoriaPrincipal}
+                        </span>
+                      </p>
                     )}
-                  </div>
-                </div>
-              )}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-slate-400">
+                Aún no hay evaluaciones con área registrada.
+              </p>
+            )}
+          </div>
+        </section>
 
-              {/* SIN RESPUESTAS DE DIFICULTAD */}
+        {/* 4. PULSO Y BUZÓN */}
+        <section id="pulso" className="mb-10 scroll-mt-6">
+          <SectionTitle
+            numero="4"
+            titulo="Pulso semanal y buzón"
+            explicacion="Promedio de esta semana en una escala de 1 a 5, donde 5 es lo mejor, comparado con la semana anterior."
+          />
 
-              {pulsosSemana.length >
-                0 &&
-                dificultadesOrdenadas.length ===
-                  0 && (
-                  <div className="mt-6 rounded-2xl border border-white/10 bg-white/[0.025] p-5">
-                    <p className="text-sm text-slate-400">
-                      Hay pulsos
-                      registrados esta
-                      semana, pero no se
-                      registraron
-                      respuestas en
-                      “qué fue lo más
-                      difícil”.
-                    </p>
-                  </div>
-                )}
-
-              {/* SIN PULSOS */}
-
-              {pulsosSemana.length ===
-                0 && (
-                <div className="mt-6 rounded-2xl border border-white/10 bg-white/[0.025] p-5">
+          <div className="grid gap-4 lg:grid-cols-3">
+            <div className="rounded-2xl border border-white/10 bg-slate-900/60 p-6 lg:col-span-2">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="flex items-center gap-2 font-bold">
+                  <Users className="h-4 w-4 text-cyan-300" />
+                  {pulsosSemana.length}{" "}
+                  {pulsosSemana.length === 1 ? "persona respondió" : "personas respondieron"}{" "}
+                  esta semana
+                </p>
+                {participacion !== null && (
                   <p className="text-sm text-slate-400">
-                    Todavía no hay
-                    pulsos registrados
-                    durante la semana
-                    actual.
+                    {participacion}% de {totalEmpleados} registrados
                   </p>
+                )}
+              </div>
+
+              {pulsosSemana.length ? (
+                <ul className="mt-6 space-y-5">
+                  {indicadoresPulso.map((ind) => (
+                    <li key={ind.clave}>
+                      <div className="flex items-baseline justify-between gap-4">
+                        <div className="min-w-0">
+                          <p className="font-semibold text-white">{ind.titulo}</p>
+                          <p className="text-sm text-slate-500">{ind.pregunta}</p>
+                        </div>
+                        <div className="flex shrink-0 items-center gap-3 tabular-nums">
+                          {ind.cambio !== null && ind.cambio !== 0 && (
+                            <span
+                              className={
+                                ind.cambio > 0
+                                  ? "inline-flex items-center gap-1 text-sm font-semibold text-emerald-300"
+                                  : "inline-flex items-center gap-1 text-sm font-semibold text-rose-300"
+                              }
+                            >
+                              {ind.cambio > 0 ? (
+                                <TrendingUp className="h-4 w-4" />
+                              ) : (
+                                <TrendingDown className="h-4 w-4" />
+                              )}
+                              {ind.cambio > 0 ? "+" : ""}
+                              {ind.cambio}
+                            </span>
+                          )}
+                          <span className="text-2xl font-black">
+                            {ind.actual ?? "—"}
+                            <span className="text-sm font-semibold text-slate-500">/5</span>
+                          </span>
+                        </div>
+                      </div>
+                      <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-slate-800">
+                        <div
+                          className={
+                            (ind.actual ?? 0) >= 4
+                              ? "h-full bg-emerald-400"
+                              : (ind.actual ?? 0) >= 3
+                                ? "h-full bg-amber-400"
+                                : "h-full bg-rose-500"
+                          }
+                          style={{ width: `${((ind.actual ?? 0) / 5) * 100}%` }}
+                        />
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="mt-4 text-slate-400">
+                  Nadie ha respondido el pulso esta semana.
+                </p>
+              )}
+
+              {dificultades.length > 0 && (
+                <div className="mt-6 border-t border-white/5 pt-5">
+                  <p className="text-sm font-semibold text-slate-300">
+                    Lo más difícil esta semana
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {dificultades.map(([texto, cantidad]) => (
+                      <span
+                        key={texto}
+                        className="rounded-full bg-slate-800 px-3 py-1.5 text-sm text-slate-200"
+                      >
+                        {texto}{" "}
+                        <strong className="tabular-nums text-white">{cantidad}</strong>
+                      </span>
+                    ))}
+                  </div>
                 </div>
               )}
-            </>
-          ) : (
-            <div className="mt-6 rounded-2xl border border-white/10 bg-white/[0.025] p-5">
-              <p className="text-sm leading-relaxed text-slate-400">
-                No fue posible
-                consultar los
-                agregados del pulso
-                semanal. Psyqus no
-                mostrará estadísticas
-                sustitutas.
-              </p>
             </div>
+
+            <div className="rounded-2xl border border-white/10 bg-slate-900/60 p-6">
+              <p className="flex items-center gap-2 font-bold">
+                <Inbox className="h-4 w-4 text-amber-300" />
+                Buzón: pedir ayuda
+              </p>
+              <p className="mt-5 text-4xl font-black tabular-nums">{buzonSemana}</p>
+              <p className="text-sm text-slate-400">
+                solicitudes en los últimos 7 días
+              </p>
+              <dl className="mt-5 space-y-2 border-t border-white/5 pt-4 text-sm">
+                <div className="flex justify-between gap-4">
+                  <dt className="text-slate-400">Total recibidas</dt>
+                  <dd className="font-semibold tabular-nums">{buzon.length}</dd>
+                </div>
+                <div className="flex justify-between gap-4">
+                  <dt className="text-slate-400">Última</dt>
+                  <dd className="font-semibold">{ultimoBuzon || "—"}</dd>
+                </div>
+              </dl>
+            </div>
+          </div>
+        </section>
+
+        {/* CLIMA ORGANIZACIONAL (DETALLE) */}
+        <section id="clima" className="mb-10 scroll-mt-6">
+          <SectionTitle
+            numero="5"
+            titulo="Clima organizacional"
+            explicacion="Resultados de la encuesta de clima, para consultar con más detalle."
+          />
+
+          {clima.length ? (
+            <ClimaOrganizacional resultados={clima} />
+          ) : (
+            <p className="rounded-2xl border border-white/10 bg-slate-900/60 p-6 text-slate-400">
+              Aún no hay encuestas de clima registradas.
+            </p>
           )}
         </section>
 
-        {/* =================================================
-            CLIMA
-        ================================================= */}
-
-        <section
-          id="clima"
-          className="mb-8 scroll-mt-6"
-        >
-          <div className="mb-5">
-            <div className="flex items-center gap-2 text-fuchsia-300">
-              <Brain className="w-5 h-5" />
-
-              <p className="text-xs font-black uppercase tracking-[0.22em]">
-                Evaluación interna
-              </p>
-            </div>
-
-            <h2 className="mt-2 text-2xl md:text-3xl font-black">
-              Clima y experiencia
-              laboral
-            </h2>
-
-            <p className="mt-2 text-sm text-slate-500 max-w-3xl">
-              Análisis por
-              pregunta, área y
-              puesto utilizando
-              únicamente las
-              respuestas
-              registradas en
-              resultados_encuestas.
-            </p>
-          </div>
-
-          {climaError ? (
-            <div className="rounded-2xl border border-amber-400/20 bg-amber-500/[0.05] p-5">
-              <p className="text-sm text-amber-200">
-                No fue posible
-                consultar los
-                resultados de la
-                evaluación interna.
-              </p>
-            </div>
-          ) : (
-            <ClimaOrganizacional
-              resultados={
-                clima
-              }
-            />
-          )}
-        </section>
-
-        {/* =================================================
-            ACCIONES
-        ================================================= */}
-
-        <section className="mb-8 grid md:grid-cols-3 gap-4">
-          {/* NOM */}
-
-          <Link
-            href="/nom035-resultados"
-            className="group rounded-[1.7rem] border border-emerald-400/15 bg-emerald-500/[0.04] p-6 hover:bg-emerald-500/[0.08] transition"
-          >
-            <ShieldCheck className="w-6 h-6 text-emerald-300" />
-
-            <h3 className="mt-5 text-lg font-black">
-              NOM-035 detallada
-            </h3>
-
-            <p className="mt-2 text-sm text-slate-500">
-              Revisa
-              colaboradores,
-              puntuaciones,
-              categorías,
-              dominios y
-              respuestas.
-            </p>
-
-            <ArrowRight className="mt-5 w-4 h-4 text-slate-600 group-hover:text-emerald-300 group-hover:translate-x-1 transition" />
-          </Link>
-
-          {/* APOYO HUMANO */}
-
-          <div className="rounded-[1.7rem] border border-amber-400/15 bg-amber-500/[0.04] p-6">
-            <HeartHandshake className="w-6 h-6 text-amber-300" />
-
-            <h3 className="mt-5 text-lg font-black">
-              Apoyo humano
-            </h3>
-
-            <p className="mt-2 text-sm text-slate-500">
-              El Buzón se
-              mantiene separado
-              del Orientador de
-              IA. Después
-              conectaremos aquí
-              la revisión
-              profesional de
-              mensajes reales.
-            </p>
-          </div>
-
-          {/* INTELIGENCIA */}
-
-          <div className="rounded-[1.7rem] border border-violet-400/15 bg-violet-500/[0.04] p-6">
-            <MessageCircle className="w-6 h-6 text-violet-300" />
-
-            <h3 className="mt-5 text-lg font-black">
-              Inteligencia
-              organizacional
-            </h3>
-
-            <p className="mt-2 text-sm text-slate-500">
-              Aquí crecerá el
-              análisis de
-              evolución,
-              participación y
-              acciones conforme
-              Psyqus acumule
-              información real
-              suficiente.
-            </p>
-          </div>
-        </section>
-
-        {/* =================================================
-            FOOTER
-        ================================================= */}
-
-        <footer className="border-t border-white/10 pt-6 pb-3">
-          <p className="text-xs text-slate-600">
-            Psyqus · Centro
-            Profesional ·
-            Información basada
-            en registros
-            disponibles en la
-            plataforma.
-          </p>
+        <footer className="flex items-center gap-2 border-t border-white/5 pt-6 text-sm text-slate-500">
+          <ClipboardList className="h-4 w-4" />
+          Psyqus orienta y ordena la información; las decisiones clínicas corresponden al profesional.
         </footer>
-      </section>
+      </div>
     </main>
+  );
+}
+
+function SectionTitle({
+  numero,
+  titulo,
+  explicacion,
+}: {
+  numero: string;
+  titulo: string;
+  explicacion: string;
+}) {
+  return (
+    <div className="mb-4 flex gap-4">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-cyan-400/10 text-sm font-black text-cyan-300">
+        {numero}
+      </span>
+      <div>
+        <h2 className="text-xl font-black md:text-2xl">{titulo}</h2>
+        <p className="mt-1 max-w-3xl text-sm leading-relaxed text-slate-400">
+          {explicacion}
+        </p>
+      </div>
+    </div>
   );
 }

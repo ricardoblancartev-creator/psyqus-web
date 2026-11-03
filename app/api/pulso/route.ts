@@ -42,6 +42,25 @@ async function getSupabaseAuthed() {
   };
 }
 
+const CAMPOS_PULSO =
+  "id, semana_inicio, energia, desconexion, apoyo, dificultad";
+
+/*
+  La columna "sentido" (dimensión espiritual) se agrega con
+  supabase/pulso-sentido.sql. Mientras no exista, el pulso
+  sigue funcionando sin ella.
+*/
+function esColumnaFaltante(error: {
+  code?: string;
+  message?: string;
+}) {
+  return (
+    error.code === "42703" ||
+    error.code === "PGRST204" ||
+    /sentido/.test(error.message || "")
+  );
+}
+
 /* =========================================================
    GET
 ========================================================= */
@@ -93,32 +112,33 @@ export async function GET(
       );
     }
 
-    const {
+    const leer = (campos: string) =>
+      supabase
+        .from(
+          "pulsos_semanales"
+        )
+        .select(campos)
+        .eq(
+          "user_id",
+          userId
+        )
+        .eq(
+          "semana_inicio",
+          semana
+        )
+        .maybeSingle();
+
+    let {
       data,
       error,
-    } = await supabase
-      .from(
-        "pulsos_semanales"
-      )
-      .select(
-        `
-          id,
-          semana_inicio,
-          energia,
-          desconexion,
-          apoyo,
-          dificultad
-        `
-      )
-      .eq(
-        "user_id",
-        userId
-      )
-      .eq(
-        "semana_inicio",
-        semana
-      )
-      .maybeSingle();
+    } = await leer(
+      `${CAMPOS_PULSO}, sentido`
+    );
+
+    // Si la columna "sentido" aún no existe, se lee sin ella.
+    if (error && esColumnaFaltante(error)) {
+      ({ data, error } = await leer(CAMPOS_PULSO));
+    }
 
     if (error) {
       console.error(
@@ -196,6 +216,7 @@ export async function POST(
       energia,
       desconexion,
       apoyo,
+      sentido,
       dificultad,
     } = body;
 
@@ -247,43 +268,75 @@ export async function POST(
             )
         : null;
 
-    /* UPSERT */
-
-    const {
-      data,
-      error,
-    } = await supabase
-      .from(
-        "pulsos_semanales"
-      )
-      .upsert(
+    /* sentido es opcional para no romper pulsos anteriores */
+    if (
+      sentido !== undefined &&
+      sentido !== null &&
+      !validScale(sentido)
+    ) {
+      return Response.json(
         {
-          user_id:
-            userId,
-
-          semana_inicio,
-
-          energia,
-
-          desconexion,
-
-          apoyo,
-
-          dificultad:
-            cleanDifficulty ||
-            null,
-
-          updated_at:
-            new Date()
-              .toISOString(),
+          error:
+            "INVALID_DATA",
         },
         {
+          status: 400,
+        }
+      );
+    }
+
+    /* UPSERT */
+
+    const fila: Record<string, unknown> = {
+      user_id:
+        userId,
+
+      semana_inicio,
+
+      energia,
+
+      desconexion,
+
+      apoyo,
+
+      dificultad:
+        cleanDifficulty ||
+        null,
+
+      updated_at:
+        new Date()
+          .toISOString(),
+    };
+
+    const guardar = (valores: Record<string, unknown>) =>
+      supabase
+        .from(
+          "pulsos_semanales"
+        )
+        .upsert(valores, {
           onConflict:
             "user_id,semana_inicio",
-        }
-      )
-      .select()
-      .single();
+        })
+        .select()
+        .single();
+
+    let {
+      data,
+      error,
+    } = await guardar(
+      validScale(sentido)
+        ? { ...fila, sentido }
+        : fila
+    );
+
+    // Si la columna "sentido" aún no existe, se guarda sin ella.
+    if (
+      error &&
+      validScale(sentido) &&
+      esColumnaFaltante(error)
+    ) {
+      ({ data, error } = await guardar(fila));
+    }
 
     if (error) {
       console.error(
