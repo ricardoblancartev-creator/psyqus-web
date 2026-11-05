@@ -9,6 +9,7 @@ import {
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import PsyqusNavigation from "@/components/PsyqusNavigation";
+import guiones from "@/contenido/shorts/guiones.json";
 import {
   Play,
   Pause,
@@ -31,51 +32,22 @@ type Short = {
   orden: number | null;
 };
 
-const SHORTS_LOCALES: Short[] = [
-{"id": "psyqus-meditar-sin-mente-en-blanco", "titulo": "Meditar no es dejar la mente en blanco", "descripcion": "Meditar no significa dejar la mente en blanco. Distraerte puede ser parte de la práctica.", "categoria": "Meditación", "video_url": "/shorts/meditar-sin-mente-en-blanco.mp4", "poster_url": "/shorts/meditar-sin-mente-en-blanco.jpg", "cta_label": "Explorar herramientas", "cta_href": "/mindfulness", "orden": -89},
-{"id": "psyqus-meditacion-y-estres", "titulo": "Cómo puede ayudar la meditación", "descripcion": "La meditación puede ayudar a algunas personas a manejar el estrés. Los resultados varían; no es una solución inmediata ni universal.", "categoria": "Meditación", "video_url": "/shorts/meditacion-y-estres.mp4", "poster_url": "/shorts/meditacion-y-estres.jpg", "cta_label": "Explorar herramientas", "cta_href": "/mindfulness", "orden": -88},
-{"id": "psyqus-pausa-antes-de-responder", "titulo": "Una pausa antes de responder", "descripcion": "Antes de responder un mensaje difícil, si puedes y es seguro, date unos momentos para revisar qué necesitas.", "categoria": "Meditación", "video_url": "/shorts/pausa-antes-de-responder.mp4", "poster_url": "/shorts/pausa-antes-de-responder.jpg", "cta_label": "Explorar herramientas", "cta_href": "/mindfulness", "orden": -87},
-
-{"id": "psyqus-estres-senales", "titulo": "Tu estrés puede avisar antes", "descripcion": "Hoy te cuesta concentrarte y hasta un mensaje pequeño te pesa.", "categoria": "Estrés", "video_url": "/shorts/estres-senales.mp4", "poster_url": "/shorts/estres-senales.jpg", "cta_label": "Seguir aprendiendo", "cta_href": "/psicoeducacion", "orden": -20},
-{"id": "psyqus-anticipar-saturacion", "titulo": "Antes de llegar al límite", "descripcion": "Te llega otro pendiente y dices que sí sin revisar lo que ya tienes.", "categoria": "Estrés", "video_url": "/shorts/anticipar-saturacion.mp4", "poster_url": "/shorts/anticipar-saturacion.jpg", "cta_label": "Seguir aprendiendo", "cta_href": "/psicoeducacion", "orden": -19},
-{"id": "psyqus-companeros-acuerdos", "titulo": "Llevarse bien también se acuerda", "descripcion": "Tu compañero entrega tarde y tú terminas corrigiendo todo.", "categoria": "Convivencia", "video_url": "/shorts/companeros-acuerdos.mp4", "poster_url": "/shorts/companeros-acuerdos.jpg", "cta_label": "Seguir aprendiendo", "cta_href": "/psicoeducacion", "orden": -18},
-{"id": "psyqus-chat-malentendidos", "titulo": "Un mensaje seco no cuenta todo", "descripcion": "Lees el mensaje y piensas: seguro está enojado conmigo.", "categoria": "Convivencia", "video_url": "/shorts/chat-malentendidos.mp4", "poster_url": "/shorts/chat-malentendidos.jpg", "cta_label": "Seguir aprendiendo", "cta_href": "/psicoeducacion", "orden": -17},
-{"id": "psyqus-pedir-con-asertividad", "titulo": "Pedir un cambio sin atacar", "descripcion": "La conversación se vuelve una pelea y lo que necesitas queda perdido.", "categoria": "Comunicación", "video_url": "/shorts/pedir-con-asertividad.mp4", "poster_url": "/shorts/pedir-con-asertividad.jpg", "cta_label": "Seguir aprendiendo", "cta_href": "/psicoeducacion", "orden": -16},
-{"id": "psyqus-poner-limites", "titulo": "Decir que no sin pelear", "descripcion": "Ya tienes dos entregas y te pasan una tercera.", "categoria": "Comunicación", "video_url": "/shorts/poner-limites.mp4", "poster_url": "/shorts/poner-limites.jpg", "cta_label": "Seguir aprendiendo", "cta_href": "/psicoeducacion", "orden": -15},
-{"id": "psyqus-reconocer-violencia", "titulo": "No todo es una broma", "descripcion": "Se burlan de ti delante del equipo y después dicen que era jugando.", "categoria": "Buen trato", "video_url": "/shorts/reconocer-violencia.mp4", "poster_url": "/shorts/reconocer-violencia.jpg", "cta_label": "Pedir apoyo", "cta_href": "/buzon", "orden": -14},
-{"id": "psyqus-acompanar-companero", "titulo": "Si un compañero te cuenta algo", "descripcion": "Alguien te cuenta que se siente intimidado por otra persona del trabajo.", "categoria": "Buen trato", "video_url": "/shorts/acompanar-companero.mp4", "poster_url": "/shorts/acompanar-companero.jpg", "cta_label": "Pedir apoyo", "cta_href": "/buzon", "orden": -13},
-
-  {
-    id: "psyqus-enfoque",
-    titulo: "Un paso a la vez",
-    descripcion: "Una pausa para elegir qué pendiente atender primero.",
-    categoria: "Enfoque",
-    video_url: "/shorts/enfoque.mp4",
-    cta_label: "Recuperar concentración",
-    cta_href: "/mindfulness",
-    orden: 1,
-  },
-  {
-    id: "psyqus-pausa",
-    titulo: "Tu pausa empieza aquí",
-    descripcion: "Suelta los hombros y tómate un momento a tu ritmo.",
-    categoria: "Pausa",
-    video_url: "/shorts/pausa.mp4",
-    cta_label: "Hacer una pausa",
-    cta_href: "/mindfulness",
-    orden: 2,
-  },
-  {
-    id: "psyqus-cierre",
-    titulo: "Por hoy, cierra aquí",
-    descripcion: "Deja anotado lo pendiente y el primer paso para mañana.",
-    categoria: "Descanso",
-    video_url: "/shorts/cierre.mp4",
-    cta_label: "Explorar herramientas",
-    cta_href: "/mindfulness",
-    orden: 3,
-  },
-];
+/*
+  Catálogo local: sale de contenido/shorts/guiones.json, el mismo archivo que
+  usa el generador (scripts/shorts-v2/generar.mjs). Si Supabase devuelve un
+  video con el mismo nombre de archivo, se conserva la versión local.
+*/
+const SHORTS_LOCALES: Short[] = guiones.map((g, i) => ({
+  id: `psyqus-${g.id}`,
+  titulo: g.titulo,
+  descripcion: g.descripcion,
+  categoria: g.categoria,
+  video_url: `/shorts/${g.id}.mp4`,
+  poster_url: `/shorts/${g.id}.jpg`,
+  cta_label: g.cta_label,
+  cta_href: g.cta_href,
+  orden: -100 + i,
+}));
 
 function internalHref(value: string | null) {
   return value &&

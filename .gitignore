@@ -14,3 +14,7 @@ public/shorts/*-muestra.mp4
 *.visual.tmp.mp4
 *.final.tmp.mp4
 *.bak
+
+# Generador de Shorts v2: archivos temporales y de salida
+scripts/shorts-v2/.trabajo/
+scripts/shorts-v2/salida/
