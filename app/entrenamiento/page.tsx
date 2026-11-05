@@ -468,442 +468,297 @@ export default function EntrenamientoPage() {
       (item) => item.completed
     ).length;
 
-  const percentage =
-    tracks.length > 0
-      ? Math.round(
-          (completedCount / tracks.length) * 100
-        )
-      : 0;
+  const [vista, setVista] = useState<"lista" | "practica">("lista");
+
+  function abrir(trackId: string) {
+    setActiveTrackId(trackId);
+    setVista("practica");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  async function repetir() {
+    const next = { step: 1, completed: progress[activeTrack.id]?.completed === true };
+    const saved = await persist(next);
+    if (!saved) return;
+    setProgress((prev) => ({ ...prev, [activeTrack.id]: next }));
+    setSelectedOption(null);
+    setFeedbackVisible(false);
+  }
+
+  function estadoDe(track: Track) {
+    const p = progress[track.id];
+    if (!p) return { texto: "Nuevo", boton: "Empezar", tono: "text-slate-400" };
+    if (p.completed && p.step > track.steps.length)
+      return { texto: "Completado", boton: "Repetir", tono: "text-emerald-300" };
+    if (p.completed) return { texto: `Repasando · paso ${p.step} de ${track.steps.length}`, boton: "Continuar", tono: "text-cyan-300" };
+    if (p.step > track.steps.length) return { texto: "Falta cerrar", boton: "Terminar", tono: "text-amber-300" };
+    return { texto: `En curso · paso ${p.step} de ${track.steps.length}`, boton: "Continuar", tono: "text-cyan-300" };
+  }
 
   const ActiveIcon =
-    iconMap[
-      activeTrack.id as keyof typeof iconMap
-    ] || Brain;
+    iconMap[activeTrack.id as keyof typeof iconMap] || Brain;
+
+  const opcionElegida =
+    activeScenario && selectedOption !== null
+      ? activeScenario.options[selectedOption]
+      : null;
+
+  const opcionRecomendada = activeScenario?.options.find((o) => o.recommended) || null;
+
+  const yaCompletado = progress[activeTrack.id]?.completed === true;
+
+  /* =========================================================
+     VISTA 1 · ELEGIR ESCENARIO
+  ========================================================= */
+
+  if (vista === "lista") {
+    return (
+      <main className="min-h-screen bg-[#020617] text-white">
+        <div className="mx-auto max-w-5xl px-5 py-8 md:py-12">
+          <Link href="/dashboard" className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-white">
+            <ArrowLeft className="h-4 w-4" /> Volver
+          </Link>
+
+          <header className="mt-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="flex items-center gap-2 text-sm font-semibold text-cyan-300">
+                <GraduationCap className="h-4 w-4" /> Práctica
+              </p>
+              <h1 className="mt-2 text-3xl font-bold md:text-4xl">¿Qué situación quieres practicar?</h1>
+              <p className="mt-2 max-w-2xl text-slate-400">
+                Elige una situación del trabajo, decide qué harías y descubre por qué una respuesta funciona mejor que otra.
+              </p>
+            </div>
+            {!loadingProgress && (
+              <p className="text-sm text-slate-400">
+                Completaste <strong className="text-white">{completedCount} de {tracks.length}</strong>
+              </p>
+            )}
+          </header>
+
+          {saveError && (
+            <p className="mt-6 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">{saveError}</p>
+          )}
+
+          <ul className="mt-8 grid gap-4 md:grid-cols-3">
+            {tracks.map((track) => {
+              const Icono = iconMap[track.id as keyof typeof iconMap] || Brain;
+              const estado = estadoDe(track);
+              return (
+                <li key={track.id}>
+                  <button
+                    type="button"
+                    onClick={() => abrir(track.id)}
+                    className="group flex h-full w-full flex-col rounded-2xl border border-white/10 bg-slate-900/60 p-5 text-left transition hover:border-cyan-400/40 hover:bg-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-400"
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-400/10">
+                        <Icono className="h-5 w-5 text-cyan-300" />
+                      </span>
+                      <span className={`text-xs font-semibold ${estado.tono}`}>
+                        {estado.texto === "Completado" && <CheckCircle2 className="mr-1 inline h-3.5 w-3.5" />}
+                        {estado.texto}
+                      </span>
+                    </div>
+                    <p className="mt-4 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                      {track.category} · {track.duration}
+                    </p>
+                    <h2 className="mt-1 text-lg font-bold leading-snug">{track.title}</h2>
+                    <p className="mt-2 flex-1 text-sm leading-relaxed text-slate-400">{track.subtitle}</p>
+                    <span className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-cyan-300 group-hover:gap-2.5 transition-all">
+                      {estado.boton} <ArrowRight className="h-4 w-4" />
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      </main>
+    );
+  }
+
+  /* =========================================================
+     VISTA 2 · PRACTICAR UN ESCENARIO
+  ========================================================= */
+
+  const totalPasos = activeTrack.steps.length + 1; // pasos + cierre
+  const pasoActual = Math.min(currentStep, totalPasos);
 
   return (
-    <main className="min-h-screen bg-[#020617] text-white relative overflow-hidden">
+    <main className="min-h-screen bg-[#020617] text-white">
+      <div className="mx-auto max-w-2xl px-5 py-8 md:py-12">
+        <button
+          type="button"
+          onClick={() => setVista("lista")}
+          className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-white"
+        >
+          <ArrowLeft className="h-4 w-4" /> Todas las situaciones
+        </button>
 
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(6,182,212,0.12),transparent_25%),radial-gradient(circle_at_bottom_left,rgba(20,184,166,0.10),transparent_24%),radial-gradient(circle_at_center,rgba(168,85,247,0.08),transparent_26%)]" />
+        <header className="mt-6">
+          <p className="flex items-center gap-2 text-sm font-semibold text-cyan-300">
+            <ActiveIcon className="h-4 w-4" /> {activeTrack.category}
+          </p>
+          <h1 className="mt-2 text-2xl font-bold leading-tight md:text-3xl">{activeTrack.title}</h1>
 
-      <div className="absolute inset-0 opacity-[0.06] [background-image:linear-gradient(rgba(255,255,255,0.14)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.14)_1px,transparent_1px)] [background-size:42px_42px]" />
-
-      <section className="relative max-w-7xl mx-auto px-5 md:px-6 py-7 md:py-10">
-
-        <div className="mb-5">
-          <Link
-            href="/dashboard"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-slate-400 hover:text-cyan-300 transition"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Inicio
-          </Link>
-        </div>
-
-        <header className="rounded-[2rem] border border-white/10 bg-slate-950/65 backdrop-blur-xl p-6 md:p-8 mb-8">
-
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-
-            <div className="flex items-start gap-4">
-
-              <div className="w-14 h-14 rounded-2xl bg-cyan-500/10 border border-cyan-400/20 flex items-center justify-center shrink-0">
-                <GraduationCap className="w-7 h-7 text-cyan-300" />
-              </div>
-
-              <div>
-                <p className="text-[10px] md:text-[11px] uppercase tracking-[0.3em] text-cyan-400/70 font-semibold mb-2">
-                  Psyqus · Práctica
-                </p>
-
-                <h1 className="text-3xl md:text-5xl font-black tracking-tight">
-                  Simulador laboral
-                </h1>
-
-                <p className="mt-3 text-slate-300 max-w-3xl leading-relaxed">
-                  Practica decisiones difíciles en situaciones
-                  laborales antes de enfrentarlas en la vida real.
-                </p>
-              </div>
-
-            </div>
-
-            <div className="rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-4 min-w-[220px]">
-
-              <p className="text-xs uppercase tracking-[0.2em] text-emerald-300/80">
-                Escenarios completados
-              </p>
-
-              {loadingProgress ? (
-                <p className="mt-2 text-sm text-slate-400">
-                  Cargando...
-                </p>
-              ) : (
-                <>
-                  <div className="mt-2 flex items-end justify-between gap-3">
-                    <p className="text-3xl font-black text-emerald-300">
-                      {completedCount}/{tracks.length}
-                    </p>
-
-                    <p className="text-sm font-bold text-emerald-200">
-                      {percentage}%
-                    </p>
-                  </div>
-
-                  <div className="mt-3 h-2 rounded-full bg-slate-950/60 overflow-hidden">
-                    <div
-                      className="h-full bg-emerald-300 rounded-full transition-all duration-500"
-                      style={{
-                        width: `${percentage}%`,
-                      }}
-                    />
-                  </div>
-                </>
-              )}
-
-            </div>
-
-          </div>
-
+          {/* Avance */}
+          <ol className="mt-5 flex gap-2" aria-label={`Paso ${pasoActual} de ${totalPasos}`}>
+            {Array.from({ length: totalPasos }, (_, i) => (
+              <li
+                key={i}
+                className={`h-1.5 flex-1 rounded-full ${i + 1 < pasoActual ? "bg-cyan-400" : i + 1 === pasoActual ? "bg-cyan-400/70" : "bg-white/10"}`}
+              />
+            ))}
+          </ol>
+          <p className="mt-2 text-xs text-slate-500">
+            {inConclusion ? "Cierre" : `Paso ${pasoActual} de ${activeTrack.steps.length}`}
+          </p>
         </header>
 
         {saveError && (
-          <div className="mb-6 rounded-2xl border border-red-400/20 bg-red-500/10 p-4">
-            <p className="text-sm text-red-200">
-              {saveError}
-            </p>
-          </div>
+          <p className="mt-6 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">{saveError}</p>
         )}
 
-        <div className="grid lg:grid-cols-[0.82fr_1.18fr] gap-6">
+        {/* PASOS */}
+        {activeScenario && (
+          <section className="mt-6 space-y-5">
+            {currentStep === 1 && (
+              <div className="rounded-2xl border border-white/10 bg-slate-900/60 p-5">
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">La situación</p>
+                <p className="mt-2 leading-relaxed text-slate-200">{activeTrack.context}</p>
+              </div>
+            )}
 
-          <div>
-
-            <p className="text-xs uppercase tracking-[0.24em] text-slate-500">
-              Escenarios disponibles
-            </p>
-
-            <h2 className="mt-1 mb-5 text-2xl font-black">
-              ¿Qué quieres practicar?
-            </h2>
-
-            <div className="space-y-3">
-
-              {tracks.map((track) => {
-                const Icon =
-                  iconMap[
-                    track.id as keyof typeof iconMap
-                  ] || Brain;
-
-                const active =
-                  activeTrackId === track.id;
-
-                const completed =
-                  progress[track.id]?.completed;
-
-                return (
-                  <button
-                    type="button"
-                    key={track.id}
-                    onClick={() =>
-                      setActiveTrackId(track.id)
-                    }
-                    className={`w-full text-left rounded-[1.5rem] border p-5 transition ${
-                      active
-                        ? "border-cyan-400/30 bg-cyan-500/10 shadow-[0_0_35px_rgba(34,211,238,0.07)]"
-                        : "border-white/10 bg-slate-950/55 hover:border-white/20 hover:bg-white/[0.035]"
-                    }`}
-                  >
-
-                    <div className="flex items-start gap-4">
-
-                      <div className="w-11 h-11 rounded-xl border border-white/10 bg-white/5 flex items-center justify-center shrink-0">
-                        <Icon className="w-5 h-5 text-cyan-300" />
-                      </div>
-
-                      <div className="flex-1 min-w-0">
-
-                        <div className="flex items-start justify-between gap-3">
-
-                          <div>
-                            <p className="text-[10px] uppercase tracking-[0.18em] text-cyan-300/70">
-                              {track.category}
-                            </p>
-
-                            <h3 className="mt-1 text-lg font-black text-white leading-tight">
-                              {track.title}
-                            </h3>
-                          </div>
-
-                          {completed && (
-                            <CheckCircle2 className="w-5 h-5 text-emerald-300 shrink-0" />
-                          )}
-
-                        </div>
-
-                        <p className="mt-2 text-sm leading-relaxed text-slate-400">
-                          {track.subtitle}
-                        </p>
-
-                        <p className="mt-3 text-xs text-slate-500">
-                          {track.duration}
-                        </p>
-
-                      </div>
-
-                    </div>
-
-                  </button>
-                );
-              })}
-
+            <div>
+              <p className="leading-relaxed text-slate-300">{activeScenario.situation}</p>
+              <h2 className="mt-3 text-xl font-bold">{activeScenario.question}</h2>
             </div>
 
-          </div>
+            <ul className="space-y-3">
+              {activeScenario.options.map((option, index) => {
+                const elegida = selectedOption === index;
+                const mostrar = feedbackVisible && elegida;
+                const borde = mostrar
+                  ? option.recommended
+                    ? "border-emerald-400/60 bg-emerald-500/10"
+                    : "border-amber-400/60 bg-amber-500/10"
+                  : elegida
+                    ? "border-cyan-400/60 bg-cyan-500/10"
+                    : "border-white/10 bg-slate-900/60 hover:border-white/25";
+                return (
+                  <li key={index}>
+                    <button
+                      type="button"
+                      disabled={feedbackVisible}
+                      onClick={() => {
+                        setSelectedOption(index);
+                        setFeedbackVisible(true);
+                      }}
+                      className={`flex w-full gap-3 rounded-2xl border p-4 text-left transition disabled:cursor-default ${borde}`}
+                    >
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/10 text-sm font-bold">
+                        {String.fromCharCode(65 + index)}
+                      </span>
+                      <span className="leading-relaxed">“{option.text}”</span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
 
-          <div className="space-y-5">
-
-            <section className="rounded-[1.75rem] border border-white/10 bg-slate-950/65 p-6 md:p-7">
-
-              <div className="flex items-start gap-4">
-
-                <div className="w-12 h-12 rounded-2xl border border-cyan-400/20 bg-cyan-500/10 flex items-center justify-center shrink-0">
-                  <ActiveIcon className="w-6 h-6 text-cyan-300" />
-                </div>
-
-                <div>
-
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-cyan-300/70">
-                    {activeTrack.category}
-                  </p>
-
-                  <h2 className="mt-2 text-2xl md:text-3xl font-black">
-                    {activeTrack.title}
-                  </h2>
-
-                  <p className="mt-3 text-slate-300 leading-relaxed">
-                    {activeTrack.context}
-                  </p>
-
-                </div>
-
-              </div>
-
-            </section>
-
-            {inScenario && activeScenario && (
-              <section className="rounded-[1.75rem] border border-fuchsia-400/15 bg-slate-950/65 p-6">
-
-                <div className="flex items-center justify-between gap-4 mb-5">
-
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.2em] text-fuchsia-300/70">
-                      Escena {currentStep} de {activeTrack.steps.length}
-                    </p>
-
-                    <h3 className="mt-1 text-xl font-black">
-                      ¿Qué harías?
-                    </h3>
-                  </div>
-
-                  <AlertTriangle className="w-5 h-5 text-fuchsia-300" />
-
-                </div>
-
-                <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-5">
-
-                  <p className="text-slate-200 leading-relaxed">
-                    {activeScenario.situation}
-                  </p>
-
-                </div>
-
-                <p className="mt-6 font-black text-lg">
-                  {activeScenario.question}
+            {feedbackVisible && opcionElegida && (
+              <div
+                className={`rounded-2xl border p-5 ${
+                  opcionElegida.recommended ? "border-emerald-400/30 bg-emerald-500/10" : "border-amber-400/30 bg-amber-500/10"
+                }`}
+                role="status"
+              >
+                <p className={`flex items-center gap-2 font-bold ${opcionElegida.recommended ? "text-emerald-300" : "text-amber-300"}`}>
+                  {opcionElegida.recommended ? <CheckCircle2 className="h-5 w-5" /> : <AlertTriangle className="h-5 w-5" />}
+                  {opcionElegida.recommended ? "Buena opción" : "Hay una opción más útil"}
                 </p>
+                <p className="mt-2 leading-relaxed text-slate-200">{opcionElegida.feedback}</p>
 
-                <div className="mt-4 grid gap-3">
+                {!opcionElegida.recommended && opcionRecomendada && (
+                  <div className="mt-4 border-t border-white/10 pt-4">
+                    <p className="text-sm font-semibold text-emerald-300">La opción más útil</p>
+                    <p className="mt-1 leading-relaxed text-white">“{opcionRecomendada.text}”</p>
+                    <p className="mt-1 text-sm leading-relaxed text-slate-300">{opcionRecomendada.feedback}</p>
+                  </div>
+                )}
 
-                  {activeScenario.options.map(
-                    (option, index) => (
-                      <button
-                        type="button"
-                        key={`${activeTrack.id}-${currentStep}-${index}`}
-                        onClick={() => {
-                          setSelectedOption(index);
-                          setFeedbackVisible(false);
-                        }}
-                        className={`rounded-2xl border p-4 text-left transition ${
-                          selectedOption === index
-                            ? "border-cyan-400/40 bg-cyan-500/10"
-                            : "border-white/10 bg-white/[0.035] hover:bg-white/[0.06]"
-                        }`}
-                      >
-                        <span className="text-sm md:text-base text-white leading-relaxed">
-                          {option.text}
-                        </span>
-                      </button>
-                    )
-                  )}
-
+                <div className="mt-5 flex flex-wrap gap-3">
+                  <button
+                    type="button"
+                    disabled={saving}
+                    onClick={continueScenario}
+                    className="inline-flex items-center gap-2 rounded-xl bg-cyan-400 px-5 py-3 font-bold text-slate-950 transition hover:bg-cyan-300 disabled:opacity-50"
+                  >
+                    {saving ? "Guardando…" : currentStep < activeTrack.steps.length ? "Siguiente paso" : "Ver el cierre"}
+                    <ArrowRight className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedOption(null);
+                      setFeedbackVisible(false);
+                    }}
+                    className="rounded-xl border border-white/15 px-5 py-3 font-semibold text-slate-200 hover:bg-white/5"
+                  >
+                    Probar otra respuesta
+                  </button>
                 </div>
+              </div>
+            )}
+          </section>
+        )}
 
+        {/* CIERRE */}
+        {inConclusion && (
+          <section className="mt-6 space-y-5">
+            <div className="rounded-2xl border border-cyan-400/25 bg-cyan-500/10 p-6">
+              <p className="flex items-center gap-2 text-sm font-semibold text-cyan-300">
+                <Sparkles className="h-4 w-4" /> Lo que te llevas
+              </p>
+              <p className="mt-3 text-xl font-bold leading-snug">{activeTrack.takeaway}</p>
+            </div>
+            <p className="leading-relaxed text-slate-300">{activeTrack.conclusion}</p>
+
+            <div className="flex flex-wrap gap-3 pt-2">
+              {!yaCompletado ? (
                 <button
                   type="button"
-                  disabled={selectedOption === null}
-                  onClick={() =>
-                    setFeedbackVisible(true)
-                  }
-                  className="mt-5 rounded-2xl border border-cyan-400/20 bg-cyan-500/10 px-5 py-3 font-bold text-cyan-300 hover:bg-cyan-500/20 transition disabled:opacity-40"
+                  disabled={saving}
+                  onClick={markComplete}
+                  className="inline-flex items-center gap-2 rounded-xl bg-emerald-400 px-5 py-3 font-bold text-slate-950 transition hover:bg-emerald-300 disabled:opacity-50"
                 >
-                  Ver qué podría pasar
+                  <CheckCircle2 className="h-4 w-4" /> {saving ? "Guardando…" : "Marcar como completado"}
                 </button>
-
-                {feedbackVisible &&
-                  selectedOption !== null && (
-                    <div
-                      className={`mt-5 rounded-2xl border p-5 ${
-                        activeScenario.options[
-                          selectedOption
-                        ].recommended
-                          ? "border-emerald-400/20 bg-emerald-500/10"
-                          : "border-amber-400/20 bg-amber-500/10"
-                      }`}
-                    >
-
-                      <div className="flex items-center gap-3">
-
-                        {activeScenario.options[
-                          selectedOption
-                        ].recommended ? (
-                          <CheckCircle2 className="w-5 h-5 text-emerald-300" />
-                        ) : (
-                          <Brain className="w-5 h-5 text-amber-300" />
-                        )}
-
-                        <p className="font-black">
-                          {activeScenario.options[
-                            selectedOption
-                          ].recommended
-                            ? "Respuesta más constructiva"
-                            : "Hay una alternativa más útil"}
-                        </p>
-
-                      </div>
-
-                      <p className="mt-3 text-sm md:text-base text-slate-200 leading-relaxed">
-                        {
-                          activeScenario.options[
-                            selectedOption
-                          ].feedback
-                        }
-                      </p>
-
-                      <button
-                        type="button"
-                        disabled={saving}
-                        onClick={continueScenario}
-                        className="mt-5 inline-flex items-center gap-2 rounded-2xl bg-cyan-400 px-5 py-3 font-black text-slate-950 hover:bg-cyan-300 transition disabled:opacity-50"
-                      >
-                        {saving
-                          ? "Guardando..."
-                          : currentStep <
-                            activeTrack.steps.length
-                          ? "Continuar escenario"
-                          : "Ver cierre"}
-
-                        <ArrowRight className="w-4 h-4" />
-                      </button>
-
-                    </div>
-                  )}
-
-              </section>
-            )}
-
-            {inConclusion && (
-              <>
-                <section className="rounded-[1.75rem] border border-emerald-400/20 bg-emerald-500/[0.07] p-6">
-
-                  <div className="flex items-center gap-3">
-                    <Sparkles className="w-5 h-5 text-emerald-300" />
-
-                    <h3 className="text-xl font-black">
-                      Cierre del escenario
-                    </h3>
-                  </div>
-
-                  <p className="mt-4 text-slate-200 leading-relaxed">
-                    {activeTrack.conclusion}
-                  </p>
-
-                  <div className="mt-5 rounded-2xl border border-emerald-400/15 bg-slate-950/30 p-4">
-
-                    <p className="text-xs uppercase tracking-[0.2em] text-emerald-300/70">
-                      Idea para llevarte
-                    </p>
-
-                    <p className="mt-2 font-black text-emerald-100">
-                      {activeTrack.takeaway}
-                    </p>
-
-                  </div>
-
-                </section>
-
-                <section className="rounded-[1.75rem] border border-white/10 bg-slate-950/65 p-6">
-
-                  {progress[
-                    activeTrack.id
-                  ]?.completed ? (
-                    <div className="flex items-center gap-4">
-
-                      <div className="w-12 h-12 rounded-full border border-emerald-400/20 bg-emerald-500/10 flex items-center justify-center">
-                        <CheckCircle2 className="w-6 h-6 text-emerald-300" />
-                      </div>
-
-                      <div>
-                        <p className="font-black text-emerald-300">
-                          Escenario completado
-                        </p>
-
-                        <p className="mt-1 text-sm text-slate-400">
-                          Tu progreso está registrado en Psyqus.
-                        </p>
-                      </div>
-
-                    </div>
-                  ) : (
-                    <>
-                      <h3 className="text-xl font-black">
-                        Terminaste la práctica
-                      </h3>
-
-                      <p className="mt-2 text-sm text-slate-400">
-                        Guarda este escenario como completado.
-                      </p>
-
-                      <button
-                        type="button"
-                        onClick={markComplete}
-                        disabled={saving}
-                        className="mt-5 rounded-2xl bg-emerald-400 px-5 py-3 font-black text-slate-950 hover:bg-emerald-300 transition disabled:opacity-50"
-                      >
-                        {saving
-                          ? "Guardando..."
-                          : "Completar escenario"}
-                      </button>
-                    </>
-                  )}
-
-                </section>
-              </>
-            )}
-
-          </div>
-
-        </div>
-
-      </section>
-
+              ) : (
+                <p className="inline-flex items-center gap-2 rounded-xl bg-emerald-500/10 px-4 py-3 font-semibold text-emerald-300">
+                  <CheckCircle2 className="h-4 w-4" /> Completado
+                </p>
+              )}
+              <button
+                type="button"
+                disabled={saving}
+                onClick={repetir}
+                className="rounded-xl border border-white/15 px-5 py-3 font-semibold text-slate-200 hover:bg-white/5 disabled:opacity-50"
+              >
+                Repetir
+              </button>
+              <button
+                type="button"
+                onClick={() => setVista("lista")}
+                className="rounded-xl border border-white/15 px-5 py-3 font-semibold text-slate-200 hover:bg-white/5"
+              >
+                Elegir otra situación
+              </button>
+            </div>
+          </section>
+        )}
+      </div>
     </main>
   );
 }
