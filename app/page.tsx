@@ -7,10 +7,14 @@ import {
   type ReactNode,
 } from "react";
 
+import Image from "next/image";
+import Link from "next/link";
+
 import {
   Activity,
   ArrowRight,
   Brain,
+  Clock3,
   Building2,
   CheckCircle2,
   ClipboardCheck,
@@ -110,6 +114,57 @@ const recursos = [
       "Acceso a canales de comunicación y seguimiento cuando una herramienta digital no es suficiente.",
   },
 ];
+
+// Datos verificables del producto (no cifras de clientes ni promesas de resultados)
+const pruebas = [
+  {
+    icon: Play,
+    valor: "14 Shorts",
+    texto: "de menos de 40 segundos",
+  },
+  {
+    icon: Clock3,
+    valor: "1 minuto",
+    texto: "para el pulso semanal",
+  },
+  {
+    icon: ClipboardCheck,
+    valor: "NOM-035",
+    texto: "Guías de Referencia I y II",
+  },
+  {
+    icon: ShieldCheck,
+    valor: "Datos agregados",
+    texto: "solo para perfiles autorizados",
+  },
+];
+
+const temasShorts = [
+  "Comunicación asertiva",
+  "Manejo del estrés",
+  "Poner límites",
+  "Convivencia",
+  "Buen trato",
+  "Enfoque",
+];
+
+function LogoPsyqus({ size = 44 }: { size?: number }) {
+  return (
+    <span
+      className="relative inline-flex shrink-0 overflow-hidden rounded-2xl ring-1 ring-cyan-300/30 shadow-[0_0_28px_rgba(34,211,238,0.25)]"
+      style={{ width: size, height: size }}
+    >
+      <Image
+        src="/logo.jpg"
+        alt=""
+        width={size * 2}
+        height={size * 2}
+        className="h-full w-full object-cover"
+        priority
+      />
+    </span>
+  );
+}
 
 const informacion = [
   {
@@ -255,18 +310,33 @@ export default function Home() {
           aria-label="Navegación principal"
           className="mb-12 flex flex-wrap items-center justify-between gap-4 md:mb-20"
         >
-          <a href="/" aria-label="Psyqus, inicio">
-            <p className="text-2xl font-black tracking-tight">
-              Psyqus
-              <span className="text-cyan-300">.</span>
-            </p>
+          <Link
+            href="/"
+            aria-label="Psyqus, inicio"
+            className="flex items-center gap-3"
+          >
+            <LogoPsyqus size={44} />
 
-            <p className="mt-1 text-[9px] uppercase tracking-[0.18em] text-cyan-300/75">
-              Seguridad Mental Empresarial
-            </p>
-          </a>
+            <span>
+              <span className="block text-2xl font-black tracking-tight">
+                Psyqus
+                <span className="text-cyan-300">.</span>
+              </span>
+
+              <span className="mt-0.5 block text-[9px] uppercase tracking-[0.18em] text-cyan-300/75">
+                Habilidades humanas · Bienestar · NOM-035
+              </span>
+            </span>
+          </Link>
 
           <div className="flex items-center gap-2 sm:gap-3">
+            <a
+              href="#video"
+              className="hidden px-3 py-2 text-sm text-slate-300 hover:text-white md:block"
+            >
+              Ver video
+            </a>
+
             <a
               href="#experiencia"
               className="hidden px-3 py-2 text-sm text-slate-300 hover:text-white md:block"
@@ -285,7 +355,7 @@ export default function Home() {
               href="#cotizacion"
               className="rounded-xl bg-cyan-300 px-3 py-2.5 text-sm font-bold text-slate-950 hover:bg-cyan-200 sm:px-4"
             >
-              Conocer Psyqus
+              Agenda tu demo
             </a>
           </div>
         </nav>
@@ -302,43 +372,83 @@ export default function Home() {
                 aria-hidden="true"
                 className="h-4 w-4"
               />
-              Bienestar continuo para empresas
+              Plataforma mexicana para equipos de trabajo
             </p>
 
             <h1
               id="titulo-principal"
               className="text-5xl font-black leading-[1.03] tracking-tight sm:text-6xl xl:text-7xl"
             >
-              Salud mental para
-              <span className="block text-cyan-300">
-                tu equipo.
+              Las máquinas hacen lo perfecto.
+              <span className="mt-2 block bg-gradient-to-r from-cyan-300 via-cyan-200 to-violet-300 bg-clip-text text-transparent">
+                Tu equipo, lo que importa.
               </span>
             </h1>
 
             <p className="mt-6 text-2xl font-bold leading-tight sm:text-3xl">
-              Información útil para tu empresa.
+              Habilidades blandas y bienestar para tu equipo.
             </p>
 
             <p className="mt-5 max-w-2xl text-lg leading-relaxed text-slate-300">
-              Evaluaciones, seguimiento y herramientas para
-              el día a día. Tu equipo puede aprender con
-              Shorts, conversar con el acompañante de Psyqus
-              y practicar habilidades para situaciones
-              reales del trabajo.
+              En la era de la IA, lo que distingue a tu
+              empresa es su gente: cómo se comunica, cómo
+              maneja la presión y cómo trabaja en equipo.
+              Psyqus lo desarrolla con{" "}
+              <strong className="font-semibold text-white">
+                Shorts y microcursos de minutos
+              </strong>
+              , y reúne las{" "}
+              <strong className="font-semibold text-white">
+                evaluaciones NOM-035
+              </strong>{" "}
+              en la misma plataforma.
             </p>
 
-            <a
-              href="#experiencia"
-              className="mt-6 inline-flex items-center gap-2 text-sm font-bold text-cyan-300 hover:text-cyan-100"
-            >
-              Descubre cómo se vive Psyqus
-              <ArrowRight
-                aria-hidden="true"
-                className="h-4 w-4"
-              />
-            </a>
+            <div className="mt-7 flex flex-wrap items-center gap-3">
+              <a
+                href="#cotizacion"
+                className="inline-flex items-center gap-2 rounded-2xl bg-cyan-300 px-6 py-3.5 font-bold text-slate-950 shadow-[0_0_30px_rgba(34,211,238,0.35)] hover:bg-cyan-200"
+              >
+                Agenda tu demo
+                <ArrowRight
+                  aria-hidden="true"
+                  className="h-5 w-5"
+                />
+              </a>
 
-            <div className="mt-8 grid gap-3 sm:grid-cols-3">
+              <a
+                href="#video"
+                className="inline-flex items-center gap-2 rounded-2xl border border-white/15 px-6 py-3.5 font-semibold text-white hover:border-cyan-300/40 hover:bg-cyan-300/5"
+              >
+                <Play
+                  aria-hidden="true"
+                  className="h-4 w-4 text-cyan-300"
+                />
+                Ver el video (50 s)
+              </a>
+            </div>
+
+            <dl className="mt-9 grid grid-cols-2 gap-3 lg:grid-cols-4">
+              {pruebas.map(({ icon: Icon, valor, texto }) => (
+                <div
+                  key={valor}
+                  className="rounded-2xl border border-white/10 bg-white/[0.035] p-4"
+                >
+                  <Icon
+                    aria-hidden="true"
+                    className="h-5 w-5 text-cyan-300"
+                  />
+                  <dt className="mt-3 text-lg font-black leading-tight">
+                    {valor}
+                  </dt>
+                  <dd className="mt-1 text-xs leading-snug text-slate-400">
+                    {texto}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+
+            <div className="mt-5 grid gap-3 sm:grid-cols-3">
               <Card
                 icon={ClipboardCheck}
                 title="01 · Evaluar"
@@ -356,29 +466,9 @@ export default function Home() {
                 icon={GraduationCap}
                 title="03 · Fortalecer"
               >
-                Recursos prácticos para trabajar habilidades
-                y bienestar durante el año.
+                Shorts, microcursos y práctica de
+                situaciones reales durante todo el año.
               </Card>
-            </div>
-
-            <div className="mt-5 flex items-start gap-3 rounded-2xl border border-cyan-400/15 bg-cyan-500/[0.05] p-5">
-              <ShieldCheck
-                aria-hidden="true"
-                className="mt-0.5 h-6 w-6 shrink-0 text-cyan-300"
-              />
-
-              <div>
-                <p className="font-bold">
-                  NOM-035 integrada
-                </p>
-
-                <p className="mt-1 text-sm leading-relaxed text-slate-400">
-                  Las evaluaciones siguen siendo parte del
-                  núcleo técnico de Psyqus, integradas
-                  dentro de una experiencia más amplia de
-                  prevención y fortalecimiento.
-                </p>
-              </div>
             </div>
           </div>
 
@@ -397,14 +487,33 @@ export default function Home() {
                 </p>
 
                 <h2 className="text-3xl font-black leading-tight md:text-4xl">
-                  Lleva Psyqus a tu equipo
+                  Agenda tu demo
                 </h2>
 
-                <p className="mb-7 mt-3 leading-relaxed text-slate-400">
-                  Cuéntanos sobre tu organización y
-                  prepararemos una propuesta de
-                  implementación.
+                <p className="mt-3 leading-relaxed text-slate-400">
+                  Cuéntanos sobre tu organización. Te
+                  mostramos la plataforma y preparamos una
+                  propuesta a la medida de tu equipo.
                 </p>
+
+                <ul className="mb-7 mt-5 space-y-2 text-sm text-slate-300">
+                  {[
+                    "Recorrido por Shorts, microcursos y acompañante",
+                    "Cómo se aplican y leen las evaluaciones NOM-035",
+                    "Propuesta según el tamaño de tu equipo",
+                  ].map((punto) => (
+                    <li
+                      key={punto}
+                      className="flex items-start gap-2"
+                    >
+                      <CheckCircle2
+                        aria-hidden="true"
+                        className="mt-0.5 h-4 w-4 shrink-0 text-emerald-300"
+                      />
+                      {punto}
+                    </li>
+                  ))}
+                </ul>
 
                 <form
                   onSubmit={handleSubmit}
@@ -507,7 +616,7 @@ export default function Home() {
 
                     {loading
                       ? "Enviando..."
-                      : "Solicitar propuesta"}
+                      : "Quiero mi demo"}
                   </button>
                 </form>
               </>
@@ -531,6 +640,96 @@ export default function Home() {
                 </p>
               </div>
             )}
+          </div>
+        </section>
+
+        {/* VIDEO: EL CÍRCULO */}
+
+        <section
+          id="video"
+          aria-labelledby="titulo-video"
+          className="mt-24 scroll-mt-8 overflow-hidden rounded-[2rem] border border-cyan-400/20 bg-[radial-gradient(ellipse_at_80%_20%,rgba(34,211,238,0.12),transparent_55%),radial-gradient(ellipse_at_10%_90%,rgba(139,92,246,0.12),transparent_55%)] p-6 md:mt-28 md:p-10"
+        >
+          <div className="grid items-center gap-10 md:grid-cols-[1fr_300px] lg:grid-cols-[1fr_340px] lg:gap-16">
+            <div className="min-w-0">
+              <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-cyan-300">
+                <Play
+                  aria-hidden="true"
+                  className="h-4 w-4"
+                />
+                Psyqus en 50 segundos
+              </p>
+
+              <h2
+                id="titulo-video"
+                className="mt-4 text-4xl font-black leading-tight tracking-tight md:text-5xl"
+              >
+                Pídele a una máquina un círculo:
+                <span className="block text-cyan-300">
+                  siempre será perfecto.
+                </span>
+              </h2>
+
+              <p className="mt-5 max-w-xl text-lg leading-relaxed text-slate-300">
+                Pídeselo a una persona y ninguno será
+                igual. Ahí está lo que la IA no reemplaza, y
+                lo que Psyqus ayuda a desarrollar en tu
+                equipo.
+              </p>
+
+              <div className="mt-7 flex flex-wrap gap-2">
+                {[
+                  "Empatía",
+                  "Comunicación",
+                  "Creatividad",
+                  "Liderazgo",
+                  "Trabajo en equipo",
+                ].map((habilidad) => (
+                  <span
+                    key={habilidad}
+                    className="rounded-full border border-cyan-300/25 bg-slate-950/60 px-4 py-2 text-sm font-semibold text-cyan-100 shadow-[0_0_18px_rgba(34,211,238,0.08)]"
+                  >
+                    {habilidad}
+                  </span>
+                ))}
+              </div>
+
+              <p className="mt-8 text-xs font-bold uppercase tracking-[0.18em] text-slate-500">
+                Temas de los Shorts
+              </p>
+              <p className="mt-2 text-sm leading-relaxed text-slate-400">
+                {temasShorts.join(" · ")}
+              </p>
+
+              <a
+                href="#cotizacion"
+                className="mt-8 inline-flex items-center gap-2 rounded-2xl bg-cyan-300 px-6 py-3.5 font-bold text-slate-950 hover:bg-cyan-200"
+              >
+                Agenda tu demo
+                <ArrowRight
+                  aria-hidden="true"
+                  className="h-5 w-5"
+                />
+              </a>
+            </div>
+
+            <div className="mx-auto w-full max-w-[300px] rounded-[2.4rem] border border-cyan-300/40 bg-[#0B1224] p-2 shadow-[0_0_60px_rgba(34,211,238,0.22)] lg:max-w-[340px]">
+              <video
+                src="/videos/psyqus-circulo.mp4"
+                poster="/videos/psyqus-circulo-poster.jpg"
+                controls
+                playsInline
+                preload="none"
+                aria-label="Video de Psyqus: el círculo de la máquina y los círculos de las personas"
+                className="aspect-[9/16] w-full rounded-[2rem] bg-[#020617] object-cover"
+              >
+                Tu navegador no puede reproducir este
+                video.{" "}
+                <a href="/videos/psyqus-circulo.mp4">
+                  Abrir video
+                </a>
+              </video>
+            </div>
           </div>
         </section>
 
@@ -983,20 +1182,20 @@ export default function Home() {
         {/* CIERRE */}
 
         <section className="mt-24 rounded-[2rem] border border-cyan-400/20 bg-cyan-500/10 p-8 text-center md:p-12">
-          <Brain
-            aria-hidden="true"
-            className="mx-auto mb-5 h-10 w-10 text-cyan-300"
-          />
+          <div className="mb-6 flex justify-center">
+            <LogoPsyqus size={72} />
+          </div>
 
           <h2 className="mx-auto max-w-4xl text-4xl font-black leading-tight md:text-5xl">
-            Salud mental para tu equipo.
+            Habilidades blandas y bienestar para tu equipo.
             <span className="mt-2 block text-cyan-300">
               Información útil para tu empresa.
             </span>
           </h2>
 
           <p className="mx-auto mt-6 max-w-3xl text-lg text-cyan-100/75">
-            Evaluar es el comienzo. Fortalecer a las
+            Microcursos · Shorts · Evaluaciones NOM-035.
+            Evaluar es el comienzo; fortalecer a las
             personas es el trabajo continuo.
           </p>
 
@@ -1004,7 +1203,7 @@ export default function Home() {
             href="#cotizacion"
             className="mt-8 inline-flex items-center justify-center gap-2 rounded-2xl bg-cyan-300 px-8 py-4 font-bold text-slate-950 hover:bg-cyan-200"
           >
-            Conocer Psyqus
+            Agenda tu demo
             <ArrowRight
               aria-hidden="true"
               className="h-5 w-5"
@@ -1015,13 +1214,16 @@ export default function Home() {
         {/* FOOTER */}
 
         <footer className="mt-16 flex flex-col justify-between gap-5 border-t border-white/10 pb-4 pt-8 text-sm text-slate-400 md:flex-row md:items-center">
-          <div>
-            <p className="font-black text-white">
-              Psyqus
-            </p>
-            <p className="mt-1">
-              Seguridad Mental Empresarial
-            </p>
+          <div className="flex items-center gap-3">
+            <LogoPsyqus size={36} />
+            <div>
+              <p className="font-black text-white">
+                Psyqus
+              </p>
+              <p className="mt-0.5">
+                Habilidades humanas · Bienestar · NOM-035
+              </p>
+            </div>
           </div>
 
           <div className="flex flex-wrap gap-5">
