@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 
 import { createClerkSupabaseClient } from "@/lib/supabase-clerk";
+import CompromisoHonestidad from "@/components/CompromisoHonestidad";
 
 type Question = {
   id: number;
@@ -165,6 +166,7 @@ const [area, setArea] = useState("");
 const [puesto, setPuesto] = useState("");
 
 const [perfilCargando, setPerfilCargando] = useState(true);
+  const [aceptaHonestidad, setAceptaHonestidad] = useState(false);
 
 const [step, setStep] = useState(0);
 const [answers, setAnswers] = useState<Record<number, number>>({});
@@ -345,8 +347,10 @@ if (error) {
   )}
 </div>
 
+<CompromisoHonestidad aceptado={aceptaHonestidad} onChange={setAceptaHonestidad} />
+
 <button
-  disabled={perfilCargando || !nombre || !apellido || !area || !puesto}
+  disabled={perfilCargando || !nombre || !apellido || !area || !puesto || !aceptaHonestidad}
   onClick={() => setStarted(true)}
   className="mt-8 w-full rounded-2xl bg-cyan-400 px-6 py-5 text-lg font-bold text-slate-950 disabled:opacity-50"
 >

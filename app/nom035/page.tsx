@@ -5,6 +5,7 @@ import { useSession, useUser } from "@clerk/nextjs";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle2 } from "lucide-react";
 import { createClerkSupabaseClient } from "@/lib/supabase-clerk";
+import CompromisoHonestidad from "@/components/CompromisoHonestidad";
 
 type Question = {
   id: number;
@@ -168,6 +169,7 @@ export default function EncuestaPage() {
   const [apellido, setApellido] = useState("");
   const [email, setEmail] = useState("");
   const [perfilCargando, setPerfilCargando] = useState(true);
+  const [aceptaHonestidad, setAceptaHonestidad] = useState(false);
 useEffect(() => {
   async function cargarEmpleado() {
     if (!user || !session) return;
@@ -372,8 +374,10 @@ async function saveEvaluation(finalAnswers: Record<number, number>) {
 </div>
 
 
+<CompromisoHonestidad aceptado={aceptaHonestidad} onChange={setAceptaHonestidad} />
+
 <button
-  disabled={perfilCargando || !nombre || !apellido || !area || !puesto}
+  disabled={perfilCargando || !nombre || !apellido || !area || !puesto || !aceptaHonestidad}
   onClick={() => setStarted(true)}
   className="mt-8 w-full rounded-2xl bg-cyan-400 px-6 py-5 text-lg font-bold text-slate-950 disabled:opacity-50"
 >

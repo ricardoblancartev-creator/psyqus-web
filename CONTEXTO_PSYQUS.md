@@ -279,3 +279,9 @@ La versión instalada de Clerk no acepta `skipCache` en `getToken`; ese intento 
 - Cambios realizados: nuevo `components/AvisoPrivacidad.tsx` con tres variantes, colocado en `/ia` y `/experiencia` (chat), `/buzon` y al inicio de `/privacidad` (general). `/api/chat` ya no guarda el texto de las conversaciones del orientador (solo registra que hubo una interacción), para que sea cierto que nadie puede leerlas. El aviso del chat indica que el orientador no puede avisar a nadie y da el 911 y la Línea de la Vida (800 911 2000); la excepción por peligro para la vida se pone en el buzón, cuyos mensajes sí lee el equipo de apoyo.
 - Comprobaciones: `npx tsc --noEmit` sin errores nuevos. No se probó con sesión.
 - Pendientes: los textos de conversaciones del orientador guardados antes de este cambio siguen en `interacciones_psyqus` (borrarlos requiere autorización); definir el protocolo real del buzón con la psicóloga para que la promesa de confidencialidad y la excepción por peligro se cumplan.
+
+### 2026-11-14 — Compromiso de honestidad en los cuestionarios
+
+- Cambios realizados: nuevo `components/CompromisoHonestidad.tsx`; en `/nom035` y `/encuesta` el botón "Comenzar evaluación" solo se activa al marcar "Acepto responder con honestidad y no dar información falsa…".
+- Comprobaciones: `npx tsc --noEmit` sin errores nuevos. No se probó con sesión.
+- Pendientes: ninguno.
