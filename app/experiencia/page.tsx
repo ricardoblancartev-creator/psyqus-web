@@ -22,6 +22,7 @@ import {
   Play,
   ArrowLeft,
 } from "lucide-react";
+import AvisoPrivacidad from "@/components/AvisoPrivacidad";
 
 /*
   El avatar 3D (app/dashboard/components/Avatar3D.tsx) se conserva,
@@ -473,6 +474,8 @@ export default function ExperienciaPage() {
                     {error}
                   </p>
                 )}
+
+                <AvisoPrivacidad variante="chat" className="mb-3" />
 
                 <form
                   onSubmit={enviar}

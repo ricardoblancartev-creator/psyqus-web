@@ -15,6 +15,7 @@ import {
   Sparkles,
   Wind,
 } from "lucide-react";
+import AvisoPrivacidad from "@/components/AvisoPrivacidad";
 
 type ChatMessage = {
   role: "user" | "assistant";
@@ -423,6 +424,8 @@ export default function IAPage() {
                 </p>
               </div>
             )}
+
+            <AvisoPrivacidad variante="chat" className="mx-5 mt-5 md:mx-6" />
 
             <form
               onSubmit={handleSend}

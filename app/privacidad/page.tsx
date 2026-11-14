@@ -1,3 +1,4 @@
+import AvisoPrivacidad from "@/components/AvisoPrivacidad";
 export default function PrivacidadPage() {
   return (
     <main className="min-h-screen bg-[#020617] text-white relative overflow-hidden">
@@ -12,6 +13,8 @@ export default function PrivacidadPage() {
           <h1 className="text-4xl md:text-5xl font-black tracking-tight">
             Aviso de Privacidad
           </h1>
+
+          <AvisoPrivacidad variante="general" className="mt-6" />
 
           <div className="mt-8 space-y-8 text-slate-300 leading-relaxed">
             <section>

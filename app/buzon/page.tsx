@@ -13,6 +13,7 @@ import {
   ShieldCheck,
   UserRound,
 } from "lucide-react";
+import AvisoPrivacidad from "@/components/AvisoPrivacidad";
 
 export default function BuzonPage() {
   const { user } = useUser();
@@ -189,6 +190,8 @@ export default function BuzonPage() {
                 </div>
               </div>
             </div>
+
+            <AvisoPrivacidad variante="buzon" className="mx-6 mt-6 md:mx-7" />
 
             <form
               onSubmit={handleSubmit}

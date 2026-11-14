@@ -277,10 +277,10 @@ Mantén todas las reglas de seguridad anteriores.
     }
 
     /*
-      El Orientador de /ia registra la interacción.
-      Se guarda aquí, en servidor, con el user_id de
-      la sesión de Clerk; la respuesta es la que generó
-      este servidor, no la que envíe el navegador.
+      El Orientador de /ia registra QUE hubo una interacción,
+      con el user_id de la sesión de Clerk, pero NO guarda el
+      texto: el aviso de privacidad promete que nadie puede leer
+      lo que la persona escribe (components/AvisoPrivacidad.tsx).
     */
     let guardado: boolean | undefined;
 
@@ -296,8 +296,8 @@ Mantén todas las reglas de seguridad anteriores.
             {
               user_id: userId,
               tipo: "ia",
-              mensaje: ultimoMensaje.content.slice(0, 4000),
-              respuesta: reply,
+              mensaje: "[privado: no se guarda]",
+              respuesta: "[privado: no se guarda]",
               resumen_riesgo: null,
             },
           ]);
