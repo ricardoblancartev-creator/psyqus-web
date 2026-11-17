@@ -8,6 +8,7 @@ import {
   revisarLimites,
   respuestaLimite,
 } from "@/lib/limite-uso";
+import { dimensionPorClave } from "@/lib/dimensiones-bienestar";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -18,6 +19,35 @@ type ChatMessage = {
   role: "user" | "assistant";
   content: string;
 };
+
+/*
+  Cuando la persona toca un aspecto del bienestar en /experiencia
+  (biológico, psicológico, social o propósito), el acompañante
+  le ayuda a revisar cómo está en ese aspecto. La clave se valida
+  contra la lista fija: nunca se mete texto libre del cliente al prompt.
+*/
+function guiaAspecto(clave: unknown) {
+  const d = dimensionPorClave(clave);
+
+  if (!d) return "";
+
+  return `
+REVISIÓN DEL ASPECTO "${d.nombre.toUpperCase()}":
+
+La persona eligió revisar cómo está en su aspecto ${d.nombre.toLowerCase()}.
+Este aspecto abarca: ${d.abarca}
+Ejemplos: ${d.ejemplos.join(", ")}.
+
+Acompáñala así:
+- Haz una sola pregunta a la vez, sencilla y cálida, sobre este aspecto.
+- Escucha y refleja lo que dice con sus propias palabras.
+- Después de 2 o 3 intercambios, ofrece una lectura breve de cómo parece estar
+  en este aspecto (por ejemplo: "parece que tu descanso está pidiendo atención"),
+  sin diagnósticos ni etiquetas clínicas, y una sola acción pequeña y concreta.
+- Si la persona quiere, puede pasar a otro aspecto: biológico, psicológico,
+  social o propósito.
+`;
+}
 
 const SYSTEM_PROMPT = `
 Eres el Orientador de bienestar de Psyqus.
@@ -59,14 +89,16 @@ REGLAS OBLIGATORIAS:
 
 RECURSOS REALES DE PSYQUS QUE PUEDES RECOMENDAR:
 
-APRENDER:
+APRENDER (MINIJUEGOS):
 Ruta: /psicoeducacion
-Úsala cuando la persona quiera comprender o desarrollar una habilidad.
-Actualmente incluye contenidos sobre:
-- recuperación después de un día pesado;
-- sueño y desconexión;
-- concentración;
-- sobrepensamiento.
+Úsala cuando la persona quiera aprender o practicar una habilidad de forma ligera.
+Son minijuegos de 1 a 3 minutos:
+- "Respira con la bola": respiración guiada 4-4-6 en forma de juego;
+- "¿Hecho o interpretación?": separar lo que pasó de lo que suponemos en un desacuerdo;
+- "¿Cómo lo dirías?": elegir respuestas asertivas en situaciones de trabajo;
+- "Ponle nombre": reconocer emociones;
+- "Cambia el pensamiento": detectar trampas del pensamiento (catastrofizar, leer mentes, todo o nada) y verlo de forma más justa;
+- "Memorama del autocuidado": hábitos de sueño, movimiento, pausas y apoyo.
 
 HERRAMIENTAS RÁPIDAS:
 Ruta: /mindfulness
@@ -245,7 +277,8 @@ su nombre sin imprimir su ruta.
 
 Mantén todas las reglas de seguridad anteriores.
 `
-    : ""),
+    : "") +
+  guiaAspecto(body?.aspecto),
 
           },
           ...recentMessages,

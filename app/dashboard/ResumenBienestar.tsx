@@ -2,7 +2,6 @@ import { createClient } from "@supabase/supabase-js";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
 
 import { supabaseAdmin } from "@/lib/supabase/supabaseAdmin";
 import SignOutAction from "@/components/SignOutAction";
@@ -13,17 +12,13 @@ import { calificarCuestionarioII } from "@/lib/nom035-calificacion";
 import {
   Activity,
   ArrowRight,
-  BookOpen,
-  Brain,
-  BriefcaseBusiness,
   CheckCircle2,
   ClipboardList,
-  Focus,
+  Gamepad2,
   HeartHandshake,
   MessageCircle,
   Moon,
   Shield,
-  Sparkles,
   Stethoscope,
   UserRound,
   Users,
@@ -235,6 +230,12 @@ export default async function DashboardPage() {
       "Error leyendo empleado:",
       empleadoError
     );
+
+    /*
+      Si la base no responde (por ejemplo, el proyecto de Supabase está
+      pausado), NO mandamos a /onboarding: la persona sí tiene perfil.
+    */
+    return <ErrorCarga />;
   }
 
   if (!empleado) {
@@ -244,13 +245,6 @@ export default async function DashboardPage() {
   const firstName =
     empleado.nombre ||
     user?.firstName ||
-    "Usuario";
-
-  const fullName =
-    `${empleado.nombre || ""} ${
-      empleado.apellido || ""
-    }`.trim() ||
-    user?.fullName ||
     "Usuario";
 
   const email =
@@ -356,7 +350,7 @@ const pulsoCompletado = Boolean(pulsoSemanal);
 
 /*
   Último pulso (de cualquier semana) para el perfil
-  bio-psico-social-espiritual. Se usa "*" porque la
+  bio-psico-social-propósito. Se usa "*" porque la
   columna "sentido" puede no existir todavía; es la
   fila propia del usuario.
 */
@@ -505,911 +499,265 @@ if (ultimoPulsoError) {
 
   const necesidades = [
     {
-  href: "/ia",
-  title: "Hablar con Psyqus",
-  description:
-    "Cuéntame qué está pasando y recibe orientación inmediata con IA.",
-  icon: MessageCircle,
-},
-
+      href: "/experiencia",
+      title: "Hablar con Psyqus",
+      description: "Cuéntale al acompañante qué está pasando.",
+      icon: MessageCircle,
+    },
     {
       href: "/mindfulness",
       title: "Calmarme",
-      description:
-        "Haz una pausa breve con respiración o grounding.",
+      description: "Respiración o grounding en 1 minuto.",
       icon: Wind,
     },
     {
-      href: "/mindfulness",
-      title: "Concentrarme",
-      description:
-        "Haz un reset breve y vuelve a una sola tarea.",
-      icon: Focus,
-    },
-    {
       href: "/psicoeducacion",
-      title: "Dormir mejor",
-      description:
-        "Aprende a cerrar la jornada y facilitar la desconexión.",
-      icon: Moon,
+      title: "Aprender jugando",
+      description: "Minijuegos de emociones y convivencia.",
+      icon: Gamepad2,
     },
     {
       href: "/entrenamiento",
       title: "Resolver un conflicto",
-      description:
-        "Practica cómo abordar una situación laboral difícil.",
+      description: "Practica una conversación difícil.",
       icon: Users,
     },
     {
-      href: "/psicoeducacion",
-      title: "Dejar de sobrepensar",
-      description:
-        "Explora herramientas para ordenar pensamientos repetitivos.",
-      icon: Brain,
-    },
-    {
       href: "/mindfulness",
-      title: "Recuperarme del día",
-      description:
-        "Tómate unos minutos para cerrar una jornada pesada.",
-      icon: BriefcaseBusiness,
+      title: "Cerrar mi jornada",
+      description: "Desconéctate al terminar el día.",
+      icon: Moon,
     },
     {
       href: "/buzon",
       title: "Hablar con alguien",
-      description:
-        "Envía una solicitud para revisión humana dentro de Psyqus.",
+      description: "Pide apoyo de una persona.",
       icon: HeartHandshake,
     },
   ];
 
   /* =======================================================
      RENDER
+     Orden: saludo → pulso → 4 aspectos → ¿qué necesitas? →
+     evaluaciones → apoyo humano → (vista profesional).
   ======================================================= */
 
   return (
-    <main className="min-h-screen bg-[#020617] text-white relative overflow-hidden">
-      {/* FONDO */}
+    <main className="relative min-h-screen bg-[#020617] text-white">
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(6,182,212,0.12),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(168,85,247,0.08),transparent_28%)]" />
 
-      <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(circle_at_top_left,rgba(6,182,212,0.13),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(168,85,247,0.09),transparent_26%)]" />
-
-      <div className="fixed inset-0 pointer-events-none opacity-[0.045] [background-image:linear-gradient(rgba(255,255,255,0.12)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.12)_1px,transparent_1px)] [background-size:42px_42px]" />
-
-      <section className="relative max-w-7xl mx-auto px-5 md:px-6 py-6 md:py-8">
-        {/* =================================================
-            HEADER
-        ================================================= */}
-
-        <header className="mb-5">
-          <div className="flex items-center justify-between gap-4">
-            <Link
-              href="/dashboard"
-              className="flex items-center gap-3"
-            >
-              <div className="relative w-11 h-11 shrink-0">
-                <div className="absolute inset-0 rounded-full bg-cyan-400/20 blur-xl" />
-
-                <Image
-                  src="/logo.jpg"
-                  alt="Psyqus"
-                  width={44}
-                  height={44}
-                  className="relative w-11 h-11 object-contain mix-blend-screen"
-                />
-              </div>
-
-              <div>
-                <p className="font-black text-xl leading-none">
-                  Psyqus
-                </p>
-
-                <p className="mt-1 text-[9px] uppercase tracking-[0.22em] text-cyan-300/70">
-                  Bienestar para tu día de trabajo
-                </p>
-              </div>
-            </Link>
-
-            <div className="flex items-center gap-4">
-              <div className="hidden md:block text-right">
-                <p className="text-sm font-semibold text-white">
-                  {fullName}
-                </p>
-
-                <p className="text-xs text-slate-500">
-                  {email}
-                </p>
-              </div>
-
-              <SignOutAction />
-            </div>
+      <div className="relative mx-auto max-w-5xl px-5 py-6 md:px-6 md:py-8">
+        {/* SALUDO */}
+        <header className="mb-6 flex items-start justify-between gap-4">
+          <div>
+            <p className="text-sm font-semibold text-cyan-300">Mi bienestar</p>
+            <h1 className="mt-1 text-3xl font-black md:text-4xl">Hola, {firstName}</h1>
+            <p className="mt-1 text-xs text-slate-500">{email}</p>
           </div>
+          <SignOutAction />
         </header>
 
-        {/* =================================================
-            NAVEGACIÓN PRINCIPAL
-        ================================================= */}
-
-        <nav className="mb-8 overflow-x-auto">
-          <div className="min-w-max flex items-center gap-1 rounded-2xl border border-white/10 bg-slate-950/70 p-2">
-            <Link
-              href="/dashboard"
-              className="rounded-xl bg-cyan-400 px-4 py-2.5 text-sm font-black text-slate-950"
-            >
-              Inicio
+        {isProfessional && (
+          <div className="mb-6 flex flex-wrap gap-2 text-sm">
+            <Link href="/panel-psicologo" className="rounded-xl border border-rose-400/20 bg-rose-500/10 px-4 py-2 font-semibold text-rose-200 hover:bg-rose-500/20">
+              Panel profesional
             </Link>
-
-            <Link
-              href="/dashboard#mi-ruta"
-              className="rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-300 hover:bg-white/5 hover:text-white transition"
-            >
-              Mi ruta
+            <Link href="/nom035-resultados" className="rounded-xl border border-emerald-400/20 bg-emerald-500/10 px-4 py-2 font-semibold text-emerald-200 hover:bg-emerald-500/20">
+              Resultados NOM-035
             </Link>
-
-            <Link
-              href="/psicoeducacion"
-              className="rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-300 hover:bg-white/5 hover:text-white transition"
-            >
-              Aprender
-            </Link>
-
-            <Link
-              href="/mindfulness"
-              className="rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-300 hover:bg-white/5 hover:text-white transition"
-            >
-              Herramientas
-            </Link>
-
-            <Link
-              href="/buzon"
-              className="rounded-xl px-4 py-2.5 text-sm font-semibold text-amber-300 hover:bg-amber-500/10 transition"
-            >
-              Pedir ayuda
-            </Link>
-
-            {isProfessional && (
-              <>
-                <div className="h-5 w-px bg-white/10 mx-2" />
-
-                <Link
-                  href="/panel-psicologo"
-                  className="rounded-xl px-4 py-2.5 text-sm font-semibold text-rose-300 hover:bg-rose-500/10 transition"
-                >
-                  Panel profesional
-                </Link>
-
-                <Link
-                  href="/nom035-resultados"
-                  className="rounded-xl px-4 py-2.5 text-sm font-semibold text-emerald-300 hover:bg-emerald-500/10 transition"
-                >
-                  NOM-035
-                </Link>
-              </>
-            )}
           </div>
-        </nav>
+        )}
 
-        {/* =================================================
-            HERO / NECESIDADES
-        ================================================= */}
+        {/* PULSO SEMANAL */}
+        <Link
+          href="/pulso"
+          className={`group mb-6 flex items-center justify-between gap-4 rounded-[1.6rem] border p-5 transition ${
+            pulsoCompletado
+              ? "border-emerald-400/20 bg-emerald-500/[0.06]"
+              : "border-cyan-400/25 bg-cyan-500/[0.07] hover:bg-cyan-500/[0.11]"
+          }`}
+        >
+          <div className="flex items-center gap-4">
+            <div
+              className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${
+                pulsoCompletado ? "bg-emerald-500/15" : "bg-cyan-500/15"
+              }`}
+            >
+              {pulsoCompletado ? <CheckCircle2 className="h-6 w-6 text-emerald-300" /> : <Activity className="h-6 w-6 text-cyan-300" />}
+            </div>
+            <div>
+              <p className="font-black">{pulsoCompletado ? "Tu pulso de esta semana está listo" : "¿Cómo estuvo tu semana?"}</p>
+              <p className="text-sm text-slate-400">
+                {pulsoCompletado ? "Puedes actualizarlo cuando quieras." : "Pulso semanal · menos de 1 minuto"}
+              </p>
+            </div>
+          </div>
+          <span
+            className={`shrink-0 rounded-xl px-4 py-2 text-sm font-black ${
+              pulsoCompletado ? "text-emerald-300" : "bg-cyan-400 text-slate-950"
+            }`}
+          >
+            {pulsoCompletado ? "Listo ✓" : "Responder"}
+          </span>
+        </Link>
 
-        <section className="mb-8 rounded-[2rem] border border-cyan-400/15 bg-slate-950/70 overflow-hidden relative">
-          <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_15%_40%,rgba(34,211,238,0.12),transparent_32%)]" />
+        {/* LOS 4 ASPECTOS */}
+        <PerfilBienestar pulso={ultimoPulso || null} />
 
-          <div className="relative p-6 md:p-10">
-            <p className="text-sm text-cyan-300 font-semibold">
-              Hola, {firstName}.
+        {/* ¿QUÉ NECESITAS HOY? */}
+        <section className="mb-8">
+          <h2 className="mb-4 text-xl font-black">¿Qué necesitas hoy?</h2>
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+            {necesidades.map((opcion) => {
+              const Icon = opcion.icon;
+              return (
+                <Link
+                  key={opcion.title}
+                  href={opcion.href}
+                  className="group rounded-2xl border border-white/10 bg-white/[0.035] p-4 transition hover:border-cyan-400/25 hover:bg-cyan-500/[0.06]"
+                >
+                  <Icon className="h-5 w-5 text-cyan-300" />
+                  <p className="mt-3 font-bold">{opcion.title}</p>
+                  <p className="mt-1 text-xs leading-relaxed text-slate-500">{opcion.description}</p>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* EVALUACIONES */}
+        <section className="mb-8 rounded-[1.6rem] border border-white/10 bg-slate-950/65 p-5 md:p-6">
+          <div className="flex flex-wrap items-baseline justify-between gap-3">
+            <h2 className="text-xl font-black">Tus evaluaciones</h2>
+            {latestSurvey && <span className="text-xs text-slate-500">Última: {formatDate(latestSurvey.created_at)}</span>}
+          </div>
+
+          {latestSurvey ? (
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+              <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${surveyRiskUI.badge}`}>{surveyRiskUI.label}</span>
+              {typeof latestSurvey.puntaje_total === "number" && (
+                <span className="text-sm text-slate-400">Puntaje: {latestSurvey.puntaje_total}</span>
+              )}
+              <Link href="/resultados" className="ml-auto inline-flex items-center gap-1 text-sm font-semibold text-cyan-300 hover:text-cyan-200">
+                Ver resultados <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+          ) : (
+            <p className="mt-3 text-sm text-slate-400">Todavía no tienes una evaluación registrada.</p>
+          )}
+
+          {latestSurvey?.interpretacion && (
+            <p className="mt-4 rounded-2xl bg-white/[0.03] p-4 text-sm leading-relaxed text-slate-300">{latestSurvey.interpretacion}</p>
+          )}
+
+          <div className="mt-5 grid gap-2 sm:grid-cols-3">
+            {[
+              { href: "/encuesta", titulo: "Evaluación interna", Icon: ClipboardList, color: "text-cyan-300" },
+              { href: "/nom035", titulo: "NOM-035", Icon: Shield, color: "text-emerald-300" },
+              { href: "/perfil", titulo: "Mi perfil", Icon: UserRound, color: "text-indigo-300" },
+            ].map(({ href, titulo, Icon, color }) => (
+              <Link
+                key={href}
+                href={href}
+                className="group flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm font-semibold transition hover:bg-white/[0.06]"
+              >
+                <span className="flex items-center gap-2">
+                  <Icon className={`h-4 w-4 ${color}`} />
+                  {titulo}
+                </span>
+                <ArrowRight className="h-4 w-4 text-slate-600 transition group-hover:translate-x-0.5 group-hover:text-white" />
+              </Link>
+            ))}
+          </div>
+
+          {latestSurvey?.dimensiones && Object.keys(latestSurvey.dimensiones).length > 0 && (
+            <div className="mt-6 border-t border-white/10 pt-5">
+              <p className="mb-3 text-sm font-semibold text-slate-300">Dimensiones de tu última evaluación</p>
+              <MapaDeCalor data={latestSurvey.dimensiones} />
+            </div>
+          )}
+        </section>
+
+        {/* APOYO HUMANO */}
+        <section className="mb-8 flex flex-col gap-4 rounded-[1.6rem] border border-amber-400/15 bg-amber-500/[0.05] p-5 sm:flex-row sm:items-center sm:justify-between md:p-6">
+          <div>
+            <p className="flex items-center gap-2 font-black text-amber-200">
+              <HeartHandshake className="h-5 w-5" />
+              ¿Prefieres hablar con una persona?
             </p>
+            <p className="mt-1 text-sm text-slate-400">Envía una solicitud de apoyo para revisión humana.</p>
+          </div>
+          <Link href="/buzon" className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-amber-400 px-5 py-3 font-black text-slate-950 hover:bg-amber-300">
+            Pedir ayuda <ArrowRight className="h-4 w-4" />
+          </Link>
+        </section>
 
-            <h1 className="mt-2 text-4xl md:text-6xl font-black tracking-tight max-w-4xl">
-              ¿Qué necesitas hoy?
-            </h1>
+        {/* VISTA PROFESIONAL (solo admin / psicólogo) */}
+        {isProfessional && (
+          <section className="mb-8 rounded-[1.6rem] border border-emerald-400/15 bg-slate-950/70 p-5 md:p-6">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <p className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em] text-emerald-300">
+                  <Stethoscope className="h-4 w-4" />
+                  Vista profesional
+                </p>
+                <h2 className="mt-2 text-xl font-black">Estado NOM-035 de la organización</h2>
+                <p className="mt-1 text-sm text-slate-400">{resumenOrganizacional}</p>
+              </div>
+              <div className="rounded-2xl border border-cyan-400/20 bg-cyan-500/10 px-5 py-3 text-center">
+                <p className="text-2xl font-black text-cyan-300">{totalOrganizacion}</p>
+                <p className="text-[10px] uppercase tracking-[0.18em] text-slate-500">Evaluaciones</p>
+              </div>
+            </div>
 
-            <p className="mt-4 text-base md:text-lg text-slate-400 max-w-3xl leading-relaxed">
-              No necesitas saber qué módulo utilizar.
-              Dinos qué necesitas y entra directamente
-              a una herramienta de Psyqus.
-            </p>
-
-            <div className="mt-8 grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-              {necesidades.map((opcion) => {
-                const Icon = opcion.icon;
-
+            <div className="mt-6 space-y-3">
+              {[
+                { nombre: "Nulo o despreciable", valor: conteoNiveles.nulo, color: "#6ee7b7" },
+                { nombre: "Bajo", valor: conteoNiveles.bajo, color: "#a7f3d0" },
+                { nombre: "Medio", valor: conteoNiveles.medio, color: "#fcd34d" },
+                { nombre: "Alto", valor: conteoNiveles.alto, color: "#fb923c" },
+                { nombre: "Muy alto", valor: conteoNiveles.muyAlto, color: "#f87171" },
+              ].map((nivel) => {
+                const porcentaje = totalOrganizacion > 0 ? Math.round((nivel.valor / totalOrganizacion) * 100) : 0;
                 return (
-                  <Link
-                    key={opcion.title}
-                    href={opcion.href}
-                    className="group rounded-[1.4rem] border border-white/10 bg-white/[0.035] p-5 hover:border-cyan-400/25 hover:bg-cyan-500/[0.06] transition"
-                  >
-                    <div className="w-10 h-10 rounded-xl border border-white/10 bg-white/5 flex items-center justify-center">
-                      <Icon className="w-5 h-5 text-cyan-300" />
+                  <div key={nivel.nombre}>
+                    <div className="mb-1 flex justify-between gap-4 text-sm">
+                      <span className="text-slate-200">{nivel.nombre}</span>
+                      <span className="tabular-nums text-slate-400">
+                        {nivel.valor} · <b className="text-white">{porcentaje}%</b>
+                      </span>
                     </div>
-
-                    <p className="mt-4 font-black text-white">
-                      {opcion.title}
-                    </p>
-
-                    <p className="mt-2 text-xs leading-relaxed text-slate-500">
-                      {opcion.description}
-                    </p>
-
-                    <ArrowRight className="mt-4 w-4 h-4 text-slate-600 transition group-hover:text-cyan-300 group-hover:translate-x-1" />
-                  </Link>
+                    <div className="h-2 overflow-hidden rounded-full bg-white/5">
+                      <div className="h-full rounded-full" style={{ width: `${porcentaje}%`, background: nivel.color }} />
+                    </div>
+                  </div>
                 );
               })}
             </div>
-          </div>
-        </section>
 
-        {/* =================================================
-    PULSO SEMANAL
-================================================= */}
-
-<section className="mb-8">
-  <Link
-    href="/pulso"
-    className={`group block rounded-[2rem] border p-6 md:p-7 transition ${
-      pulsoCompletado
-        ? "border-emerald-400/20 bg-emerald-500/[0.06]"
-        : "border-cyan-400/20 bg-cyan-500/[0.06] hover:border-cyan-400/35 hover:bg-cyan-500/[0.09]"
-    }`}
-  >
-    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
-      <div className="flex items-start gap-4">
-        <div
-          className={`w-12 h-12 rounded-2xl border flex items-center justify-center shrink-0 ${
-            pulsoCompletado
-              ? "border-emerald-400/20 bg-emerald-500/10"
-              : "border-cyan-400/20 bg-cyan-500/10"
-          }`}
-        >
-          {pulsoCompletado ? (
-            <CheckCircle2 className="w-6 h-6 text-emerald-300" />
-          ) : (
-            <Activity className="w-6 h-6 text-cyan-300" />
-          )}
-        </div>
-
-        <div>
-          <p
-            className={`text-[10px] uppercase tracking-[0.22em] font-black ${
-              pulsoCompletado
-                ? "text-emerald-300"
-                : "text-cyan-300"
-            }`}
-          >
-            Pulso semanal
-          </p>
-
-          <h2 className="mt-1 text-xl md:text-2xl font-black">
-            {pulsoCompletado
-              ? "Tu pulso de esta semana está listo"
-              : "¿Cómo estuvo tu semana?"}
-          </h2>
-
-          <p className="mt-2 text-sm text-slate-400 max-w-2xl">
-            {pulsoCompletado
-              ? "Ya registraste tu energía, desconexión y apoyo de esta semana."
-              : "Registra cómo estuvo tu energía, desconexión y apoyo. Toma menos de un minuto."}
-          </p>
-        </div>
-      </div>
-
-      <div
-        className={`inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-black shrink-0 ${
-          pulsoCompletado
-            ? "border border-emerald-400/20 bg-emerald-500/10 text-emerald-300"
-            : "bg-cyan-400 text-slate-950"
-        }`}
-      >
-        {pulsoCompletado ? "Completado ✓" : "Responder"}
-
-        <ArrowRight className="w-4 h-4" />
-      </div>
-    </div>
-  </Link>
-</section>
-
-        {/* =================================================
-            PERFIL BIO-PSICO-SOCIAL-ESPIRITUAL
-        ================================================= */}
-
-        <PerfilBienestar pulso={ultimoPulso || null} />
-
-
-        {/* =================================================
-            TU RUTA
-        ================================================= */}
-
-        <section
-          id="mi-ruta"
-          className="mb-8 rounded-[2rem] border border-white/10 bg-slate-950/65 p-6 md:p-8 scroll-mt-6"
-        >
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-            <div className="max-w-2xl">
-              <div className="flex items-center gap-2 text-fuchsia-300">
-                <Sparkles className="w-5 h-5" />
-
-                <p className="text-xs font-black uppercase tracking-[0.22em]">
-                  Mi ruta
-                </p>
-              </div>
-
-              <h2 className="mt-3 text-2xl md:text-3xl font-black">
-                Tu recorrido dentro de Psyqus
-              </h2>
-
-              <p className="mt-3 text-sm md:text-base leading-relaxed text-slate-400">
-                Aquí aparecerán rutas personalizadas cuando
-                Psyqus cuente con reglas y datos suficientes
-                para generarlas de forma transparente.
-              </p>
-
-              <p className="mt-2 text-xs text-slate-600">
-                Por ahora no generamos recomendaciones personales
-                automáticas ni inferencias psicológicas sobre ti.
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 lg:min-w-[280px]">
-              <p className="text-xs uppercase tracking-[0.18em] text-slate-500">
-                Mientras tanto
-              </p>
-
-              <p className="mt-2 font-bold">
-                Elige lo que necesitas hoy
-              </p>
-
-              <p className="mt-2 text-sm leading-relaxed text-slate-500">
-                Puedes utilizar Aprender, Práctica,
-                Herramientas o el Orientador cuando lo necesites.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* =================================================
-            EXPERIENCIA PSYQUS
-        ================================================= */}
-
-        <section className="mb-8">
-          <div className="flex items-center gap-3 mb-5">
-            <Sparkles className="w-5 h-5 text-cyan-300" />
-
-            <div>
-              <h2 className="text-2xl font-black">
-                Tu espacio Psyqus
-              </h2>
-
-              <p className="mt-1 text-sm text-slate-500">
-                Aprende, practica, utiliza herramientas o busca apoyo.
-              </p>
-            </div>
-          </div>
-
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Link
-              href="/psicoeducacion"
-              className="group rounded-[1.5rem] border border-white/10 bg-white/[0.035] p-5 hover:border-fuchsia-400/20 hover:bg-fuchsia-500/[0.05] transition"
-            >
-              <BookOpen className="w-6 h-6 text-fuchsia-300" />
-
-              <h3 className="mt-4 font-black text-lg">
-                Aprender
-              </h3>
-
-              <p className="mt-2 text-sm leading-relaxed text-slate-500">
-                Microcursos breves para situaciones reales
-                del trabajo.
-              </p>
-
-              <ArrowRight className="mt-5 w-4 h-4 text-slate-600 group-hover:text-fuchsia-300 group-hover:translate-x-1 transition" />
-            </Link>
-
-            <Link
-              href="/entrenamiento"
-              className="group rounded-[1.5rem] border border-white/10 bg-white/[0.035] p-5 hover:border-amber-400/20 hover:bg-amber-500/[0.05] transition"
-            >
-              <HeartHandshake className="w-6 h-6 text-amber-300" />
-
-              <h3 className="mt-4 font-black text-lg">
-                Práctica
-              </h3>
-
-              <p className="mt-2 text-sm leading-relaxed text-slate-500">
-                Simula conversaciones y situaciones laborales
-                antes de enfrentarlas.
-              </p>
-
-              <ArrowRight className="mt-5 w-4 h-4 text-slate-600 group-hover:text-amber-300 group-hover:translate-x-1 transition" />
-            </Link>
-
-            <Link
-              href="/mindfulness"
-              className="group rounded-[1.5rem] border border-white/10 bg-white/[0.035] p-5 hover:border-cyan-400/20 hover:bg-cyan-500/[0.05] transition"
-            >
-              <Wind className="w-6 h-6 text-cyan-300" />
-
-              <h3 className="mt-4 font-black text-lg">
-                Herramientas
-              </h3>
-
-              <p className="mt-2 text-sm leading-relaxed text-slate-500">
-                Ejercicios rápidos para regularte, enfocarte
-                o cerrar tu jornada.
-              </p>
-
-              <ArrowRight className="mt-5 w-4 h-4 text-slate-600 group-hover:text-cyan-300 group-hover:translate-x-1 transition" />
-            </Link>
-
-            <Link
-              href="/ia"
-              className="group rounded-[1.5rem] border border-white/10 bg-white/[0.035] p-5 hover:border-violet-400/20 hover:bg-violet-500/[0.05] transition"
-            >
-              <MessageCircle className="w-6 h-6 text-violet-300" />
-
-              <h3 className="mt-4 font-black text-lg">
-                Orientador
-              </h3>
-
-              <p className="mt-2 text-sm leading-relaxed text-slate-500">
-                Ordena una situación y piensa tu siguiente
-                paso con orientación general de IA.
-              </p>
-
-              <ArrowRight className="mt-5 w-4 h-4 text-slate-600 group-hover:text-violet-300 group-hover:translate-x-1 transition" />
-            </Link>
-          </div>
-        </section>
-
-        {/* =================================================
-            EVALUACIONES - SECUNDARIAS
-        ================================================= */}
-
-        <section className="mb-8 grid xl:grid-cols-2 gap-6">
-          <div className="rounded-[2rem] border border-white/10 bg-slate-950/65 p-6 md:p-8">
-            <div className="flex items-center gap-3 mb-5">
-              <ClipboardList className="w-5 h-5 text-cyan-300" />
-
-              <div>
-                <p className="text-xs uppercase tracking-[0.2em] text-cyan-300">
-                  Seguimiento
-                </p>
-
-                <h2 className="mt-1 text-2xl font-black">
-                  Tu última evaluación
-                </h2>
-              </div>
-            </div>
-
-            {latestSurvey ? (
-              <>
-                <div className="flex flex-wrap gap-3 items-center">
-                  <span
-                    className={`rounded-full border px-3 py-1 text-xs uppercase tracking-[0.14em] ${surveyRiskUI.badge}`}
-                  >
-                    {surveyRiskUI.label}
-                  </span>
-
-                  <span className="text-sm text-slate-500">
-                    {formatDate(
-                      latestSurvey.created_at
-                    )}
-                  </span>
-                </div>
-
-                <div className="mt-6 grid sm:grid-cols-2 gap-4">
-                  <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
-                    <p className="text-xs uppercase tracking-[0.18em] text-slate-500">
-                      Puntaje registrado
-                    </p>
-
-                    <p className="mt-2 text-3xl font-black">
-                      {typeof latestSurvey.puntaje_total ===
-                      "number"
-                        ? latestSurvey.puntaje_total
-                        : "Sin dato"}
-                    </p>
-                  </div>
-
-                  <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
-                    <p className="text-xs uppercase tracking-[0.18em] text-slate-500">
-                      Clasificación
-                    </p>
-
-                    <p
-                      className={`mt-2 text-lg font-black ${surveyRiskUI.text}`}
-                    >
-                      {surveyRisk ||
-                        "Sin clasificación registrada"}
-                    </p>
-                  </div>
-                </div>
-
-                {latestSurvey.interpretacion && (
-                  <div className="mt-5 rounded-2xl border border-white/10 bg-white/[0.025] p-5">
-                    <p className="text-xs uppercase tracking-[0.18em] text-slate-500">
-                      Interpretación registrada
-                    </p>
-
-                    <p className="mt-3 text-sm leading-relaxed text-slate-300">
-                      {latestSurvey.interpretacion}
-                    </p>
-                  </div>
-                )}
-
-                <Link
-                  href="/resultados"
-                  className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-cyan-300 hover:text-cyan-200 transition"
-                >
-                  Ver resultados
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
-              </>
-            ) : (
-              <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
-                <p className="text-slate-300">
-                  Todavía no existe una evaluación personal
-                  registrada.
-                </p>
-
-                <Link
-                  href="/encuesta"
-                  className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-cyan-300"
-                >
-                  Ir a evaluaciones
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
-              </div>
-            )}
-          </div>
-
-          <div className="rounded-[2rem] border border-white/10 bg-slate-950/65 p-6 md:p-8">
-            <h2 className="text-2xl font-black">
-              Evaluaciones
-            </h2>
-
-            <p className="mt-2 text-sm leading-relaxed text-slate-500">
-              Los instrumentos de evaluación son una parte
-              de Psyqus, no toda tu experiencia en la plataforma.
+            <p className="mt-4 text-xs text-slate-500">
+              Alto o muy alto: {casosElevados} ({porcentajeElevado}% del total). Calificación según las Guías de Referencia de la NOM-035.
             </p>
-
-            <div className="mt-6 space-y-3">
-              <Link
-                href="/encuesta"
-                className="group flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4 hover:bg-white/[0.06] transition"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl border border-cyan-400/20 bg-cyan-500/10 flex items-center justify-center">
-                    <ClipboardList className="w-5 h-5 text-cyan-300" />
-                  </div>
-
-                  <div>
-                    <p className="font-bold">
-                      Evaluación interna
-                    </p>
-
-                    <p className="text-xs text-slate-500">
-                      Instrumento de Psyqus
-                    </p>
-                  </div>
-                </div>
-
-                <ArrowRight className="w-4 h-4 text-slate-600 group-hover:text-cyan-300 group-hover:translate-x-1 transition" />
-              </Link>
-
-              <Link
-                href="/nom035"
-                className="group flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4 hover:bg-white/[0.06] transition"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl border border-emerald-400/20 bg-emerald-500/10 flex items-center justify-center">
-                    <Shield className="w-5 h-5 text-emerald-300" />
-                  </div>
-
-                  <div>
-                    <p className="font-bold">
-                      NOM-035
-                    </p>
-
-                    <p className="text-xs text-slate-500">
-                      Cuestionarios disponibles
-                    </p>
-                  </div>
-                </div>
-
-                <ArrowRight className="w-4 h-4 text-slate-600 group-hover:text-emerald-300 group-hover:translate-x-1 transition" />
-              </Link>
-
-              <Link
-                href="/perfil"
-                className="group flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4 hover:bg-white/[0.06] transition"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl border border-indigo-400/20 bg-indigo-500/10 flex items-center justify-center">
-                    <UserRound className="w-5 h-5 text-indigo-300" />
-                  </div>
-
-                  <div>
-                    <p className="font-bold">
-                      Mi perfil
-                    </p>
-
-                    <p className="text-xs text-slate-500">
-                      Información personal dentro de Psyqus
-                    </p>
-                  </div>
-                </div>
-
-                <ArrowRight className="w-4 h-4 text-slate-600 group-hover:text-indigo-300 group-hover:translate-x-1 transition" />
-              </Link>
-            </div>
-          </div>
-        </section>
-
-        {/* =================================================
-            DIMENSIONES REALES
-        ================================================= */}
-
-        {latestSurvey?.dimensiones &&
-          Object.keys(latestSurvey.dimensiones)
-            .length > 0 && (
-            <section className="mb-8 rounded-[2rem] border border-white/10 bg-slate-950/65 p-6 md:p-8">
-              <div className="flex items-center gap-3 mb-5">
-                <Activity className="w-5 h-5 text-fuchsia-300" />
-
-                <div>
-                  <h2 className="text-2xl font-black">
-                    Dimensiones de tu evaluación
-                  </h2>
-
-                  <p className="mt-1 text-sm text-slate-500">
-                    Esta visualización utiliza únicamente
-                    información registrada en tu última evaluación.
-                  </p>
-                </div>
-              </div>
-
-              <MapaDeCalor
-                data={latestSurvey.dimensiones}
-              />
-            </section>
-          )}
-
-        {/* =================================================
-            VISTA PROFESIONAL
-        ================================================= */}
-
-        {isProfessional && (
-          <section className="mb-8 rounded-[2rem] border border-emerald-400/15 bg-slate-950/70 p-6 md:p-8">
-            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-5">
-              <div>
-                <div className="flex items-center gap-2 text-emerald-300">
-                  <Stethoscope className="w-5 h-5" />
-
-                  <p className="text-xs font-black uppercase tracking-[0.22em]">
-                    Vista profesional
-                  </p>
-                </div>
-
-                <h2 className="mt-3 text-3xl font-black">
-                  Estado NOM-035 de la organización
-                </h2>
-
-                <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-400">
-                  Distribución recalculada mediante el motor
-                  de calificación de Psyqus a partir de las
-                  respuestas registradas del Cuestionario II.
-                </p>
-              </div>
-
-              <div className="rounded-2xl border border-cyan-400/20 bg-cyan-500/10 px-5 py-4 min-w-[160px]">
-                <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">
-                  Evaluaciones
-                </p>
-
-                <p className="mt-2 text-3xl font-black text-cyan-300">
-                  {totalOrganizacion}
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-8 rounded-[1.5rem] border border-white/10 bg-white/[0.025] p-5 md:p-6">
-              <p className="mb-6 text-xs font-black uppercase tracking-[0.2em] text-slate-500">
-                Distribución por nivel
-              </p>
-
-              <div className="space-y-5">
-                {[
-                  {
-                    nombre: "Nulo o despreciable",
-                    valor: conteoNiveles.nulo,
-                  },
-                  {
-                    nombre: "Bajo",
-                    valor: conteoNiveles.bajo,
-                  },
-                  {
-                    nombre: "Medio",
-                    valor: conteoNiveles.medio,
-                  },
-                  {
-                    nombre: "Alto",
-                    valor: conteoNiveles.alto,
-                  },
-                  {
-                    nombre: "Muy alto",
-                    valor: conteoNiveles.muyAlto,
-                  },
-                ].map((nivel) => {
-                  const porcentaje =
-                    totalOrganizacion > 0
-                      ? Math.round(
-                          (nivel.valor /
-                            totalOrganizacion) *
-                            100
-                        )
-                      : 0;
-
-                  return (
-                    <div key={nivel.nombre}>
-                      <div className="mb-2 flex items-center justify-between gap-4">
-                        <p className="text-sm font-semibold text-slate-200">
-                          {nivel.nombre}
-                        </p>
-
-                        <div className="flex items-center gap-3">
-                          <span className="text-xs text-slate-500">
-                            {nivel.valor} evaluaciones
-                          </span>
-
-                          <span className="min-w-[42px] text-right text-sm font-black">
-                            {porcentaje}%
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="h-2.5 overflow-hidden rounded-full bg-white/5">
-                        <div
-                          className="h-full rounded-full bg-cyan-300"
-                          style={{
-                            width: `${porcentaje}%`,
-                          }}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="mt-5 grid md:grid-cols-3 gap-4">
-              <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
-                <p className="text-xs uppercase tracking-[0.18em] text-slate-500">
-                  Nivel bajo
-                </p>
-
-                <p className="mt-2 text-3xl font-black">
-                  {conteoNiveles.bajo}
-                </p>
-
-                <p className="mt-1 text-sm text-slate-500">
-                  de {totalOrganizacion} evaluaciones
-                </p>
-              </div>
-
-              <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
-                <p className="text-xs uppercase tracking-[0.18em] text-slate-500">
-                  Nivel medio
-                </p>
-
-                <p className="mt-2 text-3xl font-black">
-                  {conteoNiveles.medio}
-                </p>
-
-                <p className="mt-1 text-sm text-slate-500">
-                  de {totalOrganizacion} evaluaciones
-                </p>
-              </div>
-
-              <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
-                <p className="text-xs uppercase tracking-[0.18em] text-slate-500">
-                  Alto o muy alto
-                </p>
-
-                <p className="mt-2 text-3xl font-black">
-                  {casosElevados}
-                </p>
-
-                <p className="mt-1 text-sm text-slate-500">
-                  {porcentajeElevado}% del total
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-5 rounded-2xl border border-white/10 bg-white/[0.025] p-5">
-              <p className="text-xs uppercase tracking-[0.18em] text-slate-500">
-                Lectura general
-              </p>
-
-              <p className="mt-2 text-sm leading-relaxed text-slate-300">
-                {resumenOrganizacional}
-              </p>
-            </div>
-
-            <div className="mt-6 flex flex-wrap gap-3">
-              <Link
-                href="/nom035-resultados"
-                className="inline-flex items-center gap-2 rounded-xl bg-cyan-300 px-5 py-3 text-sm font-black text-slate-950 hover:bg-cyan-200 transition"
-              >
-                Resultados NOM-035
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-
-              <Link
-                href="/panel-psicologo"
-                className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold hover:bg-white/10 transition"
-              >
-                Panel profesional
-              </Link>
-            </div>
           </section>
         )}
+      </div>
+    </main>
+  );
+}
 
-        {/* =================================================
-            AYUDA HUMANA
-        ================================================= */}
-
-        <section className="mb-8 rounded-[2rem] border border-amber-400/15 bg-amber-500/[0.04] p-6 md:p-8">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-            <div className="max-w-2xl">
-              <div className="flex items-center gap-2 text-amber-300">
-                <HeartHandshake className="w-5 h-5" />
-
-                <p className="text-xs font-black uppercase tracking-[0.2em]">
-                  Apoyo humano
-                </p>
-              </div>
-
-              <h2 className="mt-3 text-2xl md:text-3xl font-black">
-                ¿Prefieres no hablar con una IA?
-              </h2>
-
-              <p className="mt-3 text-sm md:text-base leading-relaxed text-slate-400">
-                Puedes enviar una solicitud de apoyo para
-                revisión humana dentro de Psyqus.
-              </p>
-            </div>
-
-            <Link
-              href="/buzon"
-              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-amber-400 px-6 py-3.5 font-black text-slate-950 hover:bg-amber-300 transition"
-            >
-              Pedir ayuda
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
-        </section>
-
-        {/* FOOTER */}
-
-        <footer className="border-t border-white/10 pt-6 pb-3">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-            <div>
-              <p className="font-black">
-                Psyqus
-              </p>
-
-              <p className="text-xs text-slate-600 mt-1">
-                Salud mental para tus empleados.
-              </p>
-            </div>
-
-            <p className="text-xs text-slate-600">
-              Evaluar · aprender · practicar · fortalecer
-            </p>
-          </div>
-        </footer>
-      </section>
+/** Aviso cuando la base de datos no responde (en vez de mandar a registrarse otra vez). */
+function ErrorCarga() {
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-[#020617] px-6 text-center text-white">
+      <div className="max-w-md">
+        <h1 className="text-2xl font-black">No pudimos cargar tus datos</h1>
+        <p className="mt-3 text-slate-400">
+          Nuestro servicio no respondió. Tu información está a salvo; intenta de nuevo en unos minutos.
+        </p>
+        <Link href="/mi-bienestar" className="mt-6 inline-block rounded-xl bg-cyan-400 px-6 py-3 font-black text-slate-950">
+          Intentar de nuevo
+        </Link>
+      </div>
     </main>
   );
 }

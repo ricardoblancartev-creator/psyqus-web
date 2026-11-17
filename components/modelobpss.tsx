@@ -22,9 +22,9 @@ export default function ModeloBPSE() {
       text: "Relaciones, vínculos, liderazgo, comunicación y cultura laboral. El entorno relacional puede sostener o erosionar el bienestar.",
       color: "bg-blue-500",
     },
-    espiritual: {
-      title: "Espiritual",
-      text: "Sentido, propósito, valores y orientación vital. No se limita a religión; también habla de significado y dirección existencial.",
+    proposito: {
+      title: "Propósito",
+      text: "Sentido, metas, valores y motivación: lo que da dirección a tu vida y a tu trabajo.",
       color: "bg-amber-500",
     },
   };
@@ -32,7 +32,7 @@ export default function ModeloBPSE() {
   return (
     <div className="flex flex-col items-center gap-8">
       <h2 className="text-2xl font-bold text-transparent bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-center">
-        Modelo Bio-Psico-Social-Espiritual
+        Modelo Bio-Psico-Social-Propósito
       </h2>
 
       <div className="relative w-80 h-80">
@@ -53,8 +53,8 @@ export default function ModeloBPSE() {
         />
         <motion.button
           whileHover={{ scale: 1.08 }}
-          onClick={() => setActive("espiritual")}
-          className={`absolute left-32 top-0 w-16 h-16 rounded-full cursor-pointer shadow-lg ${data.espiritual.color} hover:shadow-amber-500/50 transition-all border border-white/20`}
+          onClick={() => setActive("proposito")}
+          className={`absolute left-32 top-0 w-16 h-16 rounded-full cursor-pointer shadow-lg ${data.proposito.color} hover:shadow-amber-500/50 transition-all border border-white/20`}
         />
       </div>
 

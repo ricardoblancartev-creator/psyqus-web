@@ -93,7 +93,7 @@ const scenes = [
   {
     title: "Perfil integral",
     subtitle: "Estilo personal + modelo BPSE",
-    text: "Test de estilo personal y lectura bio-psico-social-espiritual para entender mejor la experiencia del colaborador.",
+    text: "Test de estilo personal y lectura biológica, psicológica, social y de propósito para entender mejor la experiencia del colaborador.",
     icon: UserRound,
     color: "indigo",
   },

@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   Play,
   MessageCircle,
-  BookOpen,
+  Gamepad2,
   Activity,
   ShieldCheck,
 } from "lucide-react";
@@ -24,7 +24,7 @@ const items = [
   {
     href: "/psicoeducacion",
     label: "Aprender",
-    icon: BookOpen,
+    icon: Gamepad2,
   },
   {
     href: "/mi-bienestar",

@@ -7,9 +7,14 @@ import {
   useState,
 } from "react";
 import Link from "next/link";
-import AvatarIlustrado from "@/components/AvatarIlustrado";
+import AvatarIlustrado, { type TipoAvatar } from "@/components/AvatarIlustrado";
 import {
-  BookOpen,
+  DIMENSIONES_BIENESTAR,
+  ESCALA_ASPECTO,
+  dimensionPorClave,
+  type ClaveDimension,
+} from "@/lib/dimensiones-bienestar";
+import {
   HeartPulse,
   MessageCircle,
   Wind,
@@ -21,6 +26,7 @@ import {
   Loader2,
   Play,
   ArrowLeft,
+  Gamepad2,
 } from "lucide-react";
 import AvisoPrivacidad from "@/components/AvisoPrivacidad";
 
@@ -30,7 +36,27 @@ import AvisoPrivacidad from "@/components/AvisoPrivacidad";
   estilo cálido de los Shorts.
 */
 
-type Avatar = "mujer" | "hombre";
+const AVATARES: { tipo: TipoAvatar; texto: string }[] = [
+  { tipo: "mujer", texto: "Mujer" },
+  { tipo: "hombre", texto: "Hombre" },
+  { tipo: "neutral", texto: "Sin género" },
+];
+
+/*
+  Mapa de los 4 aspectos: la persona dice cómo está (1 a 5).
+  Se guarda SOLO en su dispositivo (localStorage), no en la base.
+*/
+type MapaAspectos = Partial<Record<ClaveDimension, { valor: number; fecha: string }>>;
+const CLAVE_MAPA = "psyqus_mapa_aspectos";
+
+function leerMapa(): MapaAspectos {
+  try {
+    const crudo = window.localStorage.getItem(CLAVE_MAPA);
+    return crudo ? (JSON.parse(crudo) as MapaAspectos) : {};
+  } catch {
+    return {};
+  }
+}
 
 type ChatMessage = {
   role: "user" | "assistant";
@@ -44,9 +70,9 @@ const opciones = [
     Icono: MessageCircle,
   },
   {
-    nombre: "Tomar un curso",
+    nombre: "Jugar y aprender",
     ruta: "/psicoeducacion",
-    Icono: BookOpen,
+    Icono: Gamepad2,
   },
   {
     nombre: "Relajarme",
@@ -76,7 +102,10 @@ const opciones = [
 ];
 
 export default function ExperienciaPage() {
-  const [avatar, setAvatar] = useState<Avatar>("mujer");
+  const [avatar, setAvatar] = useState<TipoAvatar>("mujer");
+  const [aspecto, setAspecto] = useState<ClaveDimension | null>(null);
+  const [chatAspecto, setChatAspecto] = useState<ClaveDimension | null>(null);
+  const [mapa, setMapa] = useState<MapaAspectos>({});
   const [hablando, setHablando] = useState(false);
   const [voz, setVoz] = useState(false);
 
@@ -102,6 +131,18 @@ export default function ExperienciaPage() {
   );
   const chatEndRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
+
+  useEffect(() => {
+    setMapa(leerMapa());
+    try {
+      const guardado = window.localStorage.getItem("psyqus_avatar");
+      if (guardado === "mujer" || guardado === "hombre" || guardado === "neutral") {
+        setAvatar(guardado);
+      }
+    } catch {
+      /* sin almacenamiento local: se usa el avatar por defecto */
+    }
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -183,8 +224,11 @@ export default function ExperienciaPage() {
 
     setError("");
 
+    setAspecto(null);
+
     if (opcion.ruta === "/ia") {
       setSeleccion(null);
+      setChatAspecto(null);
       setChatAbierto(true);
 
       const texto = messages.length
@@ -205,9 +249,52 @@ export default function ExperienciaPage() {
     decir(texto);
   }
 
+  function elegirAspecto(clave: ClaveDimension) {
+    if (requestRef.current) return;
+    const d = dimensionPorClave(clave);
+    if (!d) return;
+    setChatAbierto(false);
+    setSeleccion(null);
+    setError("");
+    setAspecto(clave);
+    const texto = `${d.nombre}: ${d.abarca} Cuéntame, ¿cómo estás en este aspecto?`;
+    setMensaje(texto);
+    decir(texto);
+  }
+
+  function calificarAspecto(clave: ClaveDimension, valor: number) {
+    const nuevo: MapaAspectos = {
+      ...mapa,
+      [clave]: { valor, fecha: new Date().toISOString() },
+    };
+    setMapa(nuevo);
+    try {
+      window.localStorage.setItem(CLAVE_MAPA, JSON.stringify(nuevo));
+    } catch {
+      /* sin almacenamiento local: el mapa vive solo en esta visita */
+    }
+  }
+
+  /** Abre el chat enfocado en un aspecto; el acompañante hace la pregunta elegida. */
+  function platicarAspecto(clave: ClaveDimension, pregunta?: string) {
+    const d = dimensionPorClave(clave);
+    if (!d || requestRef.current) return;
+    const primera = pregunta ?? d.preguntas[0];
+    const texto = `Hablemos de tu aspecto ${d.nombre.toLowerCase()}. ${primera}`;
+    setAspecto(null);
+    setSeleccion(null);
+    setError("");
+    setChatAspecto(clave);
+    setMessages([{ role: "assistant", content: texto }]);
+    setChatAbierto(true);
+    setMensaje(texto);
+    decir(texto);
+  }
+
   function volverAOpciones() {
     detenerVoz();
     setChatAbierto(false);
+    setAspecto(null);
     setSeleccion(null);
     setError("");
     setMensaje("¿Qué te gustaría hacer ahora?");
@@ -248,6 +335,7 @@ export default function ExperienciaPage() {
         body: JSON.stringify({
           messages: nuevos.slice(-16),
           mode: "avatar",
+          aspecto: chatAspecto ?? undefined,
         }),
         signal: controller.signal,
       });
@@ -362,30 +450,38 @@ export default function ExperienciaPage() {
               <AvatarIlustrado
                 avatar={avatar}
                 hablando={hablando}
+                valores={Object.fromEntries(
+                  Object.entries(mapa).map(([k, v]) => [k, v?.valor ?? null])
+                )}
+                seleccionada={aspecto ?? chatAspecto}
+                onElegir={elegirAspecto}
               />
             </div>
 
-            <div className="mt-4 flex justify-center gap-3">
-              {(["mujer", "hombre"] as Avatar[]).map(
-                (tipo) => (
-                  <button
-                    key={tipo}
-                    type="button"
-                    onClick={() => {
-                      detenerVoz();
-                      setAvatar(tipo);
-                    }}
-                    className={`rounded-xl px-5 py-3 capitalize transition ${
-                      avatar === tipo
-                        ? "bg-cyan-400 text-slate-950"
-                        : "bg-white/10 hover:bg-white/15"
-                    }`}
-                    aria-pressed={avatar === tipo}
-                  >
-                    {tipo}
-                  </button>
-                )
-              )}
+            <div className="mt-4 flex flex-wrap justify-center gap-2" role="group" aria-label="Elige cómo se ve tu acompañante">
+              {AVATARES.map(({ tipo, texto }) => (
+                <button
+                  key={tipo}
+                  type="button"
+                  onClick={() => {
+                    detenerVoz();
+                    setAvatar(tipo);
+                    try {
+                      window.localStorage.setItem("psyqus_avatar", tipo);
+                    } catch {
+                      /* sin almacenamiento local */
+                    }
+                  }}
+                  className={`rounded-xl px-4 py-2.5 text-sm transition ${
+                    avatar === tipo
+                      ? "bg-cyan-400 font-semibold text-slate-950"
+                      : "bg-white/10 hover:bg-white/15"
+                  }`}
+                  aria-pressed={avatar === tipo}
+                >
+                  {texto}
+                </button>
+              ))}
             </div>
 
             <p className="mt-4 text-xs text-slate-400">
@@ -424,6 +520,26 @@ export default function ExperienciaPage() {
                   <ArrowLeft className="h-4 w-4" />
                   Ver opciones
                 </button>
+
+                {chatAspecto && (
+                  <p className="mb-3 flex flex-wrap items-center gap-2 text-xs text-slate-400">
+                    Revisando:
+                    <span
+                      className="rounded-full px-3 py-1 font-semibold text-slate-950"
+                      style={{ background: dimensionPorClave(chatAspecto)?.color }}
+                    >
+                      {dimensionPorClave(chatAspecto)?.nombre}
+                    </span>
+                    <button
+                      type="button"
+                      disabled={loading}
+                      onClick={() => elegirAspecto(chatAspecto)}
+                      className="text-cyan-300 underline-offset-2 hover:underline disabled:opacity-50"
+                    >
+                      Calificar este aspecto
+                    </button>
+                  </p>
+                )}
 
                 <div
                   role="log"
@@ -532,7 +648,17 @@ export default function ExperienciaPage() {
                   </button>
                 </form>
               </div>
+            ) : aspecto ? (
+              <PanelAspecto
+                clave={aspecto}
+                valor={mapa[aspecto]?.valor ?? null}
+                onCalificar={(v) => calificarAspecto(aspecto, v)}
+                onPlaticar={(pregunta) => platicarAspecto(aspecto, pregunta)}
+                onVolver={volverAOpciones}
+              />
             ) : (
+              <>
+              <MapaBienestar mapa={mapa} onElegir={elegirAspecto} />
               <div className="grid grid-cols-2 gap-3">
                 {opciones.map((opcion) => {
                   const Icono = opcion.Icono;
@@ -553,6 +679,7 @@ export default function ExperienciaPage() {
                   );
                 })}
               </div>
+              </>
             )}
 
             {seleccion && !chatAbierto && (
@@ -573,5 +700,147 @@ export default function ExperienciaPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+/* =========================================================
+   MAPA DE LOS 4 ASPECTOS
+========================================================= */
+
+function MapaBienestar({
+  mapa,
+  onElegir,
+}: {
+  mapa: MapaAspectos;
+  onElegir: (clave: ClaveDimension) => void;
+}) {
+  const revisados = DIMENSIONES_BIENESTAR.filter((d) => mapa[d.clave]).length;
+
+  return (
+    <div className="mb-5 rounded-2xl border border-white/10 bg-slate-950/50 p-4">
+      <div className="mb-3 flex items-baseline justify-between gap-3">
+        <p className="text-sm font-semibold">Tu mapa de bienestar</p>
+        <p className="text-xs text-slate-400">{revisados} de 4 aspectos</p>
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        {DIMENSIONES_BIENESTAR.map((d) => {
+          const v = mapa[d.clave]?.valor ?? null;
+          return (
+            <button
+              key={d.clave}
+              type="button"
+              onClick={() => onElegir(d.clave)}
+              className="rounded-xl border border-white/10 bg-white/5 p-3 text-left transition hover:bg-white/10"
+            >
+              <div className="flex items-baseline justify-between gap-2">
+                <span className="text-sm font-semibold" style={{ color: d.color }}>
+                  {d.nombre}
+                </span>
+                <span className="text-xs tabular-nums text-slate-300">{v ? `${v}/5` : "Sin revisar"}</span>
+              </div>
+              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-800">
+                <div className="h-full rounded-full" style={{ width: `${((v ?? 0) / 5) * 100}%`, background: d.color }} />
+              </div>
+            </button>
+          );
+        })}
+      </div>
+      <p className="mt-3 text-xs text-slate-500">
+        {revisados < 4
+          ? "Toca cada aspecto (o su círculo) para ver cómo estás. Se guarda solo en este dispositivo."
+          : "Ya revisaste los 4 aspectos. Puedes volver a calificarlos cuando quieras. Se guarda solo en este dispositivo."}
+      </p>
+    </div>
+  );
+}
+
+/* =========================================================
+   PANEL DE UN ASPECTO
+========================================================= */
+
+function PanelAspecto({
+  clave,
+  valor,
+  onCalificar,
+  onPlaticar,
+  onVolver,
+}: {
+  clave: ClaveDimension;
+  valor: number | null;
+  onCalificar: (valor: number) => void;
+  onPlaticar: (pregunta?: string) => void;
+  onVolver: () => void;
+}) {
+  const d = dimensionPorClave(clave);
+  if (!d) return null;
+
+  return (
+    <div>
+      <button type="button" onClick={onVolver} className="mb-4 inline-flex items-center gap-2 text-sm text-cyan-300">
+        <ArrowLeft className="h-4 w-4" />
+        Ver opciones
+      </button>
+
+      <div className="rounded-2xl border p-5" style={{ borderColor: `${d.color}55`, background: `${d.color}12` }}>
+        <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: d.color }}>
+          Aspecto
+        </p>
+        <h2 className="mt-1 text-2xl font-bold">{d.nombre}</h2>
+        <p className="mt-2 text-sm leading-relaxed text-slate-200">
+          <span className="font-semibold">Abarca: </span>
+          {d.abarca}
+        </p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {d.ejemplos.map((e) => (
+            <span key={e} className="rounded-full bg-white/10 px-3 py-1 text-xs text-slate-200">
+              {e}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <p className="mt-5 text-sm font-semibold">¿Cómo estás hoy en este aspecto?</p>
+      <div className="mt-2 grid grid-cols-5 gap-2" role="radiogroup" aria-label={`Cómo estás en lo ${d.nombre.toLowerCase()}`}>
+        {ESCALA_ASPECTO.map((o) => (
+          <button
+            key={o.valor}
+            type="button"
+            role="radio"
+            aria-checked={valor === o.valor}
+            onClick={() => onCalificar(o.valor)}
+            className={`rounded-xl px-1 py-3 text-center text-xs transition ${
+              valor === o.valor ? "font-bold text-slate-950" : "bg-white/5 text-slate-300 hover:bg-white/10"
+            }`}
+            style={valor === o.valor ? { background: d.color } : undefined}
+          >
+            <span className="block text-lg font-bold">{o.valor}</span>
+            {o.texto}
+          </button>
+        ))}
+      </div>
+
+      <p className="mt-6 text-sm font-semibold">Cuéntame cómo estás: elige una pregunta</p>
+      <div className="mt-2 space-y-2">
+        {d.preguntas.map((p) => (
+          <button
+            key={p}
+            type="button"
+            onClick={() => onPlaticar(p)}
+            className="flex w-full items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-3 text-left text-sm transition hover:border-cyan-400 hover:bg-cyan-400/5"
+          >
+            <MessageCircle className="h-4 w-4 shrink-0" style={{ color: d.color }} />
+            {p}
+          </button>
+        ))}
+      </div>
+
+      <button
+        type="button"
+        onClick={() => onPlaticar()}
+        className="mt-4 w-full rounded-xl bg-cyan-400 p-3 font-bold text-slate-950 transition hover:bg-cyan-300"
+      >
+        Platicarlo con el acompañante
+      </button>
+    </div>
   );
 }

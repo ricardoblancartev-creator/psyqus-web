@@ -1,33 +1,56 @@
 /*
   Acompañante ilustrado de Psyqus (estilo 2D cálido, como los Shorts).
 
+  - Tres apariencias: mujer, hombre y sin género.
   - Parpadea y respira siempre; mueve la boca mientras "hablando" es true.
-  - Detrás lleva las cuatro dimensiones que acompaña (bio, psico, social y
-    espiritual) como círculos que se cruzan; se iluminan al hablar.
+  - Detrás lleva los cuatro aspectos del bienestar (biológico, psicológico,
+    social y propósito) como círculos que se cruzan. Cada círculo se puede
+    tocar (onElegir) y se llena según cómo dice estar la persona (valores 1-5).
   - Reemplaza visualmente a Avatar3D (que se conserva en
     app/dashboard/components/Avatar3D.tsx).
 */
 
+import { DIMENSIONES_BIENESTAR, type ClaveDimension } from "@/lib/dimensiones-bienestar";
+
+export type TipoAvatar = "mujer" | "hombre" | "neutral";
+
 type Props = {
-  avatar: "mujer" | "hombre";
+  avatar: TipoAvatar;
   hablando: boolean;
+  valores?: Partial<Record<ClaveDimension, number | null>>;
+  seleccionada?: ClaveDimension | null;
+  onElegir?: (clave: ClaveDimension) => void;
 };
 
-const DIMENSIONES = [
-  { nombre: "Bio", color: "#34d399", cx: 150, cy: 138, lx: 92, ly: 64 },
-  { nombre: "Psico", color: "#22d3ee", cx: 250, cy: 138, lx: 308, ly: 64 },
-  { nombre: "Social", color: "#fbbf24", cx: 150, cy: 228, lx: 64, ly: 262 },
-  { nombre: "Espiritual", color: "#a78bfa", cx: 250, cy: 228, lx: 336, ly: 262 },
-];
+const POSICION: Record<ClaveDimension, { cx: number; cy: number; lx: number; ly: number }> = {
+  bio: { cx: 150, cy: 138, lx: 88, ly: 60 },
+  psico: { cx: 250, cy: 138, lx: 312, ly: 60 },
+  social: { cx: 150, cy: 228, lx: 62, ly: 266 },
+  proposito: { cx: 250, cy: 228, lx: 338, ly: 266 },
+};
 
 const PIEL = "#e7b48f";
 const PIEL_SOMBRA = "#cf9774";
 const CABELLO = "#3a2820";
 
-export default function AvatarIlustrado({ avatar, hablando }: Props) {
+const ROPA: Record<TipoAvatar, [string, string]> = {
+  mujer: ["#14b8a6", "#0f766e"],
+  hombre: ["#2c5282", "#1e3a5f"],
+  neutral: ["#8b5cf6", "#5b21b6"],
+};
+
+const NOMBRE: Record<TipoAvatar, string> = {
+  mujer: "mujer",
+  hombre: "hombre",
+  neutral: "sin género",
+};
+
+export default function AvatarIlustrado({ avatar, hablando, valores, seleccionada, onElegir }: Props) {
   const mujer = avatar === "mujer";
-  const ropa = mujer ? "#0f766e" : "#1e3a5f";
-  const ropaLuz = mujer ? "#14b8a6" : "#2c5282";
+  const hombre = avatar === "hombre";
+  const neutral = avatar === "neutral";
+  const [ropaLuz, ropa] = ROPA[avatar];
+  const interactivo = Boolean(onElegir);
 
   return (
     <div className="relative mx-auto w-full max-w-[420px]">
@@ -35,7 +58,7 @@ export default function AvatarIlustrado({ avatar, hablando }: Props) {
         viewBox="0 0 400 420"
         className={`psq-avatar w-full ${hablando ? "psq-hablando" : ""}`}
         role="img"
-        aria-label={`Acompañante ${mujer ? "mujer" : "hombre"}${hablando ? ", hablando" : ""}`}
+        aria-label={`Acompañante ${NOMBRE[avatar]}${hablando ? ", hablando" : ""}`}
       >
         <style>{`
           .psq-avatar .psq-cuerpo { transform-origin: 200px 420px; animation: psq-respira 4.5s ease-in-out infinite; }
@@ -43,9 +66,12 @@ export default function AvatarIlustrado({ avatar, hablando }: Props) {
           .psq-avatar .psq-boca-abierta { opacity: 0; transform-origin: 200px 252px; }
           .psq-avatar.psq-hablando .psq-boca-abierta { opacity: 1; animation: psq-habla 0.32s ease-in-out infinite alternate; }
           .psq-avatar.psq-hablando .psq-boca-cerrada { opacity: 0; }
-          .psq-avatar .psq-dim { transition: fill-opacity .6s ease, stroke-opacity .6s ease; }
+          .psq-avatar .psq-dim { transition: fill-opacity .5s ease, stroke-opacity .5s ease, stroke-width .3s ease; }
           .psq-avatar .psq-halo { transform-origin: 200px 183px; animation: psq-late 6s ease-in-out infinite; }
-          .psq-avatar.psq-hablando .psq-dim { fill-opacity: .3; stroke-opacity: 1; }
+          .psq-avatar.psq-hablando .psq-dim { stroke-opacity: 1; }
+          .psq-avatar .psq-toca { cursor: pointer; outline: none; }
+          .psq-avatar .psq-toca:hover .psq-dim, .psq-avatar .psq-toca:focus-visible .psq-dim { stroke-width: 5; stroke-opacity: 1; }
+          .psq-avatar .psq-toca:focus-visible .psq-etiqueta { text-decoration: underline; }
           @keyframes psq-respira { 0%,100% { transform: scale(1); } 50% { transform: scale(1.012, 1.018); } }
           @keyframes psq-parpadeo { 0%,92%,100% { transform: scaleY(1); } 95% { transform: scaleY(0.1); } }
           @keyframes psq-habla { from { transform: scaleY(0.35); } to { transform: scaleY(1); } }
@@ -69,42 +95,72 @@ export default function AvatarIlustrado({ avatar, hablando }: Props) {
 
         <circle cx="200" cy="190" r="190" fill="url(#psq-luz)" />
 
-        {/* Cuatro dimensiones */}
+        {/* Cuatro aspectos: se pueden tocar y se llenan según la autovaloración */}
         <g className="psq-halo">
-          {DIMENSIONES.map((d) => (
-            <circle
-              key={d.nombre}
-              className="psq-dim"
-              cx={d.cx}
-              cy={d.cy}
-              r={96}
-              fill={d.color}
-              fillOpacity={0.12}
-              stroke={d.color}
-              strokeOpacity={0.55}
-              strokeWidth={2.5}
-            />
-          ))}
+          {DIMENSIONES_BIENESTAR.map((d) => {
+            const p = POSICION[d.clave];
+            const v = valores?.[d.clave] ?? null;
+            const activo = seleccionada === d.clave;
+            return (
+              <g
+                key={d.clave}
+                className={interactivo ? "psq-toca" : undefined}
+                role={interactivo ? "button" : undefined}
+                tabIndex={interactivo ? 0 : undefined}
+                aria-label={interactivo ? `Ver el aspecto ${d.nombre.toLowerCase()}` : undefined}
+                aria-pressed={interactivo ? activo : undefined}
+                onClick={() => onElegir?.(d.clave)}
+                onKeyDown={(e) => {
+                  if (interactivo && (e.key === "Enter" || e.key === " ")) {
+                    e.preventDefault();
+                    onElegir?.(d.clave);
+                  }
+                }}
+              >
+                <circle
+                  className="psq-dim"
+                  cx={p.cx}
+                  cy={p.cy}
+                  r={96}
+                  fill={d.color}
+                  fillOpacity={activo ? 0.34 : v === null ? 0.1 : 0.08 + (v / 5) * 0.3}
+                  stroke={d.color}
+                  strokeOpacity={activo ? 1 : 0.55}
+                  strokeWidth={activo ? 5 : 2.5}
+                  strokeDasharray={interactivo && v === null && !activo ? "7 6" : undefined}
+                />
+                <text
+                  className="psq-etiqueta"
+                  x={p.lx}
+                  y={p.ly}
+                  textAnchor="middle"
+                  fill={d.color}
+                  fontSize={d.corto.length > 6 ? 16 : 18}
+                  fontWeight={800}
+                >
+                  {d.corto}
+                </text>
+                {v !== null && (
+                  <text x={p.lx} y={p.ly + 20} textAnchor="middle" fill="#e2e8f0" fontSize={14} fontWeight={700}>
+                    {v}/5
+                  </text>
+                )}
+              </g>
+            );
+          })}
         </g>
-        {DIMENSIONES.map((d) => (
-          <text
-            key={`${d.nombre}-t`}
-            x={d.lx}
-            y={d.ly}
-            textAnchor="middle"
-            fill={d.color}
-            fontSize={d.nombre.length > 6 ? 15 : 17}
-            fontWeight={800}
-          >
-            {d.nombre}
-          </text>
-        ))}
 
         <g className="psq-cuerpo">
-          {/* Cabello de atrás (mujer) */}
+          {/* Cabello de atrás */}
           {mujer && (
             <path
               d="M138 196 C128 128 168 112 200 112 C238 112 274 130 264 200 C268 250 270 286 252 306 L148 306 C130 286 134 250 138 196 Z"
+              fill={CABELLO}
+            />
+          )}
+          {neutral && (
+            <path
+              d="M136 200 C128 132 168 112 200 112 C236 112 272 132 264 200 C266 230 262 252 252 266 L148 266 C138 252 134 230 136 200 Z"
               fill={CABELLO}
             />
           )}
@@ -117,12 +173,18 @@ export default function AvatarIlustrado({ avatar, hablando }: Props) {
           {/* Cuello */}
           <path d="M180 262 L220 262 L222 316 C210 326 190 326 178 316 Z" fill={PIEL_SOMBRA} />
           {/* Escote / cuello de la ropa */}
-          {mujer ? (
-            <path d="M172 314 L200 350 L228 314 C220 310 180 310 172 314 Z" fill={PIEL} />
-          ) : (
+          {mujer && <path d="M172 314 L200 350 L228 314 C220 310 180 310 172 314 Z" fill={PIEL} />}
+          {hombre && (
             <>
               <path d="M176 312 L200 342 L224 312 L214 308 L200 324 L186 308 Z" fill="#e2e8f0" />
               <path d="M196 330 L204 330 L208 380 L200 392 L192 380 Z" fill="#0ea5b7" />
+            </>
+          )}
+          {neutral && (
+            <>
+              {/* cuello redondo de sudadera */}
+              <path d="M170 314 Q200 340 230 314 Q200 326 170 314 Z" fill="#ede9fe" />
+              <path d="M170 314 Q200 340 230 314" stroke="#ede9fe" strokeWidth="5" fill="none" strokeLinecap="round" />
             </>
           )}
 
@@ -136,14 +198,21 @@ export default function AvatarIlustrado({ avatar, hablando }: Props) {
           />
 
           {/* Cabello de enfrente */}
-          {mujer ? (
+          {mujer && (
             <path
               d="M138 204 C132 146 166 116 204 118 C240 120 268 146 262 204 C254 176 240 160 222 152 C206 168 176 176 150 176 C144 184 140 194 138 204 Z"
               fill={CABELLO}
             />
-          ) : (
+          )}
+          {hombre && (
             <path
               d="M140 196 C136 144 168 120 204 120 C238 120 266 142 260 196 C256 178 250 166 240 158 C216 160 186 156 162 150 C152 162 146 176 140 196 Z"
+              fill={CABELLO}
+            />
+          )}
+          {neutral && (
+            <path
+              d="M138 214 C130 150 166 116 202 116 C240 116 270 148 262 214 C258 190 252 172 244 162 C226 170 206 168 190 158 C176 168 160 172 148 172 C142 184 139 198 138 214 Z"
               fill={CABELLO}
             />
           )}
@@ -180,7 +249,7 @@ export default function AvatarIlustrado({ avatar, hablando }: Props) {
           </g>
 
           {/* Barba ligera (hombre) */}
-          {!mujer && (
+          {hombre && (
             <path
               d="M150 236 C156 262 176 278 200 278 C224 278 244 262 250 236 C244 256 226 268 200 268 C174 268 156 256 150 236 Z"
               fill={CABELLO}
@@ -191,7 +260,9 @@ export default function AvatarIlustrado({ avatar, hablando }: Props) {
       </svg>
 
       <p className="-mt-1 text-xs text-slate-400">
-        Te acompaño en lo bio, psico, social y espiritual
+        {interactivo
+          ? "Toca un círculo para ver cómo estás en ese aspecto"
+          : "Te acompaño en lo biológico, psicológico, social y en tu propósito"}
       </p>
     </div>
   );

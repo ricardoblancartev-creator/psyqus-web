@@ -1,13 +1,13 @@
 import Link from "next/link";
 
 /*
-  Perfil bio-psico-social-espiritual del trabajador.
+  Perfil bio-psico-social-propósito del trabajador.
 
   Cada dimensión se alimenta del último pulso semanal (escala 1 a 5):
   - Bio        ← energía
   - Psico      ← desconexión del trabajo
   - Social     ← apoyo del equipo
-  - Espiritual ← sentido (pregunta agregada en noviembre de 2026)
+  - Propósito  ← sentido (antes "espiritual"; pregunta agregada en noviembre de 2026)
 
   Es orientativo: no es un diagnóstico. Solo lo ve el propio usuario.
 */
@@ -21,7 +21,7 @@ export type PulsoPerfil = {
 } | null;
 
 type Dimension = {
-  clave: "bio" | "psico" | "social" | "espiritual";
+  clave: "bio" | "psico" | "social" | "proposito";
   nombre: string;
   abarca: string;
   fuente: string;
@@ -76,7 +76,7 @@ export default function PerfilBienestar({
       valor: valorValido(pulso?.desconexion),
       color: "#22d3ee",
       colorTexto: "text-cyan-300",
-      recurso: { texto: "Aprender a desconectarte", href: "/psicoeducacion" },
+      recurso: { texto: "Jugar: Cambia el pensamiento", href: "/psicoeducacion#pensamientos" },
       cx: 250,
       cy: 150,
       lx: 290,
@@ -97,9 +97,9 @@ export default function PerfilBienestar({
       ly: 312,
     },
     {
-      clave: "espiritual",
-      nombre: "Espiritual",
-      abarca: "Sentido, propósito y valores",
+      clave: "proposito",
+      nombre: "Propósito",
+      abarca: "Sentido, metas, valores y motivación",
       fuente: "El sentido de tu semana",
       valor: valorValido(pulso?.sentido),
       color: "#a78bfa",
@@ -135,7 +135,7 @@ export default function PerfilBienestar({
             Tu perfil de bienestar
           </p>
           <h2 className="mt-1 text-2xl font-black md:text-3xl">
-            Bio · Psico · Social · Espiritual
+            Bio · Psico · Social · Propósito
           </h2>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-400">
             Tu bienestar es la suma de cuatro dimensiones que se tocan entre sí.
@@ -153,7 +153,7 @@ export default function PerfilBienestar({
           viewBox="0 0 400 400"
           className="mx-auto w-full max-w-[420px]"
           role="img"
-          aria-label="Diagrama de cuatro dimensiones del bienestar: bio, psico, social y espiritual"
+          aria-label="Diagrama de cuatro dimensiones del bienestar: bio, psico, social y propósito"
         >
           {dims.map((d) => {
             const intensidad = d.valor === null ? 0 : d.valor / 5;

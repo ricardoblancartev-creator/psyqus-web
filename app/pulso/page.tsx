@@ -123,7 +123,7 @@ export default function PulsoPage() {
   const [apoyo, setApoyo] =
     useState<number | null>(null);
 
-  // Dimensión espiritual del perfil: sentido o propósito.
+  // Aspecto "propósito" del perfil (columna "sentido" en la base).
   const [sentido, setSentido] =
     useState<number | null>(null);
 
@@ -495,7 +495,7 @@ export default function PulsoPage() {
 
           </section>
 
-          {/* SENTIDO (dimensión espiritual) */}
+          {/* PROPÓSITO (columna "sentido") */}
 
           <section className="rounded-[1.7rem] border border-white/10 bg-slate-950/65 p-6">
 
@@ -510,7 +510,7 @@ export default function PulsoPage() {
               <div className="flex-1">
 
                 <p className="text-[10px] uppercase tracking-[0.2em] text-slate-600">
-                  Sentido
+                  Propósito
                 </p>
 
                 <h2 className="mt-1 text-lg font-black">

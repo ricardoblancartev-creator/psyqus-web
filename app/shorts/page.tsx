@@ -327,6 +327,23 @@ function ShortCard({
     };
   }, [active, attempt]);
 
+  function alternarSonido() {
+    const nextMuted = !muted;
+    setMuted(nextMuted);
+
+    const activeVideo = document.querySelector<HTMLVideoElement>(
+      "video[data-short-active=\"true\"]"
+    );
+
+    if (activeVideo) {
+      activeVideo.volume = 1;
+      activeVideo.muted = nextMuted;
+      if (!nextMuted && activeVideo.paused) {
+        void activeVideo.play().catch(() => undefined);
+      }
+    }
+  }
+
   function togglePlay() {
     const video = videoRef.current;
     if (!video || !active) return;
@@ -416,36 +433,52 @@ function ShortCard({
             )}
           </button>
 
-          <button
-            type="button"
-            onClick={() => {
-              const nextMuted = !muted;
-              setMuted(nextMuted);
-
-              const activeVideo = document.querySelector<HTMLVideoElement>(
-                "video[data-short-active=\"true\"]"
-              );
-
-              if (activeVideo) {
-                activeVideo.volume = 1;
-                activeVideo.muted = nextMuted;
-                if (!nextMuted && activeVideo.paused) {
-                  void activeVideo.play().catch(() => undefined);
-                }
-              }
-            }}
-            tabIndex={active ? 0 : -1}
-            aria-label={
-              muted ? "Activar sonido" : "Silenciar video"
-            }
-            className="rounded-full bg-black/45 p-2.5"
-          >
-            {muted ? (
-              <VolumeX className="h-5 w-5" />
-            ) : (
-              <Volume2 className="h-5 w-5" />
+          <div className="relative">
+            {/* Aviso: el video está en silencio → flecha que señala la bocina */}
+            {muted && active && (
+              <button
+                type="button"
+                onClick={alternarSonido}
+                tabIndex={-1}
+                aria-hidden="true"
+                className="psq-aviso-sonido absolute right-full top-1/2 mr-2 flex -translate-y-1/2 items-center gap-1.5 whitespace-nowrap rounded-full bg-cyan-400 py-1.5 pl-3 pr-2 text-xs font-bold text-slate-950 shadow-lg shadow-cyan-500/30"
+              >
+                Activar sonido
+                <ArrowRight className="h-4 w-4" strokeWidth={3} />
+              </button>
             )}
-          </button>
+
+            <button
+              type="button"
+              onClick={alternarSonido}
+              tabIndex={active ? 0 : -1}
+              aria-label={
+                muted ? "Activar sonido" : "Silenciar video"
+              }
+              className={`rounded-full p-2.5 ${
+                muted && active
+                  ? "bg-cyan-400/90 text-slate-950 ring-4 ring-cyan-400/30"
+                  : "bg-black/45"
+              }`}
+            >
+              {muted ? (
+                <VolumeX className="h-5 w-5" />
+              ) : (
+                <Volume2 className="h-5 w-5" />
+              )}
+            </button>
+
+            <style>{`
+              .psq-aviso-sonido { animation: psq-aviso 1.1s ease-in-out infinite; }
+              @keyframes psq-aviso {
+                0%, 100% { transform: translate(0, -50%); }
+                50% { transform: translate(-6px, -50%); }
+              }
+              @media (prefers-reduced-motion: reduce) {
+                .psq-aviso-sonido { animation: none; }
+              }
+            `}</style>
+          </div>
         </div>
 
         <div className="absolute inset-x-0 bottom-3 px-4">
