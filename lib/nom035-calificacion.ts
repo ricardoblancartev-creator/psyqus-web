@@ -141,7 +141,7 @@ function nivelPorCortes(
   CATEGORÍAS OFICIALES - GUÍA II
 */
 
-const CATEGORIAS = {
+export const CATEGORIAS = {
   "Ambiente de trabajo": {
     items: [1, 2, 3],
     cortes: [3, 5, 7, 9] as [number, number, number, number],
@@ -195,7 +195,7 @@ const CATEGORIAS = {
   DOMINIOS OFICIALES - GUÍA II
 */
 
-const DOMINIOS = {
+export const DOMINIOS = {
   "Condiciones en el ambiente de trabajo": {
     items: [1, 2, 3],
     cortes: [3, 5, 7, 9] as [

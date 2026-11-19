@@ -32,7 +32,8 @@ export async function POST(req: Request) {
     }
 
     const limite = revisarLimites(`interpretar:${userId}`, [
-      { maximo: 60, ventanaMs: 10 * 60_000 },
+      // El reporte detallado pide una por pregunta (hasta 61).
+      { maximo: 150, ventanaMs: 10 * 60_000 },
       { maximo: 500, ventanaMs: 24 * 60 * 60_000 },
     ]);
 

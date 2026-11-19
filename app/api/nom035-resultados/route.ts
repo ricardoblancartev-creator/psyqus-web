@@ -4,16 +4,39 @@ import {
   respuestaNoAutorizado,
   respuestaProhibido,
 } from "@/lib/auth-servidor";
+import {
+  empresaDeEvaluacion,
+  obtenerEmpresaNom035,
+} from "@/lib/nom035-empresas";
 
 /*
   Resultados individuales NOM-035 para el panel
   profesional. Solo admin o psicologo.
 
   Campos limitados a lo que usa
-  app/nom035-resultados/page.tsx (sin email).
+  app/nom035-resultados/ResultadosNom035.tsx (sin email).
+
+  ?empresa=pocs|3p filtra por empresa
+  (ver lib/nom035-empresas.ts). Sin parámetro
+  devuelve todo, como antes.
 */
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const empresaParam = new URL(request.url).searchParams.get(
+      "empresa"
+    );
+
+    const empresa = empresaParam
+      ? obtenerEmpresaNom035(empresaParam)
+      : null;
+
+    if (empresaParam && !empresa) {
+      return Response.json(
+        { error: "EMPRESA_INVALIDA" },
+        { status: 400 }
+      );
+    }
+
     const { userId, rol } = await obtenerProfesional();
 
     if (!userId) {
@@ -55,7 +78,13 @@ export async function GET() {
       );
     }
 
-    return Response.json(data || []);
+    const filas = (data || []).filter(
+      (fila) =>
+        !empresa ||
+        empresaDeEvaluacion(fila.user_id) === empresa.id
+    );
+
+    return Response.json(filas);
   } catch (error) {
     console.error("GET /api/nom035-resultados:", error);
 
